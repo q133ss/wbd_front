@@ -51,6 +51,7 @@ declare module 'vue-router/auto-routes' {
     'apps-email-filter': RouteRecordInfo<'apps-email-filter', '/apps/email/:filter', { filter: ParamValue<true> }, { filter: ParamValue<false> }>,
     'apps-email-label': RouteRecordInfo<'apps-email-label', '/apps/email/:label', { label: ParamValue<true> }, { label: ParamValue<false> }>,
     'categories': RouteRecordInfo<'categories', '/categories', Record<never, never>, Record<never, never>>,
+    'categories-id': RouteRecordInfo<'categories-id', '/categories/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'charts-apex-chart': RouteRecordInfo<'charts-apex-chart', '/charts/apex-chart', Record<never, never>, Record<never, never>>,
     'charts-chartjs': RouteRecordInfo<'charts-chartjs', '/charts/chartjs', Record<never, never>, Record<never, never>>,
     'components-alert': RouteRecordInfo<'components-alert', '/components/alert', Record<never, never>, Record<never, never>>,

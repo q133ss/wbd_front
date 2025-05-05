@@ -15,6 +15,6 @@ export default {
       }
     })
 
-    return response.data
+    return response
   }
 }

@@ -60,11 +60,15 @@ onMounted(fetchCategories)
           md="3"
           lg="2"
         >
+          <!-- eslint-disable-next-line vue/component-name-in-template-casing -->
+          <router-link
+            :to="`/categories/${category.category_id}`"
+            class="text-decoration-none"
+          >
           <div class="text-center img-wrap">
             <VImg
-              :src="category.img?.src"
+              :src="category.img?.src || '/assets/images/no_image.svg'"
               alt=""
-              aspect-ratio="1"
               cover
               height="335px"
               class="rounded mb-3"
@@ -74,6 +78,7 @@ onMounted(fetchCategories)
                 {{ category.product_count }} товар(ов)
             </p>
           </div>
+          </router-link>
         </VCol>
 
         <!-- Если нет категорий -->
