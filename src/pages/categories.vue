@@ -60,20 +60,19 @@ onMounted(fetchCategories)
           md="3"
           lg="2"
         >
-          <div class="text-center">
+          <div class="text-center img-wrap">
             <VImg
               :src="category.img?.src"
               alt=""
               aspect-ratio="1"
               cover
-              height="100"
+              height="335px"
               class="rounded mb-3"
             />
-            <span class="text-caption">{{ category.category_name }}</span>
-            <br>
-            <span class="text-caption text-disabled">
+            <h2 class="text-caption category-name">{{ category.category_name }}</h2>
+            <p class="text-caption text-disabled product-count">
                 {{ category.product_count }} товар(ов)
-            </span>
+            </p>
           </div>
         </VCol>
 
@@ -93,5 +92,25 @@ onMounted(fetchCategories)
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 80px;
+}
+
+.category-name{
+  position: relative;
+  top: -100%;
+  z-index: 999;
+  height: 40px;
+  color: #000000;
+}
+
+.product-count{
+  position: relative;
+  top: -80px;
+  z-index: 999;
+  color: #000000!important;
+}
+
+.img-wrap{
+  height: 335px;
+  background-color: #f5f5f4;
 }
 </style>
