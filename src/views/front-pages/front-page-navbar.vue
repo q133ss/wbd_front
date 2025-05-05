@@ -279,101 +279,30 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
           :class="$vuetify.display.mdAndUp ? 'd-flex' : 'd-none'"
           class="text-base align-center gap-x-2"
         >
-          <RouterLink
-            v-for="(item, index) in ['Home', 'Features', 'Team', 'FAQ', 'Contact us']"
-            :key="index"
-            :to="{ name: 'front-pages-landing-page', hash: `#${item.toLowerCase().replace(' ', '-')}` }"
-            class="nav-link font-weight-medium"
-            :class="[props.activeId?.toLocaleLowerCase().replace('-', ' ') === item.toLocaleLowerCase() ? 'active-link' : '']"
-          >
-            {{ item }}
-          </RouterLink>
-
           <!-- Pages Menu -->
-          <span
-            class="font-weight-medium cursor-pointer nav-link"
-            :class="isPageActive ? 'active-link' : 'text-high-emphasis'"
-          >
-            Pages
-            <VIcon
-              icon="ri-arrow-down-s-line"
-              size="20"
-              class="ms-2"
-            />
-
-            <VMenu
-              open-on-hover
-              activator="parent"
-              transition="slide-y-transition"
-              location="bottom center"
-              offset="16"
-              content-class="mega-menu"
-              location-strategy="static"
-              close-on-content-click
-            >
-              <VCard max-width="1000">
-                <VCardText class="pa-8">
-                  <div class="nav-menu">
-                    <div
-                      v-for="(item, index) in menuItems"
-                      :key="index"
-                    >
-                      <div class="d-flex align-center gap-x-3 mb-6">
-                        <VAvatar
-                          variant="tonal"
-                          color="primary"
-                          rounded
-                          :icon="item.listIcon"
-                        />
-                        <div class="text-body-1 text-high-emphasis font-weight-medium">
-                          {{ item.listTitle }}
-                        </div>
-                      </div>
-                      <ul>
-                        <li
-                          v-for="listItem in item.navItems"
-                          :key="listItem.name"
-                          style="list-style: none;"
-                          class="text-body-1 mb-4 text-no-wrap"
-                        >
-                          <RouterLink
-                            class="mega-menu-item"
-                            :to="listItem.to"
-                            :target="item.listTitle === 'Page' ? '_self' : '_blank'"
-                            :class="isCurrentRoute(listItem.to) ? 'active-link' : ''"
-                          >
-                            <div class="d-flex align-center">
-                              <VIcon
-                                icon="ri-circle-line"
-                                :size="10"
-                                class="me-2"
-                              />
-                              <span>{{ listItem.name }}</span>
-                            </div>
-                          </RouterLink>
-                        </li>
-                      </ul>
-                    </div>
-                    <img
-                      :src="navImg"
-                      alt="Navigation Image"
-                      class="d-inline-block rounded-lg"
-                      style="border: 10px solid rgb(var(--v-theme-background));"
-                      :width="$vuetify.display.lgAndUp ? '330' : '250'"
-                      :height="$vuetify.display.lgAndUp ? '330' : '250'"
-                    >
-                  </div>
-                </VCardText>
-              </VCard>
-            </VMenu>
-          </span>
-
           <RouterLink
             to="/"
-            target="_blank"
             class="nav-link font-weight-medium"
           >
-            Admin
+            Главная
+          </RouterLink>
+          <RouterLink
+            to="/categories"
+            class="nav-link font-weight-medium"
+          >
+            Категории
+          </RouterLink>
+          <RouterLink
+            to="/favorites"
+            class="nav-link font-weight-medium"
+          >
+            Избранное
+          </RouterLink>
+          <RouterLink
+            to="/profile"
+            class="nav-link font-weight-medium"
+          >
+            Профиль
           </RouterLink>
         </div>
       </div>
@@ -388,11 +317,10 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
           prepend-icon="ri-shopping-cart-line"
           variant="elevated"
           color="primary"
-          href="https://1.envato.market/materialize_admin"
-          target="_blank"
+          href="/delivery"
           rel="noopener noreferrer"
         >
-          Purchase Now
+          Заказы
         </VBtn>
 
         <VBtn

@@ -46,20 +46,10 @@ const menus = [
                 </h1>
               </div>
               <div class="text-body-1 footer-text mb-6">
-                Most Powerful & Comprehensive <span class="text-high-emphasis">🤩</span> Vuejs Admin Template with Elegant Material Design & Unique Layouts.
+                Общество с ограниченной ответственностью “Маркет Ревью”
+                <br>
+                ИНН: 9722092663
               </div>
-              <VForm class="subscribe-form d-flex align-center gap-4">
-                <VTextField
-                  label="Subscribe to newsletter"
-                  placeholder="john@email.com"
-                  theme="dark"
-                  density="compact"
-                  class="footer-text"
-                />
-                <VBtn size="large">
-                  Subscribe
-                </VBtn>
-              </VForm>
             </div>
           </VCol>
 
@@ -71,32 +61,44 @@ const menus = [
           >
             <div class="footer-links">
               <div class="footer-heading mb-6">
-                Pages
+                Покупателям
               </div>
               <ul style="list-style: none;">
-                <li
-                  v-for="(item, index) in menus"
-                  :key="index"
-                  class="mb-4"
-                >
+                <li class="mb-4">
                   <RouterLink
                     class="text-body-1 footer-text text-no-wrap"
-                    :to="item.to"
+                    to="/"
                   >
                     <div class="d-flex align-center">
                       <div>
-                        {{ item.name }}
+                        Главная
                       </div>
-                      <template v-if="item.isNew">
-                        <VChip
-                          color="primary"
-                          variant="elevated"
-                          size="small"
-                          class="ms-2"
-                        >
-                          New
-                        </VChip>
-                      </template>
+                    </div>
+                  </RouterLink>
+                </li>
+
+                <li class="mb-4">
+                  <RouterLink
+                    class="text-body-1 footer-text text-no-wrap"
+                    to="/categories"
+                  >
+                    <div class="d-flex align-center">
+                      <div>
+                        Категории
+                      </div>
+                    </div>
+                  </RouterLink>
+                </li>
+
+                <li class="mb-4">
+                  <RouterLink
+                    class="text-body-1 footer-text text-no-wrap"
+                    to="/buyer/login"
+                  >
+                    <div class="d-flex align-center">
+                      <div>
+                        Вход
+                      </div>
                     </div>
                   </RouterLink>
                 </li>
@@ -112,20 +114,24 @@ const menus = [
           >
             <div class="footer-links">
               <div class="footer-heading mb-6">
-                Products
+                Продавцам
               </div>
               <ul>
-                <li
-                  v-for="(item, index) in ['Page Builder', 'Admin Dashboards', 'UI Kits', 'Illustrations']"
-                  :key="index"
-                  class="mb-4 text-body-1"
-                  style="list-style: none;"
-                >
+                <li class="mb-4 text-body-1" style="list-style: none;">
                   <RouterLink
-                    to=""
+                    to="/seller/login"
                     class="footer-text text-no-wrap"
                   >
-                    {{ item }}
+                    Вход
+                  </RouterLink>
+                </li>
+
+                <li class="mb-4 text-body-1" style="list-style: none;">
+                  <RouterLink
+                    to="/seller/support"
+                    class="footer-text text-no-wrap"
+                  >
+                    Поддержка
                   </RouterLink>
                 </li>
               </ul>
@@ -140,40 +146,35 @@ const menus = [
           >
             <div>
               <div class="footer-heading mb-6">
-                Download our app
+                Контакты
               </div>
               <div>
-                <VBtn
-                  v-for="(item, index) in [
-                    { image: appleImg, store: 'App Store' },
-                    { image: googlePlayImg, store: 'Google Play' },
-                  ]"
-                  :key="index"
-                  color="#211B2C"
-                  height="56"
-                  size="large"
-                  class="mb-4 d-block"
-                >
-                  <template #default>
-                    <div class="d-flex gap-x-6 footer-logo-buttons align-center">
-                      <div>
-                        <VImg
-                          :src="item.image"
-                          height="34"
-                          width="34"
-                        />
-                      </div>
-                      <div class="d-flex flex-column align-start">
-                        <div class="text-body-2 footer-text">
-                          Download on the
-                        </div>
-                        <div class="text-body-1 font-weight-medium footer-heading">
-                          {{ item.store }}
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </VBtn>
+                <ul>
+                  <li class="mb-4 text-body-1" style="list-style: none;">
+                    <VIcon
+                      icon="ri-mail-line"
+                      size="16"
+                      color="white"
+                    />
+                    contact@wbdiscount.pro
+                  </li>
+                  <li class="mb-4 text-body-1" style="list-style: none;">
+                    <VIcon
+                      icon="ri-phone-line"
+                      size="16"
+                      color="white"
+                    />
+                    +7 (977) 687 58 92
+                  </li>
+                  <li class="mb-4 text-body-1" style="list-style: none;">
+                    <VIcon
+                      icon="ri-map-pin-line"
+                      size="16"
+                      color="white"
+                    />
+                    г. Москва, вн. тер. г. муниципальный округ Лефортово, ул. Авиамоторная,д. 50 стр. 2, помещ. 29/2
+                  </li>
+                </ul>
               </div>
             </div>
           </VCol>
@@ -185,27 +186,14 @@ const menus = [
       <VContainer>
         <div class="d-flex justify-space-between flex-wrap gap-y-4">
           <span class="d-flex align-center text-body-2 footer-heading font-weight-regular">
-            &copy;
-
-            {{ new Date().getFullYear() }},
-            Made with <span><VIcon
-              icon="ri-heart-fill"
-              color="#FF4D49"
-            /></span> by <a
-              href="https://pixinvent.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="ms-1 footer-heading font-weight-regular"
-              style="color: rgba(255, 255, 255, var(--v-high-emphasis-opacity));"
-            >Pixinvent</a>
+            WBDiscount.pro | Все права защищены &copy; {{ new Date().getFullYear() }}
           </span>
           <div class="d-flex gap-x-1">
             <template
               v-for="(item, index) in [
-                { title: 'github', icon: 'bxl-github', href: 'https://github.com/pixinvent' },
-                { title: 'facebook', icon: 'bxl-facebook', href: 'https://www.facebook.com/pixinvents/' },
-                { title: 'twitter', icon: 'bxl-twitter', href: 'https://twitter.com/pixinvents' },
-                { title: 'instagram', icon: 'bxl-linkedin', href: 'https://www.linkedin.com/company/pixinvent' },
+                { title: 'Telegram', icon: 'ri-telegram-line', href: 'http://telegram.org' },
+                { title: 'Instagram', icon: 'ri-instagram-line', href: 'https://www.instagram.com' },
+                { title: 'VK', icon: 'ri-vk-line', href: 'https://vk.ru' },
               ]"
               :key="index"
             >
@@ -232,7 +220,7 @@ const menus = [
 
 <style lang="scss" scoped>
 .footer-top {
-  background: url("@images/front-pages/backgrounds/footer-bg.png") lightgray 50% / cover no-repeat;
+  background-color: rgba(var(--v-theme-background));
 }
 
 .footer-heading {

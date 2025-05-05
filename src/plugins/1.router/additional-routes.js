@@ -9,7 +9,6 @@ export const redirects = [
     name: 'index',
     component: () => import('@/pages/index.vue'),
     meta: {
-      layout: 'blank', // Указываем layout здесь
       public: true
     }
   },

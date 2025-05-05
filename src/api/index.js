@@ -1,5 +1,7 @@
+import categoriesApi from './categories'
 import productsApi from './products'
 
 export default {
-  products: productsApi
+  products: productsApi,
+  categories: categoriesApi
 }
