@@ -1,11 +1,17 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import productsApi from '@/api/products';
 import reviewsApi from '@/api/reviews';
 import ProductCard from '@/components/ProductCard.vue';
-import Navbar from "@/views/front-pages/front-page-navbar.vue"
-import Footer from "@/views/front-pages/front-page-footer.vue"
+import Navbar from "@/views/front-pages/front-page-navbar.vue";
+import Footer from "@/views/front-pages/front-page-footer.vue";
+
+definePage({
+  meta: {
+    layout: 'blank',
+  },
+})
 
 const route = useRoute();
 const router = useRouter();
@@ -14,39 +20,73 @@ const product = ref(null);
 const reviews = ref([]);
 const summary = ref(null);
 const pagination = ref(null);
-const relatedProducts = ref([]); // Похожие товары
-const tab = ref('order'); // Вкладка по умолчанию
-const currentPage = ref(1); // Текущая страница отзывов
-const isLoading = ref(true); // Индикатор загрузки
+const relatedProducts = ref([]);
+const tab = ref('order');
+const currentPage = ref(1);
+const isLoading = ref(true);
+const errorMessage = ref(null); // Для отображения ошибок
 
-definePage({
-  meta: {
-    layout: 'blank',
-  },
-})
-
-onMounted(async () => {
+// Функция для загрузки данных
+const loadProductData = async (id) => {
   try {
+    isLoading.value = true;
+    errorMessage.value = null;
+
     // Загружаем данные о товаре
-    product.value = await productsApi.getProductById(productId.value);
+    product.value = await productsApi.getProductById(id);
+    console.log('Товар загружен:', product.value);
+
     // Загружаем первую страницу отзывов
-    const reviewsResponse = await reviewsApi.getProductReviews(productId.value, currentPage.value);
+    const reviewsResponse = await reviewsApi.getProductReviews(id, currentPage.value);
+    console.log('Ответ от API отзывов:', reviewsResponse);
+
+    // Проверяем, что reviewsResponse содержит ожидаемые данные
+    if (!reviewsResponse || typeof reviewsResponse !== 'object') {
+      throw new Error('Некорректный формат ответа API для отзывов');
+    }
+
     reviews.value = reviewsResponse.reviews || [];
     summary.value = reviewsResponse.summary || {};
     pagination.value = reviewsResponse.pagination || {};
+    console.log('Отзывы:', reviews.value);
+    console.log('Сводка:', summary.value);
+    console.log('Пагинация:', pagination.value);
+
     // Загружаем похожие товары
-    const relatedResponse = await productsApi.getRelatedProducts(productId.value);
+    const relatedResponse = await productsApi.getRelatedProducts(id);
     relatedProducts.value = (relatedResponse || []).map(item => ({
       ...item,
       reviews: item.reviews || [],
       summary: item.summary || { averageRating: 0, totalReviews: 0 }
-    })).slice(0, 6); // Ограничиваем до 6 товаров
+    })).slice(0, 6);
+    console.log('Похожие товары:', relatedProducts.value);
   } catch (error) {
     console.error('Ошибка при загрузке данных:', error);
+    errorMessage.value = 'Не удалось загрузить данные. Попробуйте позже.';
   } finally {
     isLoading.value = false;
   }
+};
+
+// Выполняем загрузку данных при монтировании
+onMounted(() => {
+  loadProductData(productId.value);
 });
+
+// Отслеживаем изменения маршрута
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId && newId !== productId.value) {
+      productId.value = newId;
+      currentPage.value = 1; // Сбрасываем страницу отзывов
+      reviews.value = []; // Сбрасываем отзывы
+      summary.value = null; // Сбрасываем сводку
+      pagination.value = null; // Сбрасываем пагинацию
+      loadProductData(newId); // Загружаем данные для нового товара
+    }
+  }
+);
 
 // Отладка изменения вкладок
 const onTabChange = (newTab) => {
@@ -58,11 +98,18 @@ const loadMoreReviews = async () => {
   try {
     currentPage.value += 1;
     const reviewsResponse = await reviewsApi.getProductReviews(productId.value, currentPage.value);
+    console.log('Дополнительные отзывы:', reviewsResponse);
+
+    if (!reviewsResponse || typeof reviewsResponse !== 'object') {
+      throw new Error('Некорректный формат ответа API для дополнительных отзывов');
+    }
+
     reviews.value = [...reviews.value, ...(reviewsResponse.reviews || [])];
     summary.value = reviewsResponse.summary || {};
     pagination.value = reviewsResponse.pagination || {};
   } catch (error) {
-    console.error('Ошибка при загрузке отзывов:', error);
+    console.error('Ошибка при загрузке дополнительных отзывов:', error);
+    errorMessage.value = 'Не удалось загрузить дополнительные отзывы.';
   }
 };
 
@@ -89,13 +136,18 @@ const parsedImages = computed(() => {
   <Navbar />
   <VProgressCircular v-if="isLoading" indeterminate />
   <VContainer v-else>
+    <!-- Отображение ошибки, если она есть -->
+    <VAlert v-if="errorMessage" type="error" class="mb-4">
+      {{ errorMessage }}
+    </VAlert>
+
     <!-- Хлебные крошки -->
     <VBreadcrumbs class="breadcrumbs-container">
       <VBreadcrumbsItem to="/">Главная</VBreadcrumbsItem>
-      <VBreadcrumbsItem v-if="product.product.category" :to="`/categories/${product.product.category.id}`">
+      <VBreadcrumbsItem v-if="product?.product?.category" :to="`/categories/${product.product.category.id}`">
         {{ product.product.category.name }}
       </VBreadcrumbsItem>
-      <VBreadcrumbsItem>{{ product.name }}</VBreadcrumbsItem>
+      <VBreadcrumbsItem>{{ product?.name }}</VBreadcrumbsItem>
     </VBreadcrumbs>
 
     <!-- Основной контент -->
@@ -123,7 +175,7 @@ const parsedImages = computed(() => {
               </VCarouselItem>
             </VCarousel>
           </template>
-          <!-- Показываем плейсхолдер если нет картинок -->
+          <!-- Плейсхолдер если нет картинок -->
           <template v-else>
             <div class="product-image-placeholder" style="height: 400px; background: #f2f2f2; display: flex; align-items: center; justify-content: center;">
               <span style="color: #999;">Нет изображения</span>
@@ -134,7 +186,7 @@ const parsedImages = computed(() => {
 
       <!-- Информация о товаре -->
       <VCol cols="12" md="6">
-        <h1>{{ product.name }}</h1>
+        <h1>{{ product?.name }}</h1>
         <div class="d-flex align-center mb-2">
           <VRating
             :model-value="parseFloat(summary?.averageRating || 0)"
@@ -145,25 +197,25 @@ const parsedImages = computed(() => {
           <span class="text-caption ml-2">({{ summary?.totalReviews || 0 }})</span>
         </div>
         <div class="d-flex align-center gap-2 mb-2">
-          <span class="text-h5">{{ product.price_with_cashback }} ₽</span>
+          <span class="text-h5">{{ product?.price_with_cashback }} ₽</span>
           <span class="text-body-2 text-disabled text-decoration-line-through">
-            {{ product.price_without_cashback }} ₽
+            {{ product?.price_without_cashback }} ₽
           </span>
           <VChip
             size="small"
             color="primary"
           >
-            {{ product.cashback_percentage }}%
+            {{ product?.cashback_percentage }}%
           </VChip>
         </div>
         <div class="buybacks_data">
-          <div>Кол-во выкупов: {{ product.redemption_count }}</div>
-          <div>Осталось товаров с кэшбеком: {{ product.product.quantity_available }}</div>
+          <div>Кол-во выкупов: {{ product?.redemption_count }}</div>
+          <div>Осталось товаров с кэшбеком: {{ product?.product?.quantity_available }}</div>
         </div>
         <VBtn color="secondary" class="mr-2">В избранное</VBtn>
         <VBtn color="primary">Заказать</VBtn>
         <div class="mt-4 shop-details">
-          <strong>{{ product.shop.legal_name }}</strong>
+          <strong>{{ product?.shop?.legal_name }}</strong>
           <VBtn variant="text" class="link-button ml-5">Подробнее</VBtn>
           <VRating
             :model-value="1"
@@ -173,7 +225,7 @@ const parsedImages = computed(() => {
             size="x-small"
             class="shop-rating"
           />
-          ({{parseFloat(product.seller_rating || 0)}})
+          ({{ parseFloat(product?.seller_rating || 0) }})
         </div>
       </VCol>
     </VRow>
@@ -188,7 +240,7 @@ const parsedImages = computed(() => {
         </VTabs>
         <VWindow v-model="tab" class="product-tab-content">
           <VWindowItem value="order">
-            <div v-if="product.order_conditions" v-html="product.order_conditions"></div>
+            <div v-if="product?.order_conditions" v-html="product.order_conditions"></div>
             <div v-else class="text-caption">Условия заказа не указаны</div>
           </VWindowItem>
           <VWindowItem value="description">
@@ -196,34 +248,40 @@ const parsedImages = computed(() => {
             <div v-else class="text-caption">Описание отсутствует</div>
           </VWindowItem>
           <VWindowItem value="reviews">
-            <div v-for="review in reviews" :key="review.id" class="mb-4">
-              <p><strong>{{ review.user }}</strong> ({{ review.createdDate }})</p>
-              <VRating :model-value="review.rating" readonly density="compact" size="small" />
-              <p v-if="review.text">{{ review.text }}</p>
-              <p v-if="review.pros"><strong>Плюсы:</strong> {{ review.pros }}</p>
-              <p v-if="review.cons"><strong>Минусы:</strong> {{ review.cons }}</p>
-              <div v-if="review.photos.length">
-                <VImg
-                  v-for="(photo, idx) in review.photos"
-                  :key="idx"
-                  :src="photo"
-                  width="100"
-                  class="mr-2"
-                  style="display: inline-block;"
-                />
-              </div>
-              <div v-if="review.video">
-                <video controls :src="review.video.id" style="max-width: 200px;">
-                  Ваш браузер не поддерживает видео.
-                </video>
-              </div>
-              <div v-if="review.answer" class="mt-2">
-                <p><strong>Ответ продавца ({{ review.answer.createDate }}):</strong></p>
-                <p>{{ review.answer.text }}</p>
+            <div v-if="reviews.length">
+              <div v-for="review in reviews" :key="review.id" class="mb-4">
+                <p><strong>{{ review.user }}</strong> ({{ review.createdDate }})</p>
+                <VRating :model-value="review.rating" readonly density="compact" size="small" />
+                <p v-if="review.text">{{ review.text }}</p>
+                <p v-if="review.pros"><strong>Плюсы:</strong> {{ review.pros }}</p>
+                <p v-if="review.cons"><strong>Минусы:</strong> {{ review.cons }}</p>
+                <div v-if="review.photos?.length">
+                  <VImg
+                    v-for="(photo, idx) in review.photos"
+                    :key="idx"
+                    :src="photo"
+                    width="100"
+                    class="mr-2"
+                    style="display: inline-block;"
+                  />
+                </div>
+                <div v-if="review.video">
+                  <video controls :src="review.video.id" style="max-width: 200px;">
+                    Ваш браузер не поддерживает видео.
+                  </video>
+                </div>
+                <div v-if="review.answer" class="mt-2">
+                  <p><strong>Ответ продавца ({{ review.answer.createDate }}):</strong></p>
+                  <p>{{ review.answer.text }}</p>
+                </div>
               </div>
             </div>
-            <div v-if="!reviews.length">Нет отзывов</div>
-            <VBtn v-if="reviews.length && currentPage < pagination?.last_page" @click="loadMoreReviews">
+            <div v-else class="text-caption">Нет отзывов</div>
+            <VBtn
+              v-if="pagination?.last_page && currentPage < pagination.last_page"
+              @click="loadMoreReviews"
+              :disabled="isLoading"
+            >
               Загрузить еще
             </VBtn>
           </VWindowItem>
@@ -241,7 +299,6 @@ const parsedImages = computed(() => {
             :key="item.id"
             :item="item"
           />
-
         </VRow>
       </VCol>
     </VRow>
@@ -250,8 +307,7 @@ const parsedImages = computed(() => {
 </template>
 
 <style scoped lang="scss">
-
-.breadcrumbs-container{
+.breadcrumbs-container {
   margin-top: 80px;
 }
 
@@ -295,7 +351,7 @@ h2.mb-4 {
   font-weight: 500;
 }
 
-.buybacks_data{
+.buybacks_data {
   border-top: 1px solid #eeeeee;
   border-bottom: 1px solid #eeeeee;
   padding-top: 10px;
@@ -303,7 +359,7 @@ h2.mb-4 {
   margin-bottom: 20px;
 }
 
-.shop-details{
+.shop-details {
   display: flex;
   align-items: center;
   border: 1px solid #eeeeee;
@@ -312,7 +368,7 @@ h2.mb-4 {
   border-radius: 5px;
 }
 
-.product-tab-content{
+.product-tab-content {
   margin-top: 20px;
 }
 </style>
