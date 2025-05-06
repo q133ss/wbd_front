@@ -157,12 +157,6 @@ watch(() => route.params.id, (newId) => {
   categoryId.value = newId
   fetchProducts(1, true)
 })
-
-const router = useRouter()
-
-const goToProduct = (productId) => {
-  router.push(`/products/${productId}`)
-}
 </script>
 
 <template>
@@ -298,7 +292,6 @@ const goToProduct = (productId) => {
               v-for="item in productsData?.data"
               :key="item.id"
               :item="item"
-              @go-to-product="goToProduct"
             />
           </VRow>
         </VCol>

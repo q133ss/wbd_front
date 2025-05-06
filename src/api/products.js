@@ -23,5 +23,11 @@ export default {
     })
 
     return response
+  },
+  async getRelatedProducts(productId) {
+    const response = await $api(`/product/related/${productId}`, {
+      method: 'GET'
+    })
+    return response
   }
 }

@@ -77,7 +77,7 @@
             half-increments
           />
           <span class="text-caption ms-1">
-                  ({{ item.reviews.length }})
+                  ({{item.product.rating}})
                 </span>
         </div>
 
@@ -96,6 +96,12 @@ defineProps({
     required: true,
   },
 });
+
+const router = useRouter()
+
+const goToProduct = (productId) => {
+  router.push(`/products/${productId}`)
+}
 
 defineEmits(['go-to-product']);
 </script>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import Footer from '@/views/front-pages/front-page-footer.vue'
 import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import ProductCard from '@/components/ProductCard.vue'
@@ -85,13 +85,6 @@ const applyFilters = () => {
   dialogSort.value = false
   fetchProducts(1)
 }
-
-const router = useRouter()
-
-const goToProduct = (productId) => {
-  router.push(`/products/${productId}`)
-}
-
 
 // Монтирование
 onMounted(fetchProducts)
@@ -224,7 +217,6 @@ onUnmounted(() => {
           v-for="item in products"
           :key="item.id"
           :item="item"
-          @go-to-product="goToProduct"
         />
       </VRow>
 
@@ -272,6 +264,7 @@ onUnmounted(() => {
   margin-top: 20px;
   padding: 0 16px;
   max-width: 1440px;
+  margin-bottom: 20px;
 }
 
 .product-card {
