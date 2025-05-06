@@ -6,7 +6,12 @@ import ProductCard from '@/components/ProductCard.vue'
 import productApi from '@/api/index'
 
 // Состояния
-const productsData = ref(null)
+const products = ref([])
+const paginationInfo = ref({
+  current_page: 1,
+  last_page: 1
+})
+
 const currentPage = ref(1)
 const isLoading = ref(false)
 
@@ -26,9 +31,10 @@ const filters = ref({
 
 // Загрузка товаров
 const fetchProducts = async (page = 1) => {
+  if (isLoading.value || (paginationInfo.value && page > paginationInfo.value.last_page)) return
+
   try {
     isLoading.value = true
-    currentPage.value = page
 
     const params = { page, per_page: 18 }
 
@@ -55,15 +61,23 @@ const fetchProducts = async (page = 1) => {
     }
 
     const response = await productApi.products.getProducts(params)
-    productsData.value = response
-    console.log(response)
+
+    if (page === 1) {
+      products.value = response.data
+    } else {
+      products.value.push(...response.data)
+    }
+
+    paginationInfo.value = {
+      current_page: response.current_page,
+      last_page: response.last_page
+    }
   } catch (error) {
     console.error('Ошибка загрузки товаров:', error)
   } finally {
     isLoading.value = false
   }
 }
-
 
 const applyFilters = () => {
   dialogPrice.value = false
@@ -82,22 +96,26 @@ const goToProduct = (productId) => {
 // Монтирование
 onMounted(fetchProducts)
 
-// Вычисляемые свойства
-const products = computed(() => {
-  if (Array.isArray(productsData.value)) {
-    // если API отдало массив — возвращаем его
-    return productsData.value
+
+const handleScroll = () => {
+  const scrollHeight = document.documentElement.scrollHeight
+  const scrollTop = document.documentElement.scrollTop
+  const clientHeight = document.documentElement.clientHeight
+
+  if (scrollTop + clientHeight >= scrollHeight - 300) {
+    fetchProducts(paginationInfo.value.current_page + 1)
   }
-  // иначе, как раньше — из поля data
-  return productsData.value?.data || []
+}
+
+onMounted(() => {
+  fetchProducts(1)
+  window.addEventListener('scroll', handleScroll)
 })
 
-const pagination = computed(() => ({
-  currentPage: productsData.value?.current_page || 1,
-  lastPage: productsData.value?.last_page || 1,
-  total: productsData.value?.total || 0,
-  links: productsData.value?.links || []
-}))
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
 </script>
 
 <template>
@@ -201,13 +219,7 @@ const pagination = computed(() => ({
 
     <!-- Список товаров -->
     <VContainer class="products-container">
-      <VRow v-if="isLoading">
-        <VCol cols="12" class="text-center py-10">
-          <VProgressCircular indeterminate color="primary" />
-        </VCol>
-      </VRow>
-
-      <VRow v-else>
+      <VRow>
         <ProductCard
           v-for="item in products"
           :key="item.id"
@@ -216,15 +228,12 @@ const pagination = computed(() => ({
         />
       </VRow>
 
-      <!-- Пагинация -->
-      <VPagination
-        v-if="pagination.lastPage > 1"
-        v-model="currentPage"
-        :length="pagination.lastPage"
-        :total-visible="7"
-        @update:modelValue="fetchProducts"
-        class="mt-6"
-      />
+      <!-- Индикатор загрузки при скролле -->
+      <VRow v-if="isLoading">
+        <VCol cols="12" class="text-center py-6">
+          <VProgressCircular indeterminate color="primary" />
+        </VCol>
+      </VRow>
     </VContainer>
 
     <Footer />
