@@ -71,9 +71,12 @@ const applyFilters = () => {
   fetchProducts(1)
 }
 
-const addToCart = (product) => {
-  console.log('Добавлен товар:', product.product.name)
+const router = useRouter()
+
+const goToProduct = (productId) => {
+  router.push(`/products/${productId}`)
 }
+
 
 // Монтирование
 onMounted(fetchProducts)
@@ -242,9 +245,11 @@ const pagination = computed(() => ({
             </template>
 
             <VCardItem>
-              <VCardTitle class="text-body-1">
-                {{ item.product.name }}
-              </VCardTitle>
+              <router-link :to="`/products/${item.id}`" class="text-decoration-none">
+                <VCardTitle class="text-body-1">
+                  {{ item.product.name }}
+                </VCardTitle>
+              </router-link>
               <VChip
                 v-if="item.product.category"
                 size="small"
@@ -286,8 +291,8 @@ const pagination = computed(() => ({
                 </span>
               </div>
 
-              <VBtn block color="primary" prepend-icon="mdi-cart-plus" @click="addToCart(item)">
-                В корзину
+              <VBtn block color="primary" prepend-icon="mdi-cart-plus" @click="goToProduct(item.id)">
+                Перейти
               </VBtn>
             </VCardText>
           </VCard>

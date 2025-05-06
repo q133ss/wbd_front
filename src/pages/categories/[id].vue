@@ -150,6 +150,7 @@ watch(() => route.params.id, (newId) => {
   categoryId.value = newId
   fetchProducts(1, true)
 })
+
 const router = useRouter()
 
 const goToProduct = (productId) => {
