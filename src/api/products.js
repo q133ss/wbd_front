@@ -16,5 +16,12 @@ export default {
     })
 
     return response
+  },
+  async getProductById(productId) {
+    const response = await $api(`/product/${productId}`, {
+      method: 'GET'
+    })
+
+    return response
   }
 }
