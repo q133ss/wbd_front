@@ -43,5 +43,27 @@ export default {
       console.error(`Ошибка при получении подкатегорий для категории ${parentId}:`, error)
       return []
     }
+  },
+
+  async getCategoryProducts(categoryId, params = {}) {
+    const defaultParams = {
+      page: 1,
+      per_page: 18
+    }
+
+    try {
+      const response = await $api(`/categories/${categoryId}/products`, {
+        method: 'GET',
+        params: {
+          ...defaultParams,
+          ...params
+        }
+      })
+
+      return response
+    } catch (error) {
+      console.error(`Ошибка при получении товаров категории ${categoryId}:`, error)
+      return []
+    }
   }
 }

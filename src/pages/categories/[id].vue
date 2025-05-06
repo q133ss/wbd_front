@@ -5,8 +5,13 @@ import Footer from '@/views/front-pages/front-page-footer.vue'
 import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import productApi from '@/api/index'
 import categoriesApi from '@/api/categories'
-import { throttle } from "@antfu/utils"
 import ProductCard from "@/components/ProductCard.vue"
+
+definePage({
+  meta: {
+    layout: 'blank',
+  },
+})
 
 // Состояния
 const productsData = ref(null)
@@ -15,7 +20,6 @@ const currentPage = ref(1)
 const isLoading = ref(false)
 const isLoadingMore = ref(false)
 const isAllLoaded = ref(false)
-const scrollLoading = ref(false)
 const scrollObserver = ref(null)
 const scrollTrigger = ref(null)
 
@@ -55,35 +59,37 @@ const fetchProducts = async (page = 1, reset = false) => {
       isLoadingMore.value = true
     }
 
-    // Формируем параметры запроса
     const params = {
       page,
       per_page: 18,
-      category_id: categoryId.value,
       sort: filters.value.sort,
       order: filters.value.order
     }
 
-    // Добавляем фильтры по цене
+    // Фильтры по цене
     if (filters.value.price.length === 2) {
       params.price_from = Math.min(...filters.value.price)
       params.price_to = Math.max(...filters.value.price)
     }
 
-    // Добавляем фильтры по кешбеку
+    // Фильтры по кешбеку
     if (filters.value.cashback.length === 2) {
       params.cashback_from = Math.min(...filters.value.cashback)
       params.cashback_to = Math.max(...filters.value.cashback)
     }
 
-    const response = await productApi.products.getProducts(params)
+    // 🟢 Используем метод получения товаров из категории
+    const response = await productApi.categories.getCategoryProducts(categoryId.value, params)
 
-    if (reset || !productsData.value) {
+    if (reset || !productsData.value || !Array.isArray(productsData.value.data)) {
       productsData.value = response
     } else {
       productsData.value = {
         ...response,
-        data: [...productsData.value.data, ...response.data]
+        data: [
+          ...(Array.isArray(productsData.value.data) ? productsData.value.data : []),
+          ...(Array.isArray(response.data) ? response.data : [])
+        ]
       }
     }
 
@@ -304,10 +310,6 @@ const goToProduct = (productId) => {
       <!-- Индикаторы -->
       <div v-if="isLoadingMore" class="text-center py-4">
         <VProgressCircular indeterminate />
-      </div>
-
-      <div v-if="isAllLoaded && productsData?.data?.length" class="text-center py-4 text-disabled">
-        Вы достигли конца списка
       </div>
 
     </VContainer>
