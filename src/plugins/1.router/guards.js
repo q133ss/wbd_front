@@ -1,5 +1,3 @@
-import { canNavigate } from '@layouts/plugins/casl'
-
 export const setupGuards = router => {
   // 👉 router.beforeEach
   // Docs: https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards
@@ -27,19 +25,6 @@ export const setupGuards = router => {
         return '/'
       else
         return undefined
-    }
-    if (!canNavigate(to) && to.matched.length) {
-      /* eslint-disable indent */
-            return isLoggedIn
-                ? { name: 'not-authorized' }
-                : {
-                    name: 'login',
-                    query: {
-                        ...to.query,
-                        to: to.fullPath !== '/' ? to.path : undefined,
-                    },
-                }
-            /* eslint-enable indent */
     }
   })
 }

@@ -9,8 +9,9 @@ definePage({
 </script>
 
 <template>
-Избранное!
+В процессе
 </template>
+
 
 <style scoped lang="scss">
 
