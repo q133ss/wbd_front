@@ -314,13 +314,13 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
 
         <VBtn
           v-if="$vuetify.display.lgAndUp"
-          prepend-icon="ri-shopping-cart-line"
+          prepend-icon="ri-login-box-line"
           variant="elevated"
           color="primary"
-          href="/delivery"
+          href="/login"
           rel="noopener noreferrer"
         >
-          Заказы
+          Войти
         </VBtn>
 
         <VBtn

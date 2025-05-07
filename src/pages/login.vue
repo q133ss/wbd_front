@@ -1,5 +1,6 @@
 <script setup>
 import { VForm } from 'vuetify/components/VForm'
+import api from '@/api'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { themeConfig } from '@themeConfig'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
@@ -33,31 +34,32 @@ const errors = ref({
 const refVForm = ref()
 
 const credentials = ref({
-  email: 'admin@demo.com',
-  password: 'admin',
+  email: '',
+  password: '',
 })
 
 const rememberMe = ref(false)
 
 const login = async () => {
   try {
-    const res = await $api('/auth/login', {
-      method: 'POST',
-      body: {
-        email: credentials.value.email,
-        password: credentials.value.password,
-      },
-      onResponseError({ response }) {
-        errors.value = response._data.errors
-      },
+    const res = await api.auth.login({
+      phone: credentials.value.phone,
+      password: credentials.value.password,
+      role_id: 2,
     })
 
-    const { accessToken, userData, userAbilityRules } = res
+    const { token, user } = res
 
-    useCookie('userAbilityRules').value = userAbilityRules
-    ability.update(userAbilityRules)
-    useCookie('userData').value = userData
-    useCookie('accessToken').value = accessToken
+    useCookie('accessToken').value = token
+    useCookie('userData').value = user
+
+    //const { accessToken, userData, userAbilityRules } = res
+
+    // useCookie('userAbilityRules').value = userAbilityRules
+    // ability.update(userAbilityRules)
+    // useCookie('userData').value = userData
+    // useCookie('accessToken').value = accessToken
+
     await nextTick(() => {
       router.replace(route.query.to ? String(route.query.to) : '/')
     })
@@ -119,24 +121,11 @@ const onSubmit = () => {
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Welcome to <span class="text-capitalize">{{ themeConfig.app.title }}!</span> 👋🏻
+            Добро пожаловать на <span class="text-capitalize">{{ themeConfig.app.title }}!</span> 👋🏻
           </h4>
           <p class="mb-0">
-            Please sign-in to your account and start the adventure
+            Пожалуйста, войдите в свою учетную запись, чтобы начать работу с сервисом
           </p>
-        </VCardText>
-        <VCardText>
-          <VAlert
-            color="primary"
-            variant="tonal"
-          >
-            <p class="text-caption mb-2 text-primary">
-              Admin Email: <strong>admin@demo.com</strong> / Pass: <strong>admin</strong>
-            </p>
-            <p class="text-caption mb-0 text-primary">
-              Client Email: <strong>client@demo.com</strong> / Pass: <strong>client</strong>
-            </p>
-          </VAlert>
         </VCardText>
 
         <VCardText>
@@ -148,13 +137,13 @@ const onSubmit = () => {
               <!-- email -->
               <VCol cols="12">
                 <VTextField
-                  v-model="credentials.email"
-                  label="Email"
-                  placeholder="johndoe@email.com"
-                  type="email"
+                  v-model="credentials.phone"
+                  label="Телефон"
+                  placeholder="+7(999)999-99-99"
+                  type="text"
                   autofocus
-                  :rules="[requiredValidator, emailValidator]"
-                  :error-messages="errors.email"
+                  :rules="[requiredValidator, phoneValidator]"
+                  :error-messages="errors.phone"
                 />
               </VCol>
 
@@ -162,7 +151,7 @@ const onSubmit = () => {
               <VCol cols="12">
                 <VTextField
                   v-model="credentials.password"
-                  label="Password"
+                  label="Пароль"
                   placeholder="············"
                   :rules="[requiredValidator]"
                   :type="isPasswordVisible ? 'text' : 'password'"
@@ -175,13 +164,13 @@ const onSubmit = () => {
                 <div class="d-flex align-center flex-wrap justify-space-between my-6 gap-x-2">
                   <VCheckbox
                     v-model="rememberMe"
-                    label="Remember me"
+                    label="Запомнить меня"
                   />
                   <RouterLink
                     class="text-primary"
                     :to="{ name: 'forgot-password' }"
                   >
-                    Forgot Password?
+                    Забыли пароль?
                   </RouterLink>
                 </div>
 
@@ -189,7 +178,7 @@ const onSubmit = () => {
                   block
                   type="submit"
                 >
-                  Login
+                  Войти
                 </VBtn>
               </VCol>
 
@@ -199,13 +188,13 @@ const onSubmit = () => {
                 class="text-body-1 text-center"
               >
                 <span class="d-inline-block">
-                  New on our platform?
+                  Впервые у нас?
                 </span>
                 <RouterLink
                   class="text-primary ms-1 d-inline-block text-body-1"
                   :to="{ name: 'register' }"
                 >
-                  Create an account
+                  Создать аккаунт
                 </RouterLink>
               </VCol>
 
@@ -214,7 +203,7 @@ const onSubmit = () => {
                 class="d-flex align-center"
               >
                 <VDivider />
-                <span class="mx-4 text-high-emphasis">or</span>
+                <span class="mx-4 text-high-emphasis">или</span>
                 <VDivider />
               </VCol>
 
