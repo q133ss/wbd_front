@@ -134,7 +134,9 @@ const parsedImages = computed(() => {
 
 <template>
   <Navbar />
-  <VProgressCircular v-if="isLoading" indeterminate />
+  <VCol cols="12" v-if="isLoading" class="text-center py-10 mt-10">
+    <VProgressCircular indeterminate color="primary" />
+  </VCol>
   <VContainer v-else>
     <!-- Отображение ошибки, если она есть -->
     <VAlert v-if="errorMessage" type="error" class="mb-4">
@@ -144,9 +146,11 @@ const parsedImages = computed(() => {
     <!-- Хлебные крошки -->
     <VBreadcrumbs class="breadcrumbs-container">
       <VBreadcrumbsItem to="/">Главная</VBreadcrumbsItem>
+      <span>/</span>
       <VBreadcrumbsItem v-if="product?.product?.category" :to="`/categories/${product.product.category.id}`">
         {{ product.product.category.name }}
       </VBreadcrumbsItem>
+      <span>/</span>
       <VBreadcrumbsItem>{{ product?.name }}</VBreadcrumbsItem>
     </VBreadcrumbs>
 
@@ -216,7 +220,7 @@ const parsedImages = computed(() => {
         <VBtn color="primary">Заказать</VBtn>
         <div class="mt-4 shop-details">
           <strong>{{ product?.shop?.legal_name }}</strong>
-          <VBtn variant="text" class="link-button ml-5">Подробнее</VBtn>
+          <VBtn variant="text" class="link-button ml-5" :to="`/shop/${product.shop?.user_id}`">Подробнее</VBtn>
           <VRating
             :model-value="1"
             length="1"
