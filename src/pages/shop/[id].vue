@@ -3,59 +3,228 @@
   <VContainer class="page-container">
     <div v-if="seller" class="seller-page">
       <!-- Баннер -->
-      <div class="banner card-panel">
-        <div class="row">
-          <div class="col s12 m3 center-align">
-            <div class="avatar">
-              <img v-if="seller.avatar" :src="seller.avatar" alt="Аватар" class="circle responsive-img">
-              <span v-else class="avatar-text">{{ seller.shop.wb_name.slice(0, 2).toUpperCase() }}</span>
+      <VCard>
+        <VImg
+          src="/src/assets/images/pages/user-profile-header-bg.png"
+          min-height="125"
+          max-height="250"
+          cover
+        />
+
+        <VCardText class="d-flex align-bottom flex-sm-row flex-column justify-center gap-x-6">
+          <div class="d-flex h-0">
+            <VAvatar
+              rounded
+              color="primary"
+              size="130"
+              class="user-profile-avatar mx-auto"
+            >
+              <span class="text-lg">{{ seller.shop.wb_name.slice(0, 2).toUpperCase() }}</span>
+            </VAvatar>
+          </div>
+
+          <div class="user-profile-info w-100 mt-16 pt-6 pt-sm-0 mt-sm-0">
+            <h4 class="text-h4 text-center text-sm-start mb-2">
+              {{ seller.shop.wb_name }}
+
+<!--              DIA-->
+              <VDialog
+                v-model="isDialogVisible"
+                width="500"
+              >
+                <!-- Activator -->
+                <template #activator="{ props }">
+                  <VBtn v-bind="props" variant="text" color="primary" class="details-btn">
+                    <VIcon
+                      size="20"
+                      icon="ri-question-line"
+                    />
+                  </VBtn>
+                </template>
+
+                <!-- Dialog Content -->
+                <VCard title="Информация о продавце">
+                  <DialogCloseBtn
+                    variant="text"
+                    size="default"
+                    @click="isDialogVisible = false"
+                  />
+
+                  <VCardText>
+                    <VList :items="['ИНН: '+seller.shop.inn, 'Юр.лицо: '+seller.shop.legal_name]" />
+                  </VCardText>
+
+                  <VCardText class="d-flex justify-end flex-wrap gap-4">
+                    <VBtn
+                      variant="outlined"
+                      color="secondary"
+                      @click="isDialogVisible = false"
+                    >
+                      close
+                    </VBtn>
+                    <VBtn @click="isDialogVisible = false">
+                      I accept
+                    </VBtn>
+                  </VCardText>
+                </VCard>
+              </VDialog>
+<!--              DIA-->
+            </h4>
+
+            <div class="d-flex align-center justify-center justify-sm-space-between flex-wrap gap-6">
+              <div class="d-flex flex-wrap justify-center justify-sm-start flex-grow-1 gap-6">
+                <div class="d-flex align-center gap-x-2">
+                  <VIcon
+                    size="24"
+                    icon="ri-id-card-line"
+                  />
+                  <div class="text-body-1 font-weight-medium">
+                    ID: {{ seller.id }}
+                  </div>
+                </div>
+
+                <div class="d-flex align-center gap-x-2">
+                  <VIcon
+                    size="24"
+                    icon="ri-star-line"
+                  />
+                  <div class="text-body-1 font-weight-medium">
+                    Рейтинг: {{ seller.rating }}
+                  </div>
+                </div>
+
+                <div class="d-flex align-center gap-x-2">
+                  <VIcon
+                    size="24"
+                    icon="ri-calendar-line"
+                  />
+                  <div class="text-body-1 font-weight-medium">
+                    Дата регистрации: {{ formatDate(seller.shop.created_at) }}
+                  </div>
+                </div>
+              </div>
+
+              <VBtn prepend-icon="ri-user-follow-line">
+                Страница на wildberries
+              </VBtn>
             </div>
           </div>
-          <div class="col s12 m9">
-            <p><strong>Рейтинг:</strong> {{ seller.rating }}</p>
-            <p><strong>Название:</strong> {{ seller.shop.wb_name }}</p>
-            <p><strong>ИНН:</strong> {{ seller.shop.inn }}</p>
-            <p><strong>ID:</strong> {{ seller.shop.id }}</p>
-            <p><strong>Дата регистрации:</strong> {{ formatDate(seller.shop.created_at) }}</p>
-          </div>
-        </div>
-      </div>
+        </VCardText>
+      </VCard>
+
 
       <!-- Статистика -->
-      <div class="statistics row">
-        <div class="col s12 m3">
-          <div class="card hoverable center-align">
-            <div class="card-content">
-              <h5>{{ seller.success_buybacks }}%</h5>
-              <p>Успешных выкупов</p>
+      <VRow class="mt-2">
+      <VCol
+        cols="12"
+        lg="3"
+        sm="6"
+      >
+        <VCard class="position-relative">
+          <VCardText>
+            <div class="d-flex align-center flex-wrap">
+              <h3
+                class="text-h4 me-2"
+                :class="{
+                    'text-success': seller.success_buybacks >= 75,
+                    'text-warning': seller.success_buybacks >= 50 && seller.success_buybacks < 75,
+                    'text-error': seller.success_buybacks < 50
+                  }"
+              >
+                {{ seller.success_buybacks }}%
+              </h3>
             </div>
-          </div>
-        </div>
-        <div class="col s12 m3">
-          <div class="card hoverable center-align">
-            <div class="card-content">
-              <h5>{{ seller.cashback_paid }}</h5>
-              <p>Кэшбека выплачено</p>
+
+            <h4 class="text-h6 mb-2">
+              Успешных выкупов
+            </h4>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+      <VCol
+        cols="12"
+        lg="3"
+        sm="6"
+      >
+        <VCard class="position-relative">
+          <VCardText>
+            <div class="d-flex align-center flex-wrap">
+              <h3
+                class="text-h4 me-2"
+                :class="{
+                    'text-success': seller.cashback_paid >= 10000,
+                    'text-warning': seller.cashback_paid >= 1000 && seller.cashback_paid < 10000,
+                    'text-error': seller.cashback_paid < 1000
+                  }"
+              >
+                {{ seller.cashback_paid }}%
+              </h3>
             </div>
-          </div>
-        </div>
-        <div class="col s12 m3">
-          <div class="card hoverable center-align">
-            <div class="card-content">
-              <h5>{{ seller.product_rating }}</h5>
-              <p>Рейтинг товаров</p>
-            </div>
-          </div>
-        </div>
-        <div class="col s12 m3">
-          <div class="card hoverable center-align">
-            <div class="card-content">
-              <h5>{{ seller.total_reviews }}</h5>
-              <p>Оценок товаров</p>
-            </div>
-          </div>
-        </div>
-      </div>
+
+            <h4 class="text-h6 mb-2">
+              Кэшбэка выплаченно
+            </h4>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+        <VCol
+          cols="12"
+          lg="3"
+          sm="6"
+        >
+          <VCard class="position-relative">
+            <VCardText>
+              <div class="d-flex align-center flex-wrap">
+                <h3
+                  class="text-h4 me-2"
+                  :class="{
+                    'text-success': seller.product_rating >= 4,
+                    'text-warning': seller.product_rating >= 2 && seller.product_rating < 3,
+                    'text-error': seller.product_rating < 2
+                  }"
+                >
+                  {{ seller.product_rating }}%
+                </h3>
+              </div>
+
+              <h4 class="text-h6 mb-2">
+                Рейтинг товаров
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+
+        <VCol
+          cols="12"
+          lg="3"
+          sm="6"
+        >
+          <VCard class="position-relative">
+            <VCardText>
+              <div class="d-flex align-center flex-wrap">
+                <h3
+                  class="text-h4 me-2"
+                  :class="{
+                    'text-success': seller.total_reviews >= 15,
+                    'text-warning': seller.total_reviews >= 5 && seller.total_reviews < 15,
+                    'text-error': seller.total_reviews < 5
+                  }"
+                >
+                  {{ seller.total_reviews }}%
+                </h3>
+              </div>
+
+              <h4 class="text-h6 mb-2">
+                Оценок товаров
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+      </VRow>
 
       <!-- Товары -->
       <div class="products row">
@@ -132,6 +301,7 @@ definePage({
 const route = useRoute()
 const sellerId = ref(route.params.id)
 const seller = ref(null)
+const isDialogVisible = ref(false)
 
 // Получение данных продавца
 onMounted(async () => {
@@ -179,33 +349,6 @@ const normalizeProduct = (product) => {
 
 .seller-page {
   padding: 0; // Reset padding to avoid doubling with VContainer
-}
-
-.banner {
-  padding: 20px;
-  background: linear-gradient(135deg, #26a69a 0%, #4fc3f7 100%);
-  color: white;
-  .avatar {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto;
-  }
-  .avatar-text {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100px;
-    height: 100px;
-    background-color: rgba(0, 0, 0, 0.2);
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    border-radius: 50%;
-  }
-  p {
-    margin: 5px 0;
-    font-size: 16px;
-  }
 }
 
 .statistics {
@@ -277,5 +420,10 @@ const normalizeProduct = (product) => {
     font-size: 12px;
     color: #666;
   }
+}
+
+.details-btn{
+  padding: 0!important;
+  margin: 0;
 }
 </style>
