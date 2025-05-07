@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import productsApi from '@/api/products';
 import reviewsApi from '@/api/reviews';
+import favoriteApi from "@/api/favorite";
 import ProductCard from '@/components/ProductCard.vue';
 import Navbar from "@/views/front-pages/front-page-navbar.vue";
 import Footer from "@/views/front-pages/front-page-footer.vue";
@@ -34,11 +35,9 @@ const loadProductData = async (id) => {
 
     // Загружаем данные о товаре
     product.value = await productsApi.getProductById(id);
-    console.log('Товар загружен:', product.value);
 
     // Загружаем первую страницу отзывов
     const reviewsResponse = await reviewsApi.getProductReviews(id, currentPage.value);
-    console.log('Ответ от API отзывов:', reviewsResponse);
 
     // Проверяем, что reviewsResponse содержит ожидаемые данные
     if (!reviewsResponse || typeof reviewsResponse !== 'object') {
@@ -48,9 +47,6 @@ const loadProductData = async (id) => {
     reviews.value = reviewsResponse.reviews || [];
     summary.value = reviewsResponse.summary || {};
     pagination.value = reviewsResponse.pagination || {};
-    console.log('Отзывы:', reviews.value);
-    console.log('Сводка:', summary.value);
-    console.log('Пагинация:', pagination.value);
 
     // Загружаем похожие товары
     const relatedResponse = await productsApi.getRelatedProducts(id);
@@ -59,7 +55,6 @@ const loadProductData = async (id) => {
       reviews: item.reviews || [],
       summary: item.summary || { averageRating: 0, totalReviews: 0 }
     })).slice(0, 6);
-    console.log('Похожие товары:', relatedProducts.value);
   } catch (error) {
     console.error('Ошибка при загрузке данных:', error);
     errorMessage.value = 'Не удалось загрузить данные. Попробуйте позже.';
@@ -98,7 +93,6 @@ const loadMoreReviews = async () => {
   try {
     currentPage.value += 1;
     const reviewsResponse = await reviewsApi.getProductReviews(productId.value, currentPage.value);
-    console.log('Дополнительные отзывы:', reviewsResponse);
 
     if (!reviewsResponse || typeof reviewsResponse !== 'object') {
       throw new Error('Некорректный формат ответа API для дополнительных отзывов');
@@ -130,6 +124,22 @@ const parsedImages = computed(() => {
   }
   return [];
 });
+
+const formatDate = (date) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(date).toLocaleDateString('ru-RU', options);
+}
+
+const addToFavorites = async (productId) => {
+  try {
+    // Вызываем метод addToFavorite и передаем productId
+    const response = await favoriteApi.addToFavorite(productId)
+    // Здесь можно обработать результат, например, показать уведомление о добавлении в избранное
+    console.log('Товар добавлен в избранное:', response)
+  } catch (error) {
+    console.error('Ошибка при добавлении в избранное:', error)
+  }
+}
 </script>
 
 <template>
@@ -216,7 +226,7 @@ const parsedImages = computed(() => {
           <div>Кол-во выкупов: {{ product?.redemption_count }}</div>
           <div>Осталось товаров с кэшбеком: {{ product?.product?.quantity_available }}</div>
         </div>
-        <VBtn color="secondary" class="mr-2">В избранное</VBtn>
+        <VBtn color="secondary" class="mr-2" @click="addToFavorites(product.id)">В избранное</VBtn>
         <VBtn color="primary">Заказать</VBtn>
         <div class="mt-4 shop-details">
           <strong>{{ product?.shop?.legal_name }}</strong>
@@ -254,28 +264,13 @@ const parsedImages = computed(() => {
           <VWindowItem value="reviews">
             <div v-if="reviews.length">
               <div v-for="review in reviews" :key="review.id" class="mb-4">
-                <p><strong>{{ review.user }}</strong> ({{ review.createdDate }})</p>
+                <p><strong>{{ review.user }}</strong> ({{ formatDate(review.createdDate) }})</p>
                 <VRating :model-value="review.rating" readonly density="compact" size="small" />
                 <p v-if="review.text">{{ review.text }}</p>
                 <p v-if="review.pros"><strong>Плюсы:</strong> {{ review.pros }}</p>
                 <p v-if="review.cons"><strong>Минусы:</strong> {{ review.cons }}</p>
-                <div v-if="review.photos?.length">
-                  <VImg
-                    v-for="(photo, idx) in review.photos"
-                    :key="idx"
-                    :src="photo"
-                    width="100"
-                    class="mr-2"
-                    style="display: inline-block;"
-                  />
-                </div>
-                <div v-if="review.video">
-                  <video controls :src="review.video.id" style="max-width: 200px;">
-                    Ваш браузер не поддерживает видео.
-                  </video>
-                </div>
                 <div v-if="review.answer" class="mt-2">
-                  <p><strong>Ответ продавца ({{ review.answer.createDate }}):</strong></p>
+                  <p><strong>Ответ продавца ({{ formatDate(review.answer.createDate) }}):</strong></p>
                   <p>{{ review.answer.text }}</p>
                 </div>
               </div>
