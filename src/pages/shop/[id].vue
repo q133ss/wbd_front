@@ -27,7 +27,6 @@
             <h4 class="text-h4 text-center text-sm-start mb-2">
               {{ seller.shop.wb_name }}
 
-<!--              DIA-->
               <VDialog
                 v-model="isDialogVisible"
                 width="500"
@@ -68,7 +67,6 @@
                   </VCardText>
                 </VCard>
               </VDialog>
-<!--              DIA-->
             </h4>
 
             <div class="d-flex align-center justify-center justify-sm-space-between flex-wrap gap-6">
@@ -228,51 +226,45 @@
 
       <!-- Товары -->
       <div class="products row">
-        <div v-for="product in seller.shop.products" :key="product.id" class="col s12 m4">
-          <ProductCard :item="{ product: normalizeProduct(product) }" />
-        </div>
+        <VRow>
+          <ProductCard v-for="product in seller.shop.products" :key="product.id" :item="{ product: normalizeProduct(product) }" />
+        </VRow>
       </div>
 
       <!-- Отзывы -->
       <div class="reviews card-panel">
-        <h5 class="center-align">Отзывы</h5>
-        <div v-if="seller.reviews.length">
-          <div v-for="review in seller.reviews" :key="review.id" class="review-item">
-            <div class="card">
-              <div class="card-content">
-                <p><strong>{{ review.user_name }}</strong> ({{ review.created_at }})</p>
-                <div class="rating">
-                  <span v-for="n in 5" :key="n" :class="{ 'filled': n <= review.rating }">★</span>
-                </div>
-                <p v-if="review.text">{{ review.text }}</p>
-                <p v-if="review.pros"><strong>Плюсы:</strong> {{ review.pros }}</p>
-                <p v-if="review.cons"><strong>Минусы:</strong> {{ review.cons }}</p>
-                <div v-if="review.photos?.length" class="photos">
-                  <img
-                    v-for="(photo, idx) in review.photos"
-                    :key="idx"
-                    :src="photo"
-                    alt="Review photo"
-                    class="review-photo"
-                  />
-                </div>
-                <div v-if="review.video" class="video">
-                  <video controls :src="review.video" class="responsive-video">
-                    Ваш браузер не поддерживает видео.
-                  </video>
-                </div>
-                <div v-if="review.answer" class="answer">
-                  <p><strong>Ответ продавца ({{ formatDate(review.answer.createDate) }}):</strong></p>
-                  <p>{{ review.answer.text }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <h3 class="center-align mb-2">Отзывы</h3>
+        <VRow v-if="seller.reviews.length">
+          <VCol
+            cols="12"
+            md="3"
+            sm="6"
+
+            v-for="review in seller.reviews" :key="review.id"
+          >
+            <VCard>
+              <VCardTitle>
+                {{ review.user_name }} ({{ formatDate(review.created_at) }})
+              </VCardTitle>
+              <VCardSubtitle>
+                <VIcon
+                  class="review-star"
+                  size="24"
+                  v-for="n in 5" :key="n"
+                  :icon="n <= review.rating ? 'ri-star-fill' : 'ri-star-line'"
+                />
+              </VCardSubtitle>
+              <VCardText>
+                {{ review.text }}
+              </VCardText>
+            </VCard>
+          </VCol>
+        </VRow>
         <div v-else class="center-align">
           <p class="text-caption">Нет отзывов</p>
         </div>
       </div>
+<!--      /// Отзывы-->
     </div>
     <div v-else>
       <VCol cols="12" class="text-center py-10 mt-10">
@@ -425,5 +417,9 @@ const normalizeProduct = (product) => {
 .details-btn{
   padding: 0!important;
   margin: 0;
+}
+
+.review-star{
+  color: gold;
 }
 </style>
