@@ -50,6 +50,11 @@ const menus = [
                 <br>
                 ИНН: 9722092663
               </div>
+
+              <router-link to="/terms">Пользовательское соглашение</router-link>
+              <br>
+              <router-link to="/privacy">Политика конфидициальности</router-link>
+
             </div>
           </VCol>
 
