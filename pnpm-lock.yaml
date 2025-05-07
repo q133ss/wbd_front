@@ -122,6 +122,9 @@ importers:
       vue-router:
         specifier: 4.5.0
         version: 4.5.0(vue@3.5.13(typescript@5.7.2))
+      vue-the-mask:
+        specifier: ^0.11.1
+        version: 0.11.1
       vue3-apexcharts:
         specifier: 1.5.3
         version: 1.5.3(apexcharts@3.54.1)(vue@3.5.13(typescript@5.7.2))
@@ -4507,6 +4510,9 @@ packages:
     resolution: {integrity: sha512-e5Obzcy0pWUWl1RJjWclrfTvRALqlB5PFqKjoyVNqql8iyQJ+tK9CXN33EnJdxCeOG694Jwr/XlRdBm5O76eLw==}
     peerDependencies:
       vue: '>=3.0.0'
+
+  vue-the-mask@0.11.1:
+    resolution: {integrity: sha512-UquSfnSWejD0zAfcD+3jJ1chUAkOAyoxya9Lxh9acCRtrlmGcAIvd0cQYraWqKenbuZJUdum+S174atv2AuEHQ==}
 
   vue3-apexcharts@1.5.3:
     resolution: {integrity: sha512-yaHTPoj0iVKAtEVg8wEwIwwvf0VG+lPYNufCf3txRzYQOqdKPoZaZ9P3Dj3X+2A1XY9O1kcTk9HVqvLo+rppvQ==}
@@ -9439,6 +9445,8 @@ snapshots:
     dependencies:
       shepherd.js: 11.2.0
       vue: 3.5.13(typescript@5.7.2)
+
+  vue-the-mask@0.11.1: {}
 
   vue3-apexcharts@1.5.3(apexcharts@3.54.1)(vue@3.5.13(typescript@5.7.2)):
     dependencies:

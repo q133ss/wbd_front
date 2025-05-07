@@ -53,15 +53,8 @@ const login = async () => {
     useCookie('accessToken').value = token
     useCookie('userData').value = user
 
-    //const { accessToken, userData, userAbilityRules } = res
-
-    // useCookie('userAbilityRules').value = userAbilityRules
-    // ability.update(userAbilityRules)
-    // useCookie('userData').value = userData
-    // useCookie('accessToken').value = accessToken
-
     await nextTick(() => {
-      router.replace(route.query.to ? String(route.query.to) : '/')
+      router.replace(route.query.to ? String(route.query.to) : '/profile')
     })
   } catch (err) {
     console.error(err)
@@ -139,6 +132,7 @@ const onSubmit = () => {
                 <VTextField
                   v-model="credentials.phone"
                   label="Телефон"
+                  v-mask="'+7(###)###-##-##'"
                   placeholder="+7(999)999-99-99"
                   type="text"
                   autofocus
