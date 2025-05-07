@@ -52,19 +52,6 @@
                   <VCardText>
                     <VList :items="['ИНН: '+seller.shop.inn, 'Юр.лицо: '+seller.shop.legal_name]" />
                   </VCardText>
-
-                  <VCardText class="d-flex justify-end flex-wrap gap-4">
-                    <VBtn
-                      variant="outlined"
-                      color="secondary"
-                      @click="isDialogVisible = false"
-                    >
-                      close
-                    </VBtn>
-                    <VBtn @click="isDialogVisible = false">
-                      I accept
-                    </VBtn>
-                  </VCardText>
                 </VCard>
               </VDialog>
             </h4>
@@ -227,7 +214,7 @@
       <!-- Товары -->
       <div class="products row">
         <VRow>
-          <ProductCard v-for="product in seller.shop.products" :key="product.id" :item="{ product: normalizeProduct(product) }" />
+          <ProductCard v-for="product in seller.shop.products" :key="product.id" :item="normalizeProduct(product)" />
         </VRow>
       </div>
 
@@ -327,9 +314,20 @@ const normalizeProduct = (product) => {
       images = product.images
     }
   }
+
+  // Пример логики кешбека и цены
+  const discount = parseFloat(product.discount || 0)
+  const price = parseFloat(product.price || 0)
+  const priceWithCashback = (price * (1 - discount / 100)).toFixed(2)
+
   return {
-    ...product,
-    images
+    product: {
+      ...product,
+      images,
+    },
+    price_with_cashback: priceWithCashback,
+    cashback_percentage: discount,
+    id: product.id,
   }
 }
 </script>

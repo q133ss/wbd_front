@@ -40,15 +40,16 @@
             {{ item.product.name }}
           </VCardTitle>
         </router-link>
-        <VChip
-          v-if="item.product.category"
-          size="small"
-          color="orange-lighten-5"
-          text-color="orange-darken-2"
-          class="mt-2"
-        >
-          {{ item.product.category.name }}
-        </VChip>
+        <router-link v-if="item.product?.category" :to="`/categories/${item.product?.category?.id}`" class="text-decoration-none">
+          <VChip
+            size="small"
+            color="orange-lighten-5"
+            text-color="orange-darken-2"
+            class="mt-2"
+          >
+            {{ item.product.category.name }}
+          </VChip>
+        </router-link>
       </VCardItem>
 
       <VCardText>
@@ -62,10 +63,10 @@
         </div>
 
         <div class="d-flex align-center mb-2">
-          <VIcon icon="mdi-cashback" color="success" size="20" class="me-1" />
+          <VIcon icon="ri-money-dollar-circle-line" color="success" size="20" class="me-1" />
           <span class="text-caption">
-                  Кешбек {{ item.cashback_percentage }}%
-                </span>
+              Кешбек {{ item.cashback_percentage }}%
+          </span>
         </div>
 
         <div class="d-flex align-center mb-4">
