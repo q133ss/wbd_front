@@ -132,6 +132,11 @@ const menuItems = [
   },
 ]
 
+const userData = useCookie('userData')
+const accessToken = useCookie('accessToken')
+
+const isLoggedIn = computed(() => !!(userData.value && accessToken.value))
+
 const isCurrentRoute = to => {
   return route.matched.some(_route => _route.path.startsWith(router.resolve(to).path))
 
@@ -158,70 +163,24 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
       <div>
         <div class="d-flex flex-column gap-y-4 pa-4">
           <RouterLink
-            v-for="(item, index) in ['Home', 'Features', 'Team', 'FAQ', 'Contact us']"
-            :key="index"
-            :to="{ name: 'front-pages-landing-page', hash: `#${item.toLowerCase().replace(' ', '-')}` }"
-            class="font-weight-medium"
-            :class="[props.activeId?.toLocaleLowerCase().replace('-', ' ') === item.toLocaleLowerCase() ? 'active-link' : 'text-high-emphasis']"
-          >
-            {{ item }}
-          </RouterLink>
-          <div
-            class="text-high-emphasis font-weight-medium cursor-pointer"
-            :class="isPageActive ? 'active-link' : 'text-high-emphasis'"
-          >
-            <div
-              :class="isMenuOpen ? 'mb-6' : ''"
-              @click="isMenuOpen = !isMenuOpen"
-            >
-              Pages <VIcon :icon="isMenuOpen ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'" />
-            </div>
-            <div
-              v-for="(item, index) in menuItems"
-              :key="index"
-              :class="isMenuOpen ? 'd-block' : 'd-none'"
-            >
-              <div class="d-flex align-center gap-x-3 mb-4">
-                <VAvatar
-                  variant="tonal"
-                  color="primary"
-                  rounded
-                  :icon="item.listIcon"
-                />
-                <div class="text-body-1 text-high-emphasis font-weight-medium">
-                  {{ item.listTitle }}
-                </div>
-              </div>
-              <ul class="mb-6">
-                <li
-                  v-for="listItem in item.navItems"
-                  :key="listItem.name"
-                  style="list-style: none;"
-                  class="text-body-1 mb-4"
-                >
-                  <RouterLink
-                    :to="listItem.to"
-                    :target="item.listTitle === 'Page' ? '_self' : '_blank'"
-                    class="mega-menu-item"
-                    :class="isCurrentRoute(listItem.to) ? 'active-link' : ''"
-                  >
-                    <VIcon
-                      icon="ri-circle-line"
-                      :size="10"
-                      class="me-2"
-                    />
-                    <span>  {{ listItem.name }}</span>
-                  </RouterLink>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <RouterLink
             to="/"
-            target="_blank"
             class="text-body-1 font-weight-medium nav-link px-0"
           >
-            Admin
+            Главная
+          </RouterLink>
+
+          <RouterLink
+            to="/categories"
+            class="text-body-1 font-weight-medium nav-link px-0"
+          >
+            Категории
+          </RouterLink>
+
+          <RouterLink
+            to="/favorites"
+            class="text-body-1 font-weight-medium nav-link px-0"
+          >
+            Избранное
           </RouterLink>
         </div>
       </div>
@@ -281,12 +240,6 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
         >
           <!-- Pages Menu -->
           <RouterLink
-            to="/"
-            class="nav-link font-weight-medium"
-          >
-            Главная
-          </RouterLink>
-          <RouterLink
             to="/categories"
             class="nav-link font-weight-medium"
           >
@@ -298,12 +251,6 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
           >
             Избранное
           </RouterLink>
-          <RouterLink
-            to="/profile"
-            class="nav-link font-weight-medium"
-          >
-            Профиль
-          </RouterLink>
         </div>
       </div>
 
@@ -314,13 +261,13 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
 
         <VBtn
           v-if="$vuetify.display.lgAndUp"
-          prepend-icon="ri-login-box-line"
+          :prepend-icon="isLoggedIn ? 'ri-user-line' : 'ri-login-box-line'"
           variant="elevated"
           color="primary"
-          href="/login"
+          :href="isLoggedIn ? '/profile' : '/login'"
           rel="noopener noreferrer"
         >
-          Войти
+          {{ isLoggedIn ? 'Профиль' : 'Войти' }}
         </VBtn>
 
         <VBtn
