@@ -25,7 +25,10 @@ const relatedProducts = ref([]);
 const tab = ref('order');
 const currentPage = ref(1);
 const isLoading = ref(true);
-const errorMessage = ref(null); // Для отображения ошибок
+const errorMessage = ref(null);
+
+const email = ref('')
+const password = ref()
 
 // Функция для загрузки данных
 const loadProductData = async (id) => {
@@ -130,6 +133,7 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('ru-RU', options);
 }
 
+const isLoginFormVisible = ref(false)
 const addToFavorites = async (productId) => {
   try {
     // Вызываем метод addToFavorite и передаем productId
@@ -137,8 +141,18 @@ const addToFavorites = async (productId) => {
     // Здесь можно обработать результат, например, показать уведомление о добавлении в избранное
     console.log('Товар добавлен в избранное:', response)
   } catch (error) {
-    console.error('Ошибка при добавлении в избранное:', error)
+    if(error.statusCode == 401){
+      isLoginFormVisible.value = true;
+    }else{
+      console.error('Ошибка при добавлении в избранное:', error)
+    }
   }
+}
+
+const resetLoginForm = () => {
+  email.value = ''
+  password.value = ''
+  isLoginFormVisible.value = false
 }
 </script>
 
@@ -303,6 +317,61 @@ const addToFavorites = async (productId) => {
     </VRow>
   </VContainer>
   <Footer />
+
+  <VDialog
+    :model-value="isLoginFormVisible"
+    @update:model-value="val => { if (!val) resetLoginForm() }"
+    max-width="900"
+  >
+    <VCard class="share-project-dialog pa-sm-11 pa-3">
+      <!-- 👉 dialog close btn -->
+      <DialogCloseBtn
+        size="default"
+        variant="text"
+        @click="resetLoginForm"
+      />
+      <VCardText class="pt-5">
+
+        <VRow>
+          <VCol cols="12">
+            <h2>Что бы продолжить, войдите в систему</h2>
+          </VCol>
+          <VCol cols="12">
+            <VTextField
+              v-model="email"
+              label="Email"
+              type="email"
+              placeholder="email@mail.net"
+            />
+          </VCol>
+          <VCol cols="12">
+            <VTextField
+              v-model="password"
+              label="Пароль"
+              autocomplete="on"
+              type="password"
+              placeholder="············"
+            />
+          </VCol>
+
+          <VCol
+            cols="12"
+            class="d-flex gap-4"
+          >
+            <VBtn type="submit">
+              Войти
+            </VBtn>
+
+            <VBtn
+              color="secondary"
+            >
+              Регистрация
+            </VBtn>
+          </VCol>
+        </VRow>
+      </VCardText>
+    </VCard>
+  </VDialog>
 </template>
 
 <style scoped lang="scss">
