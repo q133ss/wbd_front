@@ -246,6 +246,7 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
             Категории
           </RouterLink>
           <RouterLink
+            v-if="isLoggedIn"
             to="/favorites"
             class="nav-link font-weight-medium"
           >
