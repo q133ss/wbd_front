@@ -64,38 +64,8 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
         <!-- 👉 Header -->
         <VCardItem class="notification-section">
           <h6 class="text-h6 text-truncate">
-            Notifications
+            Уведомления
           </h6>
-
-          <template #append>
-            <VChip
-              v-show="!!isAllMarkRead"
-              size="small"
-              class="me-2"
-              variant="tonal"
-              color="primary"
-            >
-              {{ totalUnreadNotifications }} new
-            </VChip>
-
-            <IconBtn
-              v-show="props.notifications.length"
-              size="small"
-              @click="markAllReadOrUnread"
-            >
-              <VIcon
-                color="high-emphasis"
-                :icon="!isAllMarkRead ? 'ri-mail-line' : 'ri-mail-open-line' "
-              />
-
-              <VTooltip
-                activator="parent"
-                location="start"
-              >
-                {{ !isAllMarkRead ? 'Mark all as unread' : 'Mark all as read' }}
-              </VTooltip>
-            </IconBtn>
-          </template>
         </VCardItem>
 
         <VDivider />
@@ -167,16 +137,6 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
                       icon="ri-circle-fill"
                       @click.stop="$emit(notification.isSeen ? 'unread' : 'read', [notification.id])"
                     />
-
-                    <div style="block-size: 20px; inline-size: 20px;">
-                      <VIcon
-                        size="20"
-                        icon="ri-close-line"
-                        color="medium-emphasis"
-                        class="visible-in-hover"
-                        @click="$emit('remove', notification.id)"
-                      />
-                    </div>
                   </div>
                 </div>
               </VListItem>
@@ -187,7 +147,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
               class="text-center text-medium-emphasis"
               style="block-size: 56px;"
             >
-              <VListItemTitle>No Notification Found!</VListItemTitle>
+              <VListItemTitle>Нет уведомлений!</VListItemTitle>
             </VListItem>
           </VList>
         </PerfectScrollbar>
@@ -203,7 +163,7 @@ const totalUnreadNotifications = computed(() => props.notifications.filter(item 
             block
             size="small"
           >
-            View All Notifications
+            Отметить все как прочитанные
           </VBtn>
         </VCardText>
       </VCard>

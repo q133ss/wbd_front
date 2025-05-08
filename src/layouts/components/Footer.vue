@@ -4,38 +4,22 @@
     <div class="d-flex align-center text-base">
       &copy;
       {{ new Date().getFullYear() }},
-      Made With
-      <VIcon
-        icon="ri-heart-fill"
-        color="error"
-        size="1.25rem"
-        class="mx-1"
-      />
-      By <a
-        href="https://pixinvent.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-primary ms-1"
-      >Pixinvent</a>
+      Все права защищены
     </div>
     <!-- 👉 Footer: right content -->
     <span class="d-md-flex gap-x-4 text-primary d-none">
       <a
-        href="https://themeforest.net/licenses/standard"
+        href="/terms"
         target="noopener noreferrer"
-      >License</a>
+      >Пользовательское соглашение</a>
       <a
-        href="https://1.envato.market/pixinvent_portfolio"
+        href="/privacy"
         target="noopener noreferrer"
-      >More Themes</a>
+      >Политика конфидициальности</a>
       <a
-        href="https://demos.pixinvent.com/materialize-vuejs-admin-template/documentation/"
+        href="/dashboard/support"
         target="noopener noreferrer"
-      >Documentation</a>
-      <a
-        href="https://pixinvent.ticksy.com/"
-        target="noopener noreferrer"
-      >Support</a>
+      >Поддержка</a>
     </span>
   </div>
 </template>

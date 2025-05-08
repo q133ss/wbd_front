@@ -1,10 +1,4 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import {
-  VList,
-  VListItem,
-} from 'vuetify/components/VList'
-
 const props = defineProps({
   isDialogVisible: {
     type: Boolean,
@@ -83,7 +77,7 @@ watch(() => props.isDialogVisible, () => {
   <VDialog
     max-width="600"
     :model-value="props.isDialogVisible"
-    :height="$vuetify.display.smAndUp ? '537' : '100%'"
+    :height="$vuetify.display.smAndUp ? '65' : '100%'"
     :fullscreen="$vuetify.display.width < 600"
     class="app-bar-search-dialog"
     @update:model-value="dialogModelValueUpdate"
@@ -142,77 +136,6 @@ watch(() => props.isDialogVisible, () => {
 
       <!-- 👉 Divider -->
       <VDivider />
-
-      <!-- 👉 Perfect Scrollbar -->
-      <PerfectScrollbar
-        :options="{ wheelPropagation: false, suppressScrollX: true }"
-        class="h-100"
-      >
-        <template v-if="!isLoading">
-          <!-- 👉 Search List -->
-          <VList
-            v-show="searchQueryLocal.length && !!props.searchResults.length"
-            ref="refSearchList"
-            density="compact"
-            class="app-bar-search-list py-0"
-          >
-            <!-- 👉 list Item /List Sub header -->
-            <template
-              v-for="item in props.searchResults"
-              :key="item"
-            >
-              <slot
-                name="searchResult"
-                :item="item"
-              >
-                <VListItem>
-                  {{ item }}
-                </VListItem>
-              </slot>
-            </template>
-          </VList>
-        </template>
-
-        <!-- 👉 Suggestions -->
-        <div
-          v-show="!!props.searchResults && !searchQueryLocal && $slots.suggestions"
-          class="h-100"
-        >
-          <slot name="suggestions" />
-        </div>
-
-        <!-- 👉 No Data found -->
-        <div
-          v-show="!props.searchResults.length && searchQueryLocal.length"
-          class="h-100"
-        >
-          <slot name="noData">
-            <VCardText class="h-100">
-              <div class="app-bar-search-suggestions d-flex flex-column align-center justify-center text-high-emphasis px-12 pb-12 pt-16">
-                <VIcon
-                  size="64"
-                  icon="ri-file-forbid-line"
-                />
-                <div class="d-flex align-center flex-wrap justify-center gap-2 text-h5 my-3">
-                  <span>No Result For </span>
-                  <span>"{{ searchQueryLocal }}"</span>
-                </div>
-
-                <slot name="noDataSuggestion" />
-              </div>
-            </VCardText>
-          </slot>
-        </div>
-
-        <!-- 👉 Loading -->
-        <template v-if="isLoading">
-          <VSkeletonLoader
-            v-for="i in 3"
-            :key="i"
-            type="list-item-two-line"
-          />
-        </template>
-      </PerfectScrollbar>
     </VCard>
   </VDialog>
 </template>

@@ -145,7 +145,8 @@ const isLoading = ref(false)
 const fetchResults = async () => {
   isLoading.value = true
 
-  const { data } = await useApi(withQuery('/app-bar/search', { q: searchQuery.value }))
+  //const { data } = await useApi(withQuery('/app-bar/search', { q: searchQuery.value }))
+  console.log(searchQuery.value)
 
   searchResult.value = data.value
 
@@ -185,7 +186,7 @@ const LazyAppBarSearch = defineAsyncComponent(() => import('@core/components/App
       @click="Shepherd.activeTour?.cancel()"
     >
       <div>
-        Search
+        Поиск
       </div>
       <div class="meta-key">
         &#8984;K
