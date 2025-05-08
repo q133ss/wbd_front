@@ -25,6 +25,23 @@ const statistics = ref(null)
 const statisticsResponse = await api.profile.getProfileStatistics()
 statistics.value = statisticsResponse
 
+
+// Телеграм бот qr
+const telegramLinkCookie = useCookie('telegramLink')
+const qrCodeLink = ref(null)
+const qrCodeSrc = ref('')
+
+if (telegramLinkCookie.value) {
+  qrCodeLink.value = telegramLinkCookie.value
+  qrCodeSrc.value = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrCodeLink.value)}&size=200x200`
+} else {
+  const response = await api.profile.getTelegramLink()
+  if (response?.link) {
+    qrCodeLink.value = response.link
+    telegramLinkCookie.value = response.link
+    qrCodeSrc.value = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(response.link)}&size=200x200`
+  }
+}
 // Update profile function
 const updateProfile = async () => {
   isLoading.value = true
@@ -208,7 +225,7 @@ const formatDate = (date) => {
           <VCardText>
             <div class="d-flex justify-center">
               <img
-                src="https://via.placeholder.com/150?text=QR+Code"
+                :src="qrCodeSrc"
                 alt="Telegram QR Code"
                 width="150"
                 height="150"

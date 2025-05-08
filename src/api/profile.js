@@ -38,5 +38,20 @@ export default {
     })
 
     return response
+  },
+
+  async getTelegramLink() {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api('/get-telegram-link', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+    })
+
+    return response
   }
 }
