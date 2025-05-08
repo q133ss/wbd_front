@@ -8,6 +8,10 @@ import authV2RegisterIllustrationDark from '@images/pages/auth-v2-register-illus
 import authV2RegisterIllustrationLight from '@images/pages/auth-v2-register-illustration-light.png'
 import authV2RegisterMaskDark from '@images/pages/auth-v2-register-mask-dark.png'
 import authV2RegisterMaskLight from '@images/pages/auth-v2-register-mask-light.png'
+import api from '@/api'
+
+import { useSnackbarStore } from '@/stores/snackbar'
+const snackbar = useSnackbarStore()
 
 const authThemeMask = useGenerateImageVariant(authV2RegisterMaskLight, authV2RegisterMaskDark)
 const authThemeImg = useGenerateImageVariant(authV2RegisterIllustrationLight, authV2RegisterIllustrationDark, authV2RegisterIllustrationBorderedLight, authV2RegisterIllustrationBorderedDark, true)
@@ -20,13 +24,81 @@ definePage({
 })
 
 const form = ref({
-  username: '',
-  email: '',
-  password: '',
-  privacyPolicies: false,
+  phone: '',
+  code: ''
 })
 
-const isPasswordVisible = ref(false)
+let btnText = 'Отправить код'
+let step = ref(1)
+
+const handleError = (error, errMessage = 'Произошла неизвестная ошибка') => {
+  if (error.response?.status === 422) {
+    const message = error.response?.data?.errors
+      ? Object.values(error.response.data.errors)[0][0]
+      : errMessage;
+    snackbar.error(message)
+  } else {
+    snackbar.error(errMessage)
+  }
+}
+
+const sendCode = async () => {
+  if (step.value == 1) {
+    try{
+      const { data } = await api.auth.sendCode(form.value.phone)
+      step.value = 2
+      btnText = 'Подтвердить код'
+      snackbar.notify({ text: 'Код успешно отправлен', color: 'success' })
+    }catch (error) {
+      handleError(error, 'Ошибка при отправке кода')
+    }
+  }
+}
+
+const verifyCode = async () => {
+  if (step.value == 2) {
+    try{
+      const { data } = await api.auth.verifyCode({
+        phone: form.value.phone,
+        code: form.value.code,
+        role_id: 3
+      })
+      step.value = 3
+      btnText = 'Завершить регистрацию';
+      useCookie('accessToken').value = data.token
+      useCookie('userData').value = data.user
+    }catch (error) {
+      handleError(error, 'Неверный код')
+    }
+  }
+}
+
+const completeRegistration = async () => {
+  if (step.value == 3) {
+    try {
+      const { data } = await api.auth.completeRegistration(form.value.name, form.value.email, form.value.password, form.value.password_confirmation)
+      useCookie('userData').value = data.user
+      router.replace('/profile')
+    }catch (error) {
+      handleError(error, 'Ошибка при завершении регистрации')
+    }
+  }
+}
+
+const handleBtnClick = () => {
+  if (step.value == 1) {
+    sendCode()
+  } else if (step.value == 2) {
+    verifyCode()
+  } else if (step.value == 3) {
+    completeRegistration()
+  }
+}
+
+const isPasswordVisible = ref(false);
+
+// TODO это регистрация для продавца, для покупателя будет другая!!
+// TODO, так же если isConfigurated == false и role_id == 3, то надо показывать завершение регистрации!!!!!!!!!!!!!!
 </script>
 
 <template>
@@ -75,10 +147,10 @@ const isPasswordVisible = ref(false)
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Adventure starts here 🚀
+            Регистрация 🚀
           </h4>
           <p class="mb-0">
-            Make your app management easy and fun!
+            Создайте аккаунт, что бы начать использовать все возможности сервиса
           </p>
         </VCardText>
 
@@ -88,69 +160,93 @@ const isPasswordVisible = ref(false)
               <!-- Username -->
               <VCol cols="12">
                 <VTextField
-                  v-model="form.username"
+                  v-model="form.phone"
+                  label="Телефон"
+                  v-mask="'+7(###)###-##-##'"
+                  placeholder="+7(999)999-99-99"
+                  type="text"
                   autofocus
-                  label="Username"
-                  placeholder="Johndoe"
+                  :rules="[requiredValidator, phoneValidator]"
+                  :disabled="step != 1"
                 />
               </VCol>
 
-              <!-- email -->
               <VCol cols="12">
                 <VTextField
+                  class="mb-2"
+                  v-if="step == 2"
+                  v-model="form.code"
+                  label="Код"
+                  placeholder="1234"
+                  type="text"
+                />
+
+                <VTextField
+                  v-if="step == 3"
+                  v-model="form.name"
+                  label="Имя"
+                  placeholder="Алексей"
+                  type="text"
+                />
+
+                <VTextField
+                  v-if="step == 3"
                   v-model="form.email"
                   label="Email"
+                  placeholder="mail@email.net"
                   type="email"
-                  placeholder="johndoe@email.com"
+                  :rules="[emailValidator]"
                 />
-              </VCol>
 
-              <!-- password -->
-              <VCol cols="12">
                 <VTextField
+                  v-if="step == 3"
                   v-model="form.password"
-                  label="Password"
+                  label="Пароль"
                   placeholder="············"
+                  :rules="[requiredValidator]"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   autocomplete="password"
                   :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
 
-                <div class="d-flex align-center my-6">
-                  <VCheckbox
-                    id="privacy-policy"
-                    v-model="form.privacyPolicies"
-                    inline
-                  />
-                  <VLabel
-                    for="privacy-policy"
-                    style="opacity: 1;"
-                  >
-                    <span class="me-1 text-high-emphasis">I agree to</span>
-                    <a
-                      href="javascript:void(0)"
-                      class="text-primary"
-                    >privacy policy & terms</a>
-                  </VLabel>
-                </div>
+                <VTextField
+                  v-if="step == 3"
+                  class="mt-2 mb-2"
+                  v-model="form.password_confirmation"
+                  label="Повторите пароль"
+                  placeholder="············"
+                  :rules="[requiredValidator]"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  autocomplete="password"
+                  :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                />
 
                 <VBtn
                   block
-                  type="submit"
+                  type="button"
+                  @click="handleBtnClick"
                 >
-                  Sign up
+                  {{btnText}}
                 </VBtn>
+              </VCol>
+
+              <VCol cols="12" class="text-caption text-center">
+                Продолжая, вы подтверждаете, что ознакоимились
+                <router-link to="/terms" target="_blank">пользовательским соглашением</router-link>
+                и
+                <router-link to="/privacy" target="_blank">политикой конфидициальности</router-link>
               </VCol>
 
               <!-- create account -->
               <VCol cols="12">
                 <div class="text-center text-base">
-                  <span class="d-inline-block">Already have an account?</span> <RouterLink
+                  <span class="d-inline-block">Уже есть аккаунт?</span> <RouterLink
                     class="text-primary d-inline-block"
                     :to="{ name: 'login' }"
                   >
-                    Sign in instead
+                    Войти
                   </RouterLink>
                 </div>
               </VCol>
@@ -158,7 +254,7 @@ const isPasswordVisible = ref(false)
               <VCol cols="12">
                 <div class="d-flex align-center">
                   <VDivider />
-                  <span class="mx-4 text-high-emphasis">or</span>
+                  <span class="mx-4 text-high-emphasis">или</span>
                   <VDivider />
                 </div>
               </VCol>
