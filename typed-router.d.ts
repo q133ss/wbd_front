@@ -135,6 +135,7 @@ declare module 'vue-router/auto-routes' {
     'privacy': RouteRecordInfo<'privacy', '/privacy', Record<never, never>, Record<never, never>>,
     'products-id': RouteRecordInfo<'products-id', '/products/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'profile': RouteRecordInfo<'profile', '/profile', Record<never, never>, Record<never, never>>,
+    'profile-setup': RouteRecordInfo<'profile-setup', '/profile/setup', Record<never, never>, Record<never, never>>,
     'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'shop-id': RouteRecordInfo<'shop-id', '/shop/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'tables-data-table': RouteRecordInfo<'tables-data-table', '/tables/data-table', Record<never, never>, Record<never, never>>,

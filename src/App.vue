@@ -31,7 +31,7 @@ const snackbar = useSnackbarStore()
         v-model="snackbar.show"
         :color="snackbar.color"
         :timeout="snackbar.timeout"
-        top
+        location="top"
       >
         {{ snackbar.text }}
       </v-snackbar>

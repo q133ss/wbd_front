@@ -10,7 +10,9 @@ import authV2LoginIllustrationLight from '@images/pages/auth-v2-login-illustrati
 import authV2LoginMaskDark from '@images/pages/auth-v2-login-mask-dark.png'
 import authV2LoginMaskLight from '@images/pages/auth-v2-login-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
+import { useSnackbarStore } from '@/stores/snackbar'
 
+const snackbar = useSnackbarStore()
 const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
 const authThemeMask = useGenerateImageVariant(authV2LoginMaskLight, authV2LoginMaskDark)
 
@@ -24,7 +26,6 @@ definePage({
 const isPasswordVisible = ref(false)
 const route = useRoute()
 const router = useRouter()
-const ability = useAbility()
 
 const errors = ref({
   email: undefined,
@@ -40,12 +41,20 @@ const credentials = ref({
 
 const rememberMe = ref(false)
 
+const roleMap = {
+  user: 2,
+  seller: 3
+}
+
+const role = route.query.role || 'user'
+const role_id = roleMap[role] || 2
+
 const login = async () => {
   try {
     const res = await api.auth.login({
       phone: credentials.value.phone,
       password: credentials.value.password,
-      role_id: 2,
+      role_id: role_id,
     })
 
     const { token, user } = res
@@ -56,8 +65,15 @@ const login = async () => {
     await nextTick(() => {
       router.replace(route.query.to ? String(route.query.to) : '/profile')
     })
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
+    if (error.response?.status === 422) {
+      const message = error.response?.data?.errors
+        ? Object.values(error.response.data.errors)[0][0]
+        : 'Неверный телефон или пароль';
+      snackbar.error(message)
+    } else {
+      snackbar.error('Неверный телефон или пароль')
+    }
   }
 }
 

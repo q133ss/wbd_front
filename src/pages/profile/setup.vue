@@ -1,7 +1,6 @@
 <script setup>
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import authV2RegisterIllustrationBorderedDark from '@images/pages/auth-v2-register-illustration-bordered-dark.png'
 import authV2RegisterIllustrationBorderedLight from '@images/pages/auth-v2-register-illustration-bordered-light.png'
 import authV2RegisterIllustrationDark from '@images/pages/auth-v2-register-illustration-dark.png'
@@ -19,17 +18,9 @@ const authThemeImg = useGenerateImageVariant(authV2RegisterIllustrationLight, au
 definePage({
   meta: {
     layout: 'blank',
-    unauthenticatedOnly: true,
+    authRequired: true,
   },
 })
-
-const form = ref({
-  phone: '',
-  code: ''
-})
-
-let btnText = 'Отправить код'
-let step = ref(1)
 
 const handleError = (error, errMessage = 'Произошла неизвестная ошибка') => {
   if (error.response?.status === 422) {
@@ -40,55 +31,27 @@ const handleError = (error, errMessage = 'Произошла неизвестн�
   }
 }
 
-const sendCode = async () => {
-  if (step.value == 1) {
-    try{
-      const { data } = await api.auth.sendCode(form.value.phone)
-      step.value = 2
-      btnText = 'Подтвердить код'
-      snackbar.notify({ text: 'Код успешно отправлен', color: 'success' })
-    }catch (error) {
-      handleError(error, 'Ошибка при отправке кода')
-    }
-  }
-}
+const form = ref({
+  name: '',
+  password: '',
+  password_confirmation: ''
+})
 
-const route = useRoute()
+const router = useRouter()
 
-const roleMap = {
-  user: 2,
-  seller: 3
-}
+const completeRegistration = async () => {
+  try{
+    const response = await api.auth.completeRegistration({
+      name: form.value.name,
+      password: form.value.password,
+      password_confirmation: form.value.password_confirmation
+    })
 
-const role = route.query.role || 'user'
-const role_id = roleMap[role] || 2
-
-const verifyCode = async () => {
-  if (step.value == 2) {
-    try{
-      const router = useRouter()
-      const response = await api.auth.verifyCode({phone: form.value.phone,
-        code: form.value.code,
-        role_id: role_id})
-
-      const token = response.token
-      const user = response.user
-
-      useCookie('accessToken').value = token
-      useCookie('userData').value = user
-      router.replace('/profile')
-    }catch (error) {
-      console.log(error)
-      handleError(error, 'Неверный код')
-    }
-  }
-}
-
-const handleBtnClick = () => {
-  if (step.value == 1) {
-    sendCode()
-  } else if (step.value == 2) {
-    verifyCode()
+    useCookie('userData').value = response.user
+    router.replace('/profile')
+  }catch (error) {
+    console.log(error)
+    handleError(error, 'Произошла ошибка')
   }
 }
 </script>
@@ -139,46 +102,48 @@ const handleBtnClick = () => {
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Регистрация 🚀
+            Завершение регистрации 🚀
           </h4>
           <p class="mb-0">
-            Создайте аккаунт, что бы начать использовать все возможности сервиса
+            Почти готово! Завершите создание аккаунта и начните пользоваться всеми возможностями
           </p>
         </VCardText>
 
         <VCardText>
           <VForm @submit.prevent="() => {}">
             <VRow>
-              <!-- Username -->
-              <VCol cols="12">
-                <VTextField
-                  v-model="form.phone"
-                  label="Телефон"
-                  v-mask="'+7(###)###-##-##'"
-                  placeholder="+7(999)999-99-99"
-                  type="text"
-                  autofocus
-                  :rules="[requiredValidator, phoneValidator]"
-                  :disabled="step != 1"
-                />
-              </VCol>
-
               <VCol cols="12">
                 <VTextField
                   class="mb-2"
-                  v-if="step == 2"
-                  v-model="form.code"
-                  label="Код"
-                  placeholder="1234"
+                  v-model="form.name"
+                  label="Имя"
+                  placeholder="Алексей"
                   type="text"
                 />
+
+                <VTextField
+                  class="mb-2"
+                  v-model="form.password"
+                  label="Пароль"
+                  placeholder="Введите пароль"
+                  type="password"
+                />
+
+                <VTextField
+                  class="mb-2"
+                  v-model="form.password_confirmation"
+                  label="Подтверждение пароля"
+                  placeholder="Подтвердите пароль"
+                  type="password"
+                />
+
 
                 <VBtn
                   block
                   type="button"
-                  @click="handleBtnClick"
+                  @click="completeRegistration"
                 >
-                  {{btnText}}
+                  Продолжить
                 </VBtn>
               </VCol>
 
@@ -188,38 +153,9 @@ const handleBtnClick = () => {
                 и
                 <router-link to="/privacy" target="_blank">политикой конфидициальности</router-link>
               </VCol>
-
-              <!-- create account -->
-              <VCol cols="12">
-                <div class="text-center text-base">
-                  <span class="d-inline-block">Уже есть аккаунт?</span> <RouterLink
-                    class="text-primary d-inline-block"
-                    :to="{ name: 'login' }"
-                  >
-                    Войти
-                  </RouterLink>
-                </div>
-              </VCol>
-
-              <VCol cols="12">
-                <div class="d-flex align-center">
-                  <VDivider />
-                  <span class="mx-4 text-high-emphasis">или</span>
-                  <VDivider />
-                </div>
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider />
-              </VCol>
             </VRow>
           </VForm>
         </VCardText>
-        <div class="text-center"><router-link to="/register?role=seller">Регистрация для продавцов</router-link></div>
       </VCard>
     </VCol>
   </VRow>

@@ -42,6 +42,7 @@ export default {
   },
 
   async completeRegistration({ name, password, password_confirmation, email = null }) {
+    const token = useCookie('accessToken').value
     return await $api('/register/complete', {
       method: 'POST',
       body: {
@@ -52,7 +53,8 @@ export default {
       },
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       responseType: 'json'
     })
