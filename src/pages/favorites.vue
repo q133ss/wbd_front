@@ -6,6 +6,7 @@ import favoriteApi from '@/api/index'
 definePage({
   meta: {
     layout: 'blank',
+    authRequired: true
   },
 })
 

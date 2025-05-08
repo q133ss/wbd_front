@@ -9,8 +9,8 @@ import authV2RegisterIllustrationLight from '@images/pages/auth-v2-register-illu
 import authV2RegisterMaskDark from '@images/pages/auth-v2-register-mask-dark.png'
 import authV2RegisterMaskLight from '@images/pages/auth-v2-register-mask-light.png'
 import api from '@/api'
-
 import { useSnackbarStore } from '@/stores/snackbar'
+
 const snackbar = useSnackbarStore()
 
 const authThemeMask = useGenerateImageVariant(authV2RegisterMaskLight, authV2RegisterMaskDark)
@@ -55,32 +55,33 @@ const sendCode = async () => {
   }
 }
 
+const route = useRoute()
+
+const roleMap = {
+  user: 2,
+  seller: 3
+}
+
+const role = route.query.role || 'user'
+const role_id = roleMap[role] || 2
+
 const verifyCode = async () => {
   if (step.value == 2) {
     try{
-      const { data } = await api.auth.verifyCode({
-        phone: form.value.phone,
+      const router = useRouter()
+      const response = await api.auth.verifyCode({phone: form.value.phone,
         code: form.value.code,
-        role_id: 3
-      })
-      step.value = 3
-      btnText = 'Завершить регистрацию';
-      useCookie('accessToken').value = data.token
-      useCookie('userData').value = data.user
-    }catch (error) {
-      handleError(error, 'Неверный код')
-    }
-  }
-}
+        role_id: role_id})
 
-const completeRegistration = async () => {
-  if (step.value == 3) {
-    try {
-      const { data } = await api.auth.completeRegistration(form.value.name, form.value.email, form.value.password, form.value.password_confirmation)
-      useCookie('userData').value = data.user
+      const token = response.token
+      const user = response.user
+
+      useCookie('accessToken').value = token
+      useCookie('userData').value = user
       router.replace('/profile')
     }catch (error) {
-      handleError(error, 'Ошибка при завершении регистрации')
+      console.log(error)
+      handleError(error, 'Неверный код')
     }
   }
 }
@@ -90,15 +91,8 @@ const handleBtnClick = () => {
     sendCode()
   } else if (step.value == 2) {
     verifyCode()
-  } else if (step.value == 3) {
-    completeRegistration()
   }
 }
-
-const isPasswordVisible = ref(false);
-
-// TODO это регистрация для продавца, для покупателя будет другая!!
-// TODO, так же если isConfigurated == false и role_id == 3, то надо показывать завершение регистрации!!!!!!!!!!!!!!
 </script>
 
 <template>
@@ -181,48 +175,6 @@ const isPasswordVisible = ref(false);
                   type="text"
                 />
 
-                <VTextField
-                  v-if="step == 3"
-                  v-model="form.name"
-                  label="Имя"
-                  placeholder="Алексей"
-                  type="text"
-                />
-
-                <VTextField
-                  v-if="step == 3"
-                  v-model="form.email"
-                  label="Email"
-                  placeholder="mail@email.net"
-                  type="email"
-                  :rules="[emailValidator]"
-                />
-
-                <VTextField
-                  v-if="step == 3"
-                  v-model="form.password"
-                  label="Пароль"
-                  placeholder="············"
-                  :rules="[requiredValidator]"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  autocomplete="password"
-                  :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
-                />
-
-                <VTextField
-                  v-if="step == 3"
-                  class="mt-2 mb-2"
-                  v-model="form.password_confirmation"
-                  label="Повторите пароль"
-                  placeholder="············"
-                  :rules="[requiredValidator]"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  autocomplete="password"
-                  :append-inner-icon="isPasswordVisible ? 'ri-eye-off-line' : 'ri-eye-line'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
-                />
-
                 <VBtn
                   block
                   type="button"
@@ -269,6 +221,7 @@ const isPasswordVisible = ref(false);
             </VRow>
           </VForm>
         </VCardText>
+        <div class="text-center"><router-link to="/register?role=seller">Регистрация для продавцов</router-link></div>
       </VCard>
     </VCol>
   </VRow>

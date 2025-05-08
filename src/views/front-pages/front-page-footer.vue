@@ -124,7 +124,7 @@ const menus = [
               <ul>
                 <li class="mb-4 text-body-1" style="list-style: none;">
                   <RouterLink
-                    to="/seller/login"
+                    to="/login?role=seller"
                     class="footer-text text-no-wrap"
                   >
                     Вход

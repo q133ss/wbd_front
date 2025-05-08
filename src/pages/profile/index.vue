@@ -1,5 +1,11 @@
 <script setup>
 const userData = useCookie('userData')
+
+definePage({
+  meta: {
+    authRequired: true,
+  },
+})
 </script>
 
 <template>

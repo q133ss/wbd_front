@@ -26,5 +26,11 @@ export const setupGuards = router => {
       else
         return undefined
     }
+
+    if (to.meta.authRequired) {
+      if (!isLoggedIn) {
+        return '/login'
+      }
+    }
   })
 }
