@@ -78,7 +78,6 @@ const verifyCode = async () => {
       useCookie('userData').value = user
       router.replace('/profile')
     }catch (error) {
-      console.log(error)
       handleError(error, 'Неверный код')
     }
   }

@@ -170,7 +170,7 @@
                     'text-error': seller.product_rating < 2
                   }"
                 >
-                  {{ seller.product_rating }}%
+                  {{ seller.product_rating }}
                 </h3>
               </div>
 
@@ -198,7 +198,7 @@
                     'text-error': seller.total_reviews < 5
                   }"
                 >
-                  {{ seller.total_reviews }}%
+                  {{ seller.total_reviews }}
                 </h3>
               </div>
 
