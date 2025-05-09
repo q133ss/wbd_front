@@ -14,12 +14,5 @@ export default [
     title: 'Поддержка',
     icon: { icon: 'ri-headphone-line' },
     to: 'dashboard-support',
-  },
-  {
-    title: 'Уведомления',
-    icon: { icon: 'ri-notification-line' },
-    to: 'dashboard-notifications',
-    badgeContent: '5',
-    badgeClass: 'bg-primary',
-  },
+  }
 ]

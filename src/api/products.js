@@ -29,5 +29,91 @@ export default {
       method: 'GET'
     })
     return response
+  },
+
+  async getSellerProducts(params = {}) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const defaultParams = {
+      page: 1,
+      per_page: 18,
+      is_archived: true,
+      status: 0
+    }
+
+    const response = await $api('/seller/products', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      params: {
+        ...defaultParams,
+        ...params
+      }
+    })
+
+    return response
+  },
+  async stopSellerProducts(productIds) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api('/seller/products/stop', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      data: {
+        product_ids: productIds
+      }
+    })
+
+    return response
+  },
+  async addWbProduct(article) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api(`/wb/add-product/${article}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    return response
+  },
+  async archiveSellerProducts(productIds) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api('/seller/products/archive', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      data: {
+        product_ids: productIds
+      }
+    })
+
+    return response
+  },
+  async duplicateSellerProducts(productIds) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api('/seller/products/duplicate', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      data: {
+        product_ids: productIds
+      }
+    })
+
+    return response
   }
 }
