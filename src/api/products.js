@@ -36,10 +36,7 @@ export default {
     if (!token) return null
 
     const defaultParams = {
-      page: 1,
-      per_page: 18,
-      is_archived: true,
-      status: 0
+      page: 1
     }
 
     const response = await $api('/seller/products', {
@@ -62,11 +59,13 @@ export default {
     const response = await $api('/seller/products/stop', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
       },
-      data: {
+      body: JSON.stringify({
         product_ids: productIds
-      }
+      })
     })
 
     return response
@@ -91,11 +90,13 @@ export default {
     const response = await $api('/seller/products/archive', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
       },
-      data: {
+      body: JSON.stringify({
         product_ids: productIds
-      }
+      })
     })
 
     return response
