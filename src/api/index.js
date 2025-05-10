@@ -6,6 +6,7 @@ import favoriteApi from './favorite'
 import authApi from './auth'
 import profileApi from "@/api/profile"
 import userApi from "@/api/user"
+import adsApi from "@/api/ads"
 
 export default {
   products: productsApi,
@@ -15,5 +16,6 @@ export default {
   favorite: favoriteApi,
   auth: authApi,
   profile: profileApi,
-  user: userApi
+  user: userApi,
+  ads: adsApi
 }
