@@ -70,6 +70,19 @@ export default {
 
     return response
   },
+  async fetchWbProduct(article) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api(`/wb/fetch-product/${article}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    return response
+  },
   async addWbProduct(article) {
     const token = useCookie('accessToken').value
     if (!token) return null
@@ -77,6 +90,8 @@ export default {
     const response = await $api(`/wb/add-product/${article}`, {
       method: 'POST',
       headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
       }
     })

@@ -18,6 +18,10 @@ const currentPage = ref(1)
 const itemsPerPage = 15
 const totalItems = ref(0)
 
+const showShopConfirmModal = ref(false)
+const productData = ref(null)
+const shopData = ref(null)
+
 // Обрезка названия до 40 символов
 const truncateName = (name) => {
   if (!name) return ''
@@ -82,17 +86,95 @@ const addProduct = async () => {
   try {
     loading.value = true
     await nextTick()
-    await api.products.addWbProduct(articleInput.value)
-    await loadProducts()
-    showAddModal.value = false
-    articleInput.value = ''
-    snackbar.notify({
-      text: 'Товар добавлен',
-      color: 'success'
-    })
+
+    // Получение данных пользователя
+    const userData = useCookie('userData')
+    if (!userData.value) {
+      snackbar.notify({
+        text: 'Данные пользователя не найдены',
+        color: 'error'
+      })
+      return
+    }
+
+    if (userData.value.shop) {
+      // Если магазин есть, сразу добавляем товар
+      await addProductToWb()
+      return
+    }
+
+    // Если магазина нет, получаем данные о товаре
+    const response = await api.products.fetchWbProduct(articleInput.value)
+
+    // Проверяем, что ответ содержит нужные данные
+    if (!response || !response.product || !response.shop) {
+      snackbar.notify({
+        text: 'Неверный формат данных товара или магазина',
+        color: 'error'
+      })
+      return
+    }
+
+    // Сохраняем данные о товаре и магазине
+    productData.value = response.product
+    shopData.value = response.shop
+
+    // Показываем модальное окно для подтверждения
+    showShopConfirmModal.value = true
   } catch (error) {
+    console.error('Error in addProduct:', error.message, error.stack)
+    let errorMessage = 'Ошибка при получении данных товара'
+    if (error.response?.status === 404) {
+      errorMessage = 'Товар не найден'
+    } else if (error.response?.status === 403) {
+      errorMessage = 'Доступ к товару запрещен'
+    }
     snackbar.notify({
-      text: 'Ошибка при добавлении товара',
+      text: errorMessage,
+      color: 'error'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// Добавление товара в WB
+const addProductToWb = async () => {
+  try {
+    loading.value = true
+    await nextTick()
+    const response = await api.products.addWbProduct(articleInput.value)
+
+    if (response.code === 201) {
+      // Если товар успешно добавлен
+      const userData = useCookie('userData')
+
+      if (!userData.value?.shop) {
+        // Обновляем данные пользователя в куках
+        const updatedUser = await api.user.profile()
+        userData.value = updatedUser
+
+        // Перенаправляем на создание объявления
+        await loadProducts()
+        showAddModal.value = false
+        showShopConfirmModal.value = false
+        articleInput.value = ''
+        router.push(`/dashboard/ads/create/${response.product.id}`)
+      } else {
+        // Показываем уведомление об успешном добавлении
+        await loadProducts()
+        showAddModal.value = false
+        articleInput.value = ''
+        snackbar.notify({
+          text: 'Товар успешно добавлен',
+          color: 'success'
+        })
+      }
+    }
+  } catch (error) {
+    console.log(error.response._data)
+    snackbar.notify({
+      text: error.response._data.message ?? 'Произошла ошибка',
       color: 'error'
     })
   } finally {
@@ -225,10 +307,13 @@ const handleFilterStatus = () => {
   currentPage.value = 1
   loadProducts()
 }
+
+const userData = useCookie('userData')
 </script>
 
 <template>
   <v-container fluid>
+    {{userData}}
     <!-- Панель управления -->
     <v-row class="mb-4" align="center">
       <v-col cols="auto">
@@ -454,6 +539,51 @@ const handleFilterStatus = () => {
             @click="showArchiveModal = false"
           >
             Отменить
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Модальное окно для подтверждения добавления магазина -->
+    <v-dialog
+      v-model="showShopConfirmModal"
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title>Добавление магазина</v-card-title>
+        <v-card-text>
+          <p>Этот товар находится в магазине продавца "{{ shopData?.wb_name }}".</p>
+          <p>Подтвердите добавление магазина в ваш профиль на Wbdiscount.</p>
+          <p>(Этот шаг делается один раз для новой учетной записи)</p>
+          <v-row v-if="productData">
+            <v-col cols="12">
+              <v-img
+                v-if="productData.images && productData.images.length"
+                :src="productData.images[0]"
+                max-width="100"
+                max-height="100"
+                class="mb-2"
+              ></v-img>
+              <p><strong>Товар:</strong> {{ productData.title }}</p>
+              <p><strong>Цена:</strong> {{ productData.price }} руб.</p>
+              <p><strong>Бренд:</strong> {{ productData.brand }}</p>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            @click="addProductToWb"
+            :disabled="loading"
+          >
+            Далее
+          </v-btn>
+          <v-btn
+            @click="showShopConfirmModal = false"
+            :disabled="loading"
+          >
+            Отмена
           </v-btn>
         </v-card-actions>
       </v-card>

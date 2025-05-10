@@ -133,7 +133,7 @@ const formatDate = (date) => {
                   icon="ri-calendar-line"
                 />
                 <div class="text-body-1 font-weight-medium">
-                  Дата регистрации: {{ formatDate(userData.shop?.created_at) }}
+                  Дата регистрации: {{ formatDate(userData.created_at) }}
                 </div>
               </div>
             </div>
