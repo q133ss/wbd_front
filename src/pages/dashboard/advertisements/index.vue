@@ -46,7 +46,8 @@ const loadAds = async () => {
     const response = await api.ads.getAds({
       page: currentPage.value,
       per_page: itemsPerPage,
-      ...filters.value,
+      status: filters.value.status !== null ? filters.value.status : undefined,
+      is_archived: filters.value.is_archived !== null ? (filters.value.is_archived ? 1 : 0) : undefined,
       search: searchQuery.value || undefined
     })
     ads.value = response.data
@@ -60,7 +61,6 @@ const loadAds = async () => {
     loading.value = false
   }
 }
-
 // Initial load
 loadAds()
 

@@ -1,7 +1,7 @@
 import $api from '@/utils/api'
 
 export default {
-  async getAds() {
+  async getAds(params = {}) {
     const token = useCookie('accessToken').value
     if (!token) return null
 
@@ -9,7 +9,8 @@ export default {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`
-      }
+      },
+      params
     })
   },
 
