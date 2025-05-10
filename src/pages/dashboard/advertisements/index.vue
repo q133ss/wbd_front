@@ -2,13 +2,12 @@
 import { ref, computed, nextTick } from 'vue'
 import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
-import { useRouter } from 'vue-router'
 
 const snackbar = useSnackbarStore()
-const router = useRouter()
 const ads = ref([])
 const selectedRows = ref([])
 const showAddModal = ref(false)
+const articleInput = ref('')
 const loading = ref(false)
 const filters = ref({
   is_archived: null,
@@ -19,13 +18,17 @@ const currentPage = ref(1)
 const itemsPerPage = 15
 const totalItems = ref(0)
 
-// Обрезка названия до 40 символов
+const showShopConfirmModal = ref(false)
+const adData = ref(null)
+const shopData = ref(null)
+
+// Truncate name
 const truncateName = (name) => {
   if (!name) return ''
   return name.length > 40 ? name.slice(0, 40) + '...' : name
 }
 
-// Загрузка объявлений
+// Load advertisements
 const loadAds = async () => {
   try {
     loading.value = true
@@ -36,7 +39,6 @@ const loadAds = async () => {
       ...filters.value,
       search: searchQuery.value || undefined
     })
-    console.log(response)
     ads.value = response.data
     totalItems.value = response.total || 0
   } catch (error) {
@@ -49,19 +51,18 @@ const loadAds = async () => {
   }
 }
 
-// Инициальная загрузка
+// Initial load
 loadAds()
 
-// Переключение статуса
+// Toggle status
 const toggleStatus = async (adId) => {
-  const ad = ads?.value?.find(item => item.id === adId)
+  const ad = ads.value.find(item => item.id === adId)
   if (!ad) return
   const originalStatus = ad.status
-  ad.status = ad.status === 0 ? 1 : 0
-
+  const newStatus = ad.status === 0 ? 1 : 0
+  ad.status = newStatus
   try {
-    await nextTick()
-    await api.ads.stopAds([adId])
+    await api.ads.updateAd(adId, { status: newStatus })
     snackbar.notify({
       text: 'Статус объявления изменен',
       color: 'success'
@@ -75,19 +76,18 @@ const toggleStatus = async (adId) => {
   }
 }
 
-// Массовая остановка объявлений
+// Add advertisement (simplified to link to create page)
+const addAd = () => {
+  // Since creating an ad requires more data, redirect to create page
+  showAddModal.value = false
+  articleInput.value = ''
+  window.location.href = '/dashboard/ads/create'
+}
+
+// Mass stop
 const stopSelected = async () => {
   if (!selectedRows.value.length) return
   const adIds = selectedRows.value
-
-  const originalStatuses = new Map()
-  ads.value.forEach(item => {
-    if (adIds.includes(item.id)) {
-      originalStatuses.set(item.id, item.status)
-      item.status = 1
-    }
-  })
-
   try {
     loading.value = true
     await nextTick()
@@ -99,11 +99,6 @@ const stopSelected = async () => {
       color: 'success'
     })
   } catch (error) {
-    ads.value.forEach(item => {
-      if (adIds.includes(item.id)) {
-        item.status = originalStatuses.get(item.id)
-      }
-    })
     snackbar.notify({
       text: 'Ошибка при остановке объявлений',
       color: 'error'
@@ -113,9 +108,8 @@ const stopSelected = async () => {
   }
 }
 
-// Архивирование объявлений
+// Archive selected
 const showArchiveModal = ref(false)
-
 const archiveSelected = async () => {
   if (!selectedRows.value.length) return
   showArchiveModal.value = true
@@ -123,10 +117,6 @@ const archiveSelected = async () => {
 
 const confirmArchive = async () => {
   const adIds = selectedRows.value
-
-  const originalAds = [...ads.value]
-  ads.value = ads.value.filter(item => !adIds.includes(item.id))
-
   try {
     loading.value = true
     await nextTick()
@@ -138,7 +128,6 @@ const confirmArchive = async () => {
       color: 'success'
     })
   } catch (error) {
-    ads.value = originalAds
     snackbar.notify({
       text: 'Ошибка при архивировании объявлений',
       color: 'error'
@@ -149,35 +138,8 @@ const confirmArchive = async () => {
   }
 }
 
-// Дублирование объявлений
-const duplicateSelected = async () => {
-  if (!selectedRows.value.length) return
-  const adIds = selectedRows.value
-
-  try {
-    loading.value = true
-    await nextTick()
-    await api.ads.duplicateAds(adIds)
-    await loadAds()
-    selectedRows.value = []
-    snackbar.notify({
-      text: 'Объявления продублированы',
-      color: 'success'
-    })
-  } catch (error) {
-    snackbar.notify({
-      text: 'Ошибка при дублировании объявлений',
-      color: 'error'
-    })
-  } finally {
-    loading.value = false
-  }
-}
-
-// Проверка, выбраны ли объявления
+// Selection
 const hasSelection = computed(() => selectedRows.value.length > 0)
-
-// Обработчик выбора строки
 const toggleSelect = (item) => {
   const index = selectedRows.value.indexOf(item.id)
   if (index === -1) {
@@ -186,44 +148,45 @@ const toggleSelect = (item) => {
     selectedRows.value.splice(index, 1)
   }
 }
-
-// Выбор всех строк
 const selectAll = computed({
-  get: () => selectedRows.value.length === ads?.value?.length && ads?.value?.length > 0,
+  get: () => selectedRows.value.length === ads.value.length && ads.value.length > 0,
   set: (value) => {
-    selectedRows.value = value ? ads?.value?.map(item => item.id) : []
+    selectedRows.value = value ? ads.value.map(item => item.id) : []
   }
 })
 
-// Текст пагинации
+// Pagination
 const paginationText = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage + 1
   const end = Math.min(currentPage.value * itemsPerPage, totalItems.value)
   return `${start}-${end} из ${totalItems.value}`
 })
-
-// Общее количество страниц
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage))
 
-// Обработчики для поиска и фильтров
+// Handlers
 const handleSearch = () => {
   currentPage.value = 1
   loadAds()
 }
-
 const handleFilterArchived = () => {
   currentPage.value = 1
   loadAds()
 }
-
 const handleFilterStatus = () => {
   currentPage.value = 1
   loadAds()
 }
 
-// Навигация к редактированию объявления
-const editAd = (adId) => {
-  router.push(`/dashboard/ads/${adId}/edit`)
+// Get first image
+const getFirstImage = (images) => {
+  if (!images) return ''
+  if (Array.isArray(images)) return images[0]
+  try {
+    const parsed = JSON.parse(images)
+    return Array.isArray(parsed) ? parsed[0] : ''
+  } catch {
+    return ''
+  }
 }
 </script>
 
@@ -234,7 +197,7 @@ const editAd = (adId) => {
       <v-col cols="auto">
         <v-btn
           color="primary"
-          @click="router.push('/dashboard/ads/create')"
+          @click="showAddModal = true"
         >
           Создать объявление
         </v-btn>
@@ -254,11 +217,8 @@ const editAd = (adId) => {
             <v-list-item @click="stopSelected">
               <v-list-item-title>Остановить</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="archiveSelected">
+            <v-list-item @click="showArchiveModal = true">
               <v-list-item-title>Архивировать</v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="duplicateSelected">
-              <v-list-item-title>Дублировать</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -334,16 +294,13 @@ const editAd = (adId) => {
         <th class="text-uppercase">Товар</th>
         <th class="text-uppercase">Кэшбек</th>
         <th class="text-uppercase">Выкупов</th>
-        <th class="text-uppercase">Баланс</th>
-        <th class="text-uppercase">В сделках</th>
         <th class="text-uppercase">Просмотры</th>
         <th class="text-uppercase">CR</th>
-        <th class="text-uppercase">Действия</th>
       </tr>
       </thead>
       <tbody>
       <tr v-if="loading" class="loading-row">
-        <td colspan="11" class="text-center">
+        <td colspan="8" class="text-center">
           <v-progress-circular indeterminate color="primary"></v-progress-circular>
         </td>
       </tr>
@@ -360,7 +317,18 @@ const editAd = (adId) => {
               hide-details
             ></v-checkbox>
           </td>
-          <td>{{ truncateName(item.name) }}</td>
+          <td>
+            <div class="d-flex align-center">
+              <v-img
+                v-if="item.product.images && getFirstImage(item.product.images)"
+                :src="getFirstImage(item.product.images)"
+                max-width="50"
+                max-height="66"
+                class="mr-2"
+              ></v-img>
+              <NuxtLink :to="`/dashboard/ads/${item.id}/edit`">{{ truncateName(item.name) }}</NuxtLink>
+            </div>
+          </td>
           <td>
             <v-switch
               :model-value="item.status === 1"
@@ -369,36 +337,14 @@ const editAd = (adId) => {
               hide-details
             ></v-switch>
           </td>
-          <td>
-            <div class="d-flex align-center">
-              <v-img
-                v-if="item.product?.images && item.product.images.length"
-                :src="item.product.images[0]"
-                max-width="50"
-                max-height="66"
-                class="mr-2"
-              ></v-img>
-              <span>{{ truncateName(item.product?.name) }}</span>
-            </div>
-          </td>
+          <td>{{ item.product.name }}</td>
           <td>{{ item.cashback_percentage }}%</td>
           <td>{{ item.redemption_count }}</td>
-          <td>{{ item.balance }}</td>
-          <td>{{ item.in_deal }}</td>
           <td>{{ item.views_count }}</td>
           <td>{{ item.cr }}</td>
-          <td>
-            <v-btn
-              color="primary"
-              variant="text"
-              @click="editAd(item.id)"
-            >
-              Редактировать
-            </v-btn>
-          </td>
         </tr>
-        <tr v-if="!ads?.length">
-          <td colspan="11" class="text-center">
+        <tr v-if="!ads.length">
+          <td colspan="8" class="text-center">
             <v-alert icon="$warning" type="primary" class="ma-4">Объявления не найдены</v-alert>
           </td>
         </tr>
@@ -407,7 +353,7 @@ const editAd = (adId) => {
     </VTable>
 
     <!-- Пагинация -->
-    <div class="text-center mt-4" v-if="ads?.length && !loading">
+    <div class="text-center mt-4" v-if="ads.length && !loading">
       <div>{{ paginationText }}</div>
       <v-pagination
         v-model="currentPage"
@@ -417,7 +363,38 @@ const editAd = (adId) => {
       ></v-pagination>
     </div>
 
-    <!-- Модальное окно для архивирования -->
+    <!-- Модальное окно для создания объявления -->
+    <v-dialog
+      v-model="showAddModal"
+      max-width="500"
+    >
+      <v-card>
+        <v-card-title>Создать объявление</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="articleInput"
+            label="Артикул WB (опционально)"
+            hint="Оставьте пустым для перехода к созданию"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            @click="addAd"
+          >
+            Перейти к созданию
+          </v-btn>
+          <v-btn
+            @click="showAddModal = false"
+          >
+            Отмена
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Архивация -->
     <v-dialog
       v-model="showArchiveModal"
       max-width="500"
@@ -439,6 +416,28 @@ const editAd = (adId) => {
             @click="showArchiveModal = false"
           >
             Отменить
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Модальное окно для подтверждения добавления магазина (оставлено для совместимости, но не используется) -->
+    <v-dialog
+      v-model="showShopConfirmModal"
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title>Добавление магазина</v-card-title>
+        <v-card-text>
+          <p>Этот функционал не применим к объявлениям.</p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            @click="showShopConfirmModal = false"
+            :disabled="loading"
+          >
+            Закрыть
           </v-btn>
         </v-card-actions>
       </v-card>

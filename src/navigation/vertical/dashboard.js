@@ -8,7 +8,7 @@ export default [
   {
     title: 'Объявления',
     icon: { icon: 'ri-advertisement-line' },
-    to: 'dashboard-ads'
+    to: 'dashboard-advertisements'
   },
   {
     title: 'Выкупы',
