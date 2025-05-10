@@ -55,7 +55,7 @@ loadProducts()
 
 // Переключение статуса
 const toggleStatus = async (productId) => {
-  const product = products.value.find(item => item.id === productId)
+  const product = products?.value?.find(item => item.id === productId)
   if (!product) return
   const originalStatus = product.status
   product.status = product.status === 0 ? 1 : 0 // Оптимистичное обновление
@@ -188,9 +188,9 @@ const toggleSelect = (item) => {
 
 // Выбор всех строк
 const selectAll = computed({
-  get: () => selectedRows.value.length === products.value.length && products.value.length > 0,
+  get: () => selectedRows.value.length === products?.value?.length && products?.value?.length > 0,
   set: (value) => {
-    selectedRows.value = value ? products.value.map(item => item.id) : []
+    selectedRows.value = value ? products?.value?.map(item => item.id) : []
   }
 })
 
@@ -374,9 +374,9 @@ const handleFilterStatus = () => {
           <td>{{ item.conversion }}</td>
           <td>{{ item.ads_count }}</td>
         </tr>
-        <tr v-if="!products.length">
+        <tr v-if="!products?.length">
           <td colspan="8" class="text-center">
-            <v-alert type="info" class="ma-4">Товары не найдены</v-alert>
+            <v-alert icon="$warning" type="primary" class="ma-4">Товары не найдены</v-alert>
           </td>
         </tr>
       </template>
@@ -384,7 +384,7 @@ const handleFilterStatus = () => {
     </VTable>
 
     <!-- Пагинация -->
-    <div class="text-center mt-4" v-if="products.length && !loading">
+    <div class="text-center mt-4" v-if="products?.length && !loading">
       <div>{{ paginationText }}</div>
       <v-pagination
         v-model="currentPage"
