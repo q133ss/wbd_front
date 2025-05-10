@@ -2,8 +2,10 @@
 import { ref, computed, nextTick } from 'vue'
 import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
+import { useRouter } from 'vue-router'
 
 const snackbar = useSnackbarStore()
+const router = useRouter()
 const ads = ref([])
 const selectedRows = ref([])
 const showAddModal = ref(false)
@@ -18,14 +20,22 @@ const currentPage = ref(1)
 const itemsPerPage = 15
 const totalItems = ref(0)
 
+// Product selection modal
+const showProductModal = ref(false)
+const products = ref([])
+const productSearchQuery = ref('')
+const productCurrentPage = ref(1)
+const productTotalItems = ref(0)
+const productItemsPerPage = 18
+
 const showShopConfirmModal = ref(false)
 const adData = ref(null)
 const shopData = ref(null)
 
-// Truncate name
-const truncateName = (name) => {
+// Truncate name to 27 characters
+const truncateName = (name, lenght = 27) => {
   if (!name) return ''
-  return name.length > 40 ? name.slice(0, 40) + '...' : name
+  return name.length > lenght ? name.slice(0, lenght) + '...' : name
 }
 
 // Load advertisements
@@ -54,7 +64,7 @@ const loadAds = async () => {
 // Initial load
 loadAds()
 
-// Toggle status
+// Toggle status using stopAds
 const toggleStatus = async (adId) => {
   const ad = ads.value.find(item => item.id === adId)
   if (!ad) return
@@ -62,7 +72,7 @@ const toggleStatus = async (adId) => {
   const newStatus = ad.status === 0 ? 1 : 0
   ad.status = newStatus
   try {
-    await api.ads.updateAd(adId, { status: newStatus })
+    await api.ads.stopAds([adId])
     snackbar.notify({
       text: 'Статус объявления изменен',
       color: 'success'
@@ -76,12 +86,41 @@ const toggleStatus = async (adId) => {
   }
 }
 
-// Add advertisement (simplified to link to create page)
-const addAd = () => {
-  // Since creating an ad requires more data, redirect to create page
+// Load products for modal
+const loadProducts = async () => {
+  try {
+    loading.value = true
+    await nextTick()
+    const response = await api.products.getProducts({
+      page: productCurrentPage.value,
+      per_page: productItemsPerPage,
+      search: productSearchQuery.value || undefined
+    })
+    products.value = response.data
+    productTotalItems.value = response.total || 0
+  } catch (error) {
+    snackbar.notify({
+      text: 'Ошибка при загрузке товаров',
+      color: 'error'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// Open product selection modal
+const openProductModal = () => {
   showAddModal.value = false
-  articleInput.value = ''
-  window.location.href = '/dashboard/ads/create'
+  showProductModal.value = true
+  productSearchQuery.value = ''
+  productCurrentPage.value = 1
+  loadProducts()
+}
+
+// Select product and redirect
+const selectProduct = (productId) => {
+  showProductModal.value = false
+  router.push(`/dashboard/advertisements/create/${productId}`)
 }
 
 // Mass stop
@@ -155,13 +194,21 @@ const selectAll = computed({
   }
 })
 
-// Pagination
+// Pagination for ads
 const paginationText = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage + 1
   const end = Math.min(currentPage.value * itemsPerPage, totalItems.value)
   return `${start}-${end} из ${totalItems.value}`
 })
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage))
+
+// Pagination for products
+const productPaginationText = computed(() => {
+  const start = (productCurrentPage.value - 1) * productItemsPerPage + 1
+  const end = Math.min(productCurrentPage.value * productItemsPerPage, productTotalItems.value)
+  return `${start}-${end} из ${productTotalItems.value}`
+})
+const productTotalPages = computed(() => Math.ceil(productTotalItems.value / productItemsPerPage))
 
 // Handlers
 const handleSearch = () => {
@@ -175,6 +222,10 @@ const handleFilterArchived = () => {
 const handleFilterStatus = () => {
   currentPage.value = 1
   loadAds()
+}
+const handleProductSearch = () => {
+  productCurrentPage.value = 1
+  loadProducts()
 }
 
 // Get first image
@@ -197,7 +248,7 @@ const getFirstImage = (images) => {
       <v-col cols="auto">
         <v-btn
           color="primary"
-          @click="showAddModal = true"
+          @click="openProductModal"
         >
           Создать объявление
         </v-btn>
@@ -215,7 +266,7 @@ const getFirstImage = (images) => {
           </template>
           <v-list>
             <v-list-item @click="stopSelected">
-              <v-list-item-title>Остановить</v-list-item-title>
+              <v-list-item-title>Остановить/Активировать</v-list-item-title>
             </v-list-item>
             <v-list-item @click="showArchiveModal = true">
               <v-list-item-title>Архивировать</v-list-item-title>
@@ -319,14 +370,7 @@ const getFirstImage = (images) => {
           </td>
           <td>
             <div class="d-flex align-center">
-              <v-img
-                v-if="item.product.images && getFirstImage(item.product.images)"
-                :src="getFirstImage(item.product.images)"
-                max-width="50"
-                max-height="66"
-                class="mr-2"
-              ></v-img>
-              <NuxtLink :to="`/dashboard/ads/${item.id}/edit`">{{ truncateName(item.name) }}</NuxtLink>
+              <router-link :to="`/dashboard/ads/${item.id}/edit`">{{ item.name }}</router-link>
             </div>
           </td>
           <td>
@@ -337,7 +381,16 @@ const getFirstImage = (images) => {
               hide-details
             ></v-switch>
           </td>
-          <td>{{ item.product.name }}</td>
+          <td>
+            <div class="d-flex align-center">
+            <v-img
+              v-if="item.product.images && getFirstImage(item.product.images)"
+              :src="getFirstImage(item.product.images)"
+              class="mr-2"
+            ></v-img>
+            {{ truncateName(item.product.name) }}
+            </div>
+          </td>
           <td>{{ item.cashback_percentage }}%</td>
           <td>{{ item.redemption_count }}</td>
           <td>{{ item.views_count }}</td>
@@ -374,19 +427,100 @@ const getFirstImage = (images) => {
           <v-text-field
             v-model="articleInput"
             label="Артикул WB (опционально)"
-            hint="Оставьте пустым для перехода к созданию"
+            hint="Оставьте пустым для перехода к выбору товара"
           ></v-text-field>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
             color="primary"
-            @click="addAd"
+            @click="openProductModal"
           >
-            Перейти к созданию
+            Выбрать товар
           </v-btn>
           <v-btn
             @click="showAddModal = false"
+          >
+            Отмена
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Модальное окно для выбора товара -->
+    <v-dialog
+      v-model="showProductModal"
+      max-width="800"
+    >
+      <v-card>
+        <v-card-title>Выберите товар</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="productSearchQuery"
+            label="Поиск товаров"
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            @update:modelValue="handleProductSearch"
+            class="mb-4"
+          ></v-text-field>
+          <VTable>
+            <thead>
+            <tr>
+              <th class="text-uppercase">Товар</th>
+              <th class="text-uppercase">Рейтинг</th>
+              <th class="text-uppercase">Цена</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-if="loading" class="loading-row">
+              <td colspan="3" class="text-center">
+                <v-progress-circular indeterminate color="primary"></v-progress-circular>
+              </td>
+            </tr>
+            <template v-else>
+              <tr
+                v-for="product in products"
+                :key="product.id"
+                @click="selectProduct(product.id)"
+                style="cursor: pointer;"
+              >
+                <td>
+                  <div class="d-flex align-center">
+                    <v-img
+                      v-if="product.product.images && getFirstImage(product.product.images)"
+                      :src="getFirstImage(product.product.images)"
+                      max-width="50"
+                      max-height="66"
+                      class="mr-2"
+                    ></v-img>
+                    <span>{{ truncateName(product.product.name) }}</span>
+                  </div>
+                </td>
+                <td>{{ product.product.rating }}</td>
+                <td>{{ product.product.price }}</td>
+              </tr>
+              <tr v-if="!products.length">
+                <td colspan="3" class="text-center">
+                  <v-alert icon="$warning" type="primary" class="ma-4">Товары не найдены</v-alert>
+                </td>
+              </tr>
+            </template>
+            </tbody>
+          </VTable>
+          <div class="text-center mt-4" v-if="products.length && !loading">
+            <div>{{ productPaginationText }}</div>
+            <v-pagination
+              v-model="productCurrentPage"
+              :length="productTotalPages"
+              :total-visible="7"
+              @update:modelValue="loadProducts"
+            ></v-pagination>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            @click="showProductModal = false"
           >
             Отмена
           </v-btn>
@@ -421,7 +555,7 @@ const getFirstImage = (images) => {
       </v-card>
     </v-dialog>
 
-    <!-- Модальное окно для подтверждения добавления магазина (оставлено для совместимости, но не используется) -->
+    <!-- Модальное окно для подтверждения добавления магазина (оставлено для совместимости) -->
     <v-dialog
       v-model="showShopConfirmModal"
       max-width="600"

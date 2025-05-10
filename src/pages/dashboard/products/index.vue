@@ -157,7 +157,7 @@ const addProductToWb = async () => {
         showAddModal.value = false
         showShopConfirmModal.value = false
         articleInput.value = ''
-        router.push(`/dashboard/ads/create/${response.product.id}`)
+        router.push(`/dashboard/advertisements/create/${response.product.id}`)
       } else {
         // Показываем уведомление об успешном добавлении
         await loadProducts()
@@ -332,7 +332,7 @@ const userData = useCookie('userData')
           </template>
           <v-list>
             <v-list-item @click="stopSelected">
-              <v-list-item-title>Остановить</v-list-item-title>
+              <v-list-item-title>Остановить/Активировать</v-list-item-title>
             </v-list-item>
             <v-list-item @click="showArchiveModal = true">
               <v-list-item-title>Архивировать</v-list-item-title>
