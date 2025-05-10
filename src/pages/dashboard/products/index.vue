@@ -142,10 +142,15 @@ const stopSelected = async () => {
 }
 
 // Архивирование товаров
+const showArchiveModal = ref(false)
+
 const archiveSelected = async () => {
   if (!selectedRows.value.length) return
+  showArchiveModal.value = true
+}
+
+const confirmArchive = async () => {
   const productIds = selectedRows.value
-  console.log('Archive product IDs:', productIds)
 
   // Оптимистичное обновление (удаляем из списка)
   const originalProducts = [...products.value]
@@ -170,6 +175,7 @@ const archiveSelected = async () => {
     })
   } finally {
     loading.value = false
+    showArchiveModal.value = false
   }
 }
 
@@ -248,7 +254,7 @@ const handleFilterStatus = () => {
             <v-list-item @click="stopSelected">
               <v-list-item-title>Остановить</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="archiveSelected">
+            <v-list-item @click="showArchiveModal = true">
               <v-list-item-title>Архивировать</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -421,6 +427,33 @@ const handleFilterStatus = () => {
             @click="showAddModal = false"
           >
             Отмена
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+<!--    Архивация-->
+    <v-dialog
+      v-model="showArchiveModal"
+      max-width="500"
+    >
+      <v-card>
+        <v-card-title>Архивировать товар?</v-card-title>
+        <v-card-text>
+          После архивации товара запустить объявления по нему будет невозможно.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            @click="confirmArchive"
+          >
+            Подтвердить
+          </v-btn>
+          <v-btn
+            @click="showArchiveModal = false"
+          >
+            Отменить
           </v-btn>
         </v-card-actions>
       </v-card>
