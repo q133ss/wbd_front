@@ -139,6 +139,7 @@ const addProduct = async () => {
 }
 
 // Добавление товара в WB
+const router = useRouter()
 const addProductToWb = async () => {
   try {
     loading.value = true
@@ -313,7 +314,6 @@ const userData = useCookie('userData')
 
 <template>
   <v-container fluid>
-    {{userData}}
     <!-- Панель управления -->
     <v-row class="mb-4" align="center">
       <v-col cols="auto">
@@ -552,22 +552,43 @@ const userData = useCookie('userData')
       <v-card>
         <v-card-title>Добавление магазина</v-card-title>
         <v-card-text>
-          <p>Этот товар находится в магазине продавца "{{ shopData?.wb_name }}".</p>
-          <p>Подтвердите добавление магазина в ваш профиль на Wbdiscount.</p>
-          <p>(Этот шаг делается один раз для новой учетной записи)</p>
+          <p>
+            Этот товар находится в магазине продавца "{{ shopData?.wb_name }}".
+            <br>
+            Подтвердите добавление магазина в ваш профиль на Wbdiscount.
+          </p>
+          <p class="text-caption">(Этот шаг делается один раз для новой учетной записи)</p>
           <v-row v-if="productData">
             <v-col cols="12">
+              <VTextField
+                v-model="productData.name"
+                label="Товар"
+                readonly
+                class="mb-4"
+              />
+
+              <VTextField
+                v-model="productData.price"
+                label="Цена"
+                readonly
+                class="mb-4 custom-disabled-textfield"
+              />
+
+              <VTextField
+                v-model="productData.brand"
+                readonly
+                label="Бренд"
+                class="mb-4"
+              />
+            </v-col>
+
+            <div class="w-100 text-center">
               <v-img
                 v-if="productData.images && productData.images.length"
                 :src="productData.images[0]"
-                max-width="100"
-                max-height="100"
                 class="mb-2"
               ></v-img>
-              <p><strong>Товар:</strong> {{ productData.title }}</p>
-              <p><strong>Цена:</strong> {{ productData.price }} руб.</p>
-              <p><strong>Бренд:</strong> {{ productData.brand }}</p>
-            </v-col>
+            </div>
           </v-row>
         </v-card-text>
         <v-card-actions>
