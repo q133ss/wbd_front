@@ -41,9 +41,6 @@ const loadProducts = async () => {
     })
     products.value = response.data
     totalItems.value = response.total || 0
-    console.log('API response:', response)
-    console.log('Total items:', totalItems.value)
-    console.log('Current page:', currentPage.value)
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка при загрузке товаров',
@@ -173,7 +170,6 @@ const addProductToWb = async () => {
       }
     }
   } catch (error) {
-    console.log(error.response._data)
     snackbar.notify({
       text: error.response._data.message ?? 'Произошла ошибка',
       color: 'error'
@@ -187,7 +183,6 @@ const addProductToWb = async () => {
 const stopSelected = async () => {
   if (!selectedRows.value.length) return
   const productIds = selectedRows.value
-  console.log('Stop product IDs:', productIds)
 
   // Оптимистичное обновление
   const originalStatuses = new Map()
