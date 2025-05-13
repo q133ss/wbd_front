@@ -1,6 +1,7 @@
 import $api from '@/utils/api'
 
 export default {
+  // Товары для главной
   async getProducts(params = {}) {
     const defaultParams = {
       page: 1,

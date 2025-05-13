@@ -77,6 +77,7 @@ const toggleStatus = async (adId) => {
       text: 'Статус объявления изменен',
       color: 'success'
     })
+    loadAds();
   } catch (error) {
     ad.status = originalStatus
     snackbar.notify({
@@ -91,12 +92,12 @@ const loadProducts = async () => {
   try {
     loading.value = true
     await nextTick()
-    const response = await api.products.getProducts({
+    const response = await api.products.getSellerProducts({
       page: productCurrentPage.value,
       per_page: productItemsPerPage,
       search: productSearchQuery.value || undefined
     })
-    products.value = response.data
+    products.value = response
     productTotalItems.value = response.total || 0
   } catch (error) {
     snackbar.notify({
@@ -370,7 +371,7 @@ const getFirstImage = (images) => {
           </td>
           <td>
             <div class="d-flex align-center">
-              <router-link :to="`/dashboard/ads/${item.id}/edit`">{{ item.name }}</router-link>
+              <router-link :to="`/dashboard/advertisements/edit/${item.id}`">{{ item.name }}</router-link>
             </div>
           </td>
           <td>
@@ -479,7 +480,7 @@ const getFirstImage = (images) => {
             </tr>
             <template v-else>
               <tr
-                v-for="product in products"
+                v-for="product in products.data"
                 :key="product.id"
                 @click="selectProduct(product.id)"
                 style="cursor: pointer;"
@@ -487,19 +488,19 @@ const getFirstImage = (images) => {
                 <td>
                   <div class="d-flex align-center">
                     <v-img
-                      v-if="product.product.images && getFirstImage(product.product.images)"
-                      :src="getFirstImage(product.product.images)"
+                      v-if="product.images && getFirstImage(product.images)"
+                      :src="getFirstImage(product.images)"
                       max-width="50"
                       max-height="66"
                       class="mr-2"
                     ></v-img>
-                    <span>{{ truncateName(product.product.name) }}</span>
+                    <span>{{ truncateName(product.name) }}</span>
                   </div>
                 </td>
-                <td>{{ product.product.rating }}</td>
-                <td>{{ product.product.price }}</td>
+                <td>{{ product.rating }}</td>
+                <td>{{ product.price }}</td>
               </tr>
-              <tr v-if="!products.length">
+              <tr v-if="!products.data?.length">
                 <td colspan="3" class="text-center">
                   <v-alert icon="$warning" type="primary" class="ma-4">Товары не найдены</v-alert>
                 </td>
@@ -507,7 +508,7 @@ const getFirstImage = (images) => {
             </template>
             </tbody>
           </VTable>
-          <div class="text-center mt-4" v-if="products.length && !loading">
+          <div class="text-center mt-4" v-if="products.data?.length && !loading">
             <div>{{ productPaginationText }}</div>
             <v-pagination
               v-model="productCurrentPage"
