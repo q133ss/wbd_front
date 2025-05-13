@@ -9,6 +9,7 @@ import userApi from "@/api/user"
 import adsApi from "@/api/ads"
 import balanceApi from "@/api/balance"
 import templateApi from "@/api/template"
+import promocodeApi from "@/api/promocode"
 
 export default {
   products: productsApi,
@@ -21,5 +22,6 @@ export default {
   user: userApi,
   ads: adsApi,
   balance: balanceApi,
-  template: templateApi
+  template: templateApi,
+  promocode: promocodeApi,
 }
