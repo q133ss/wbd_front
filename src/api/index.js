@@ -7,6 +7,8 @@ import authApi from './auth'
 import profileApi from "@/api/profile"
 import userApi from "@/api/user"
 import adsApi from "@/api/ads"
+import balanceApi from "@/api/balance"
+import templateApi from "@/api/template"
 
 export default {
   products: productsApi,
@@ -17,5 +19,7 @@ export default {
   auth: authApi,
   profile: profileApi,
   user: userApi,
-  ads: adsApi
+  ads: adsApi,
+  balance: balanceApi,
+  template: templateApi
 }
