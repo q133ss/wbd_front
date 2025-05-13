@@ -71,6 +71,7 @@ declare module 'vue-router/auto-routes' {
     'components-timeline': RouteRecordInfo<'components-timeline', '/components/timeline', Record<never, never>, Record<never, never>>,
     'components-tooltip': RouteRecordInfo<'components-tooltip', '/components/tooltip', Record<never, never>, Record<never, never>>,
     'dashboard-advertisements': RouteRecordInfo<'dashboard-advertisements', '/dashboard/advertisements', Record<never, never>, Record<never, never>>,
+    'dashboard-advertisements-create-id': RouteRecordInfo<'dashboard-advertisements-create-id', '/dashboard/advertisements/create/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'dashboard-balance': RouteRecordInfo<'dashboard-balance', '/dashboard/balance', Record<never, never>, Record<never, never>>,
     'dashboard-buybacks': RouteRecordInfo<'dashboard-buybacks', '/dashboard/buybacks', Record<never, never>, Record<never, never>>,
     'dashboard-notifications': RouteRecordInfo<'dashboard-notifications', '/dashboard/notifications', Record<never, never>, Record<never, never>>,

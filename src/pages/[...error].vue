@@ -20,8 +20,8 @@ definePage({
   <div class="misc-wrapper">
     <ErrorHeader
       status-code="404"
-      title="Page Not Found ⚠️"
-      description="We couldn't find the page you are looking for."
+      title="Страница не найдена ⚠️"
+      description="Мы не смогли найти нужную вам страницу."
       class="mb-10"
     />
 
@@ -38,7 +38,7 @@ definePage({
         to="/"
         class="mt-10"
       >
-        Back to Home
+        На главную
       </VBtn>
 
       <VImg
