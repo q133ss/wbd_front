@@ -78,6 +78,7 @@ declare module 'vue-router/auto-routes' {
     'dashboard-notifications': RouteRecordInfo<'dashboard-notifications', '/dashboard/notifications', Record<never, never>, Record<never, never>>,
     'dashboard-products': RouteRecordInfo<'dashboard-products', '/dashboard/products', Record<never, never>, Record<never, never>>,
     'dashboard-support': RouteRecordInfo<'dashboard-support', '/dashboard/support', Record<never, never>, Record<never, never>>,
+    'dashboard-tariffs': RouteRecordInfo<'dashboard-tariffs', '/dashboard/tariffs', Record<never, never>, Record<never, never>>,
     'dashboards-analytics': RouteRecordInfo<'dashboards-analytics', '/dashboards/analytics', Record<never, never>, Record<never, never>>,
     'dashboards-crm': RouteRecordInfo<'dashboards-crm', '/dashboards/crm', Record<never, never>, Record<never, never>>,
     'dashboards-ecommerce': RouteRecordInfo<'dashboards-ecommerce', '/dashboards/ecommerce', Record<never, never>, Record<never, never>>,
