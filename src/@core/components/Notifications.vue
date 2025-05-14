@@ -111,12 +111,6 @@ const handleNotificationClick = async (notification) => {
       notification.is_read = true
       emit('read', [notification.id])
     } catch (error) {
-      console.error('Mark as read error:', {
-        notificationId: notification.id,
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      })
       let errorMessage = 'Ошибка при отметке уведомления как прочитанного'
       if (error.response?.status === 404) {
         errorMessage = 'API для отметки уведомлений не найдено'

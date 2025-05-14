@@ -1,4 +1,5 @@
 <script setup>
+import api from '@/api'
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import productsApi from '@/api/products';
@@ -7,6 +8,9 @@ import favoriteApi from "@/api/favorite";
 import ProductCard from '@/components/ProductCard.vue';
 import Navbar from "@/views/front-pages/front-page-navbar.vue";
 import Footer from "@/views/front-pages/front-page-footer.vue";
+import { useSnackbarStore } from '@/stores/snackbar'
+
+const snackbar = useSnackbarStore()
 
 definePage({
   meta: {
@@ -27,8 +31,42 @@ const currentPage = ref(1);
 const isLoading = ref(true);
 const errorMessage = ref(null);
 
-const email = ref('')
-const password = ref()
+const phone = ref('')
+const password = ref('')
+
+const login = async () => {
+  try {
+    const res = await api.auth.login({
+      phone: phone.value,
+      password: password.value,
+      role_id: 2, // или нужный ID роли
+    })
+
+    const { token, user } = res
+
+    useCookie('accessToken').value = token
+    useCookie('userData').value = user
+
+    isLoginFormVisible.value = false
+
+    snackbar.notify({ text: 'Вы успешно вошли в систему', color: 'success' })
+
+    setTimeout(() => {
+      location.reload()
+    }, 1000) // небольшая задержка, чтобы показать snackbar
+  } catch (error) {
+    if (error.response?.status === 422) {
+      const message = error.response?.data?.errors
+        ? Object.values(error.response.data.errors)[0][0]
+        : 'Неверный телефон или пароль';
+      snackbar.notify({ text: message, color: 'error' })
+    } else {
+      snackbar.notify({ text: 'Ошибка авторизации', color: 'error' })
+    }
+  }
+}
+
+
 
 // Функция для загрузки данных
 const loadProductData = async (id) => {
@@ -136,6 +174,13 @@ const formatDate = (date) => {
 const isLoginFormVisible = ref(false)
 const addToFavorites = async (productId) => {
   try {
+    const token = useCookie('accessToken').value
+    const user = useCookie('userData').value
+
+    if (!token || !user) {
+      isLoginFormVisible.value = true
+      return
+    }
     // Вызываем метод addToFavorite и передаем productId
     const response = await favoriteApi.addToFavorite(productId)
     // Здесь можно обработать результат, например, показать уведомление о добавлении в избранное
@@ -149,8 +194,22 @@ const addToFavorites = async (productId) => {
   }
 }
 
+const handleOrderClick = () => {
+  const token = useCookie('accessToken').value
+  const user = useCookie('userData').value
+
+  if (!token || !user) {
+    isLoginFormVisible.value = true
+    return
+  }
+
+  // здесь логика оформления заказа
+  console.log('Оформляем заказ…')
+}
+
+
 const resetLoginForm = () => {
-  email.value = ''
+  phone.value = ''
   password.value = ''
   isLoginFormVisible.value = false
 }
@@ -241,7 +300,7 @@ const resetLoginForm = () => {
           <div>Осталось товаров с кэшбеком: {{ product?.product?.quantity_available }}</div>
         </div>
         <VBtn color="secondary" class="mr-2" @click="addToFavorites(product.id)">В избранное</VBtn>
-        <VBtn color="primary">Заказать</VBtn>
+        <VBtn color="primary" @click="handleOrderClick">Заказать</VBtn>
         <div class="mt-4 shop-details">
           <strong>{{ product?.shop?.legal_name }}</strong>
           <VBtn variant="text" class="link-button ml-5" :to="`/shop/${product.shop?.user_id}`">Подробнее</VBtn>
@@ -319,51 +378,47 @@ const resetLoginForm = () => {
   <Footer />
 
   <VDialog
-    :model-value="isLoginFormVisible"
+    v-model="isLoginFormVisible"
     @update:model-value="val => { if (!val) resetLoginForm() }"
     max-width="900"
   >
     <VCard class="share-project-dialog pa-sm-11 pa-3">
-      <!-- 👉 dialog close btn -->
       <DialogCloseBtn
         size="default"
         variant="text"
         @click="resetLoginForm"
       />
       <VCardText class="pt-5">
-
         <VRow>
           <VCol cols="12">
-            <h2>Что бы продолжить, войдите в систему</h2>
+            <h2>Чтобы продолжить, войдите в систему</h2>
           </VCol>
           <VCol cols="12">
             <VTextField
-              v-model="email"
-              label="Email"
-              type="email"
-              placeholder="email@mail.net"
+              v-model="phone"
+              label="Телефон"
+              placeholder="+7(999)999-99-99"
+              v-mask="'+7(###)###-##-##'"
+              type="text"
             />
           </VCol>
           <VCol cols="12">
             <VTextField
               v-model="password"
               label="Пароль"
-              autocomplete="on"
               type="password"
               placeholder="············"
             />
           </VCol>
 
-          <VCol
-            cols="12"
-            class="d-flex gap-4"
-          >
-            <VBtn type="submit">
+          <VCol cols="12" class="d-flex gap-4">
+            <VBtn @click="login">
               Войти
             </VBtn>
 
             <VBtn
               color="secondary"
+              @click="() => { resetLoginForm(); router.push('/register') }"
             >
               Регистрация
             </VBtn>
@@ -372,6 +427,7 @@ const resetLoginForm = () => {
       </VCardText>
     </VCard>
   </VDialog>
+
 </template>
 
 <style scoped lang="scss">
