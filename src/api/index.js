@@ -13,6 +13,7 @@ import promocodeApi from "@/api/promocode"
 import tariffApi from "@/api/tariff"
 import chatApi from "@/api/chat"
 import referralApi from "@/api/referral"
+import notificationApi from "@/api/notification"
 
 export default {
   products: productsApi,
@@ -29,5 +30,6 @@ export default {
   promocode: promocodeApi,
   tariff: tariffApi,
   chat: chatApi,
-  referral: referralApi
+  referral: referralApi,
+  notification: notificationApi
 }
