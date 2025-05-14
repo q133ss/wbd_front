@@ -264,12 +264,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router';
 import { VContainer, VCol, VProgressCircular } from 'vuetify/components'
 import api from '@/api'
 import Footer from '@/views/front-pages/front-page-footer.vue'
 import Navbar from '@/views/front-pages/front-page-navbar.vue'
-import ProductCard from '@/components/ProductCard.vue' // Adjust path as needed
+import ProductCard from '@/components/ProductCard.vue'
 
 definePage({
   meta: {
@@ -278,6 +278,7 @@ definePage({
 })
 
 const route = useRoute()
+const router = useRouter()
 const sellerId = ref(route.params.id)
 const seller = ref(null)
 const isDialogVisible = ref(false)
@@ -288,6 +289,10 @@ onMounted(async () => {
     const response = await api.seller.getSellerById(sellerId.value)
     seller.value = response
   } catch (error) {
+    if (error.status == 404) {
+      router.push('/not-found'); // Перенаправляем на 404 страницу
+      return;
+    }
     console.error('Ошибка при загрузке данных продавца:', error)
   }
 })

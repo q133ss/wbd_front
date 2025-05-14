@@ -97,12 +97,19 @@ const loadProductData = async (id) => {
       summary: item.summary || { averageRating: 0, totalReviews: 0 }
     })).slice(0, 6);
   } catch (error) {
+    // Если товар не найден, редирект на страницу 404
+    if (error.status == 404) {
+      router.push('/not-found')
+      return
+    }
+
     console.error('Ошибка при загрузке данных:', error);
     errorMessage.value = 'Не удалось загрузить данные. Попробуйте позже.';
   } finally {
     isLoading.value = false;
   }
 };
+
 
 // Выполняем загрузку данных при монтировании
 onMounted(() => {

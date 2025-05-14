@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Footer from '@/views/front-pages/front-page-footer.vue'
 import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import productApi from '@/api/index'
@@ -24,6 +24,7 @@ const scrollObserver = ref(null)
 const scrollTrigger = ref(null)
 
 const route = useRoute()
+const router = useRouter()
 const categoryId = ref(route.params.id)
 
 // Загрузка подкатегорий
@@ -32,6 +33,10 @@ const fetchSubCategories = async () => {
     const response = await categoriesApi.getSubCategories(categoryId.value)
     subCategories.value = response
   } catch (error) {
+    if (error.status == 404) {
+      router.push('/not-found'); // Перенаправляем на 404 страницу
+      return;
+    }
     console.error('Ошибка загрузки подкатегорий:', error)
   }
 }
