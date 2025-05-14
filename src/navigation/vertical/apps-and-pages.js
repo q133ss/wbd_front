@@ -11,6 +11,11 @@ export default [
     to: 'dashboard-balance',
   },
   {
+    title: 'Партнерам',
+    icon: { icon: 'ri-gift-line' },
+    to: 'dashboard-partners',
+  },
+  {
     title: 'Поддержка',
     icon: { icon: 'ri-headphone-line' },
     to: 'dashboard-support',

@@ -94,7 +94,7 @@ const buyTariff = async (tariff) => {
             </div>
             <v-btn
               color="primary"
-              
+
               @click="buyTariff(tariff)"
             >
               Купить

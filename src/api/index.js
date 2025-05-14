@@ -11,6 +11,8 @@ import balanceApi from "@/api/balance"
 import templateApi from "@/api/template"
 import promocodeApi from "@/api/promocode"
 import tariffApi from "@/api/tariff"
+import chatApi from "@/api/chat"
+import referralApi from "@/api/referral"
 
 export default {
   products: productsApi,
@@ -25,5 +27,7 @@ export default {
   balance: balanceApi,
   template: templateApi,
   promocode: promocodeApi,
-  tariff: tariffApi
+  tariff: tariffApi,
+  chat: chatApi,
+  referral: referralApi
 }

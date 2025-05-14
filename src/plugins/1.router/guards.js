@@ -1,7 +1,9 @@
+import api from '@/api'
+
 export const setupGuards = router => {
   // 👉 router.beforeEach
   // Docs: https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards
-  router.beforeEach(to => {
+  router.beforeEach(async to => {
     /**
          * Check if user is logged in by checking if token & user data exists in local storage
          * Feel free to update this logic to suit your needs
@@ -9,6 +11,17 @@ export const setupGuards = router => {
     const user = useCookie('userData').value
     const token = useCookie('accessToken').value
     const isLoggedIn = !!user && !!token
+
+    // Проверка реферальной ссылки (параметр ref в URL)
+    const referrerId = to.query.ref
+    if (referrerId) {
+      try {
+        // Сохраняем реферальный ID
+        await api.referral.saveReferral(referrerId)
+      } catch (error) {
+        console.error('Ошибка при сохранении реферального ID:', error)
+      }
+    }
 
     if (isLoggedIn) {
       // Проверка роли и настройки профиля
