@@ -58,5 +58,43 @@ export default {
       },
       responseType: 'json'
     })
+  },
+
+  async sendResetCode(phone) {
+    return await $api('/password/reset/send-code', {
+      method: 'POST',
+      body: { phone }, // важно: используем `body`, не `data`
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
+  },
+
+  async checkResetCode(phone, code) {
+    return await $api('/password/reset/check-code', {
+      method: 'POST',
+      body: { phone, code }, // заменили data → body
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
+  },
+
+  async resetPassword({ phone, code, password, password_confirmation }) {
+    return await $api('/password/reset', {
+      method: 'POST',
+      body: {
+        phone,
+        code,
+        password,
+        password_confirmation
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
   }
 }

@@ -30,6 +30,8 @@ const tab = ref('order');
 const currentPage = ref(1);
 const isLoading = ref(true);
 const errorMessage = ref(null);
+const isInFavorites = ref(false)
+
 
 const phone = ref('')
 const password = ref('')
@@ -110,10 +112,26 @@ const loadProductData = async (id) => {
   }
 };
 
+const checkIfInFavorites = async () => {
+  try {
+    const token = useCookie('accessToken').value
+    if (!token) return
+
+    const favoritesResponse = await favoriteApi.getFavorites()
+    const favorites = favoritesResponse?.favorites || []
+
+    isInFavorites.value = favorites.some(fav => fav.product.product_id === Number(productId.value))
+  } catch (e) {
+    console.error('Ошибка при проверке избранного:', e)
+  }
+}
+
+
 
 // Выполняем загрузку данных при монтировании
-onMounted(() => {
+onMounted(async () => {
   loadProductData(productId.value);
+  await checkIfInFavorites();
 });
 
 // Отслеживаем изменения маршрута
@@ -190,8 +208,8 @@ const addToFavorites = async (productId) => {
     }
     // Вызываем метод addToFavorite и передаем productId
     const response = await favoriteApi.addToFavorite(productId)
-    // Здесь можно обработать результат, например, показать уведомление о добавлении в избранное
-    console.log('Товар добавлен в избранное:', response)
+    snackbar.notify({text: "Товар добавлен в избранное", color: "success"})
+    isInFavorites.value = true
   } catch (error) {
     if(error.statusCode == 401){
       isLoginFormVisible.value = true;
@@ -306,7 +324,15 @@ const resetLoginForm = () => {
           <div>Кол-во выкупов: {{ product?.redemption_count }}</div>
           <div>Осталось товаров с кэшбеком: {{ product?.product?.quantity_available }}</div>
         </div>
-        <VBtn color="secondary" class="mr-2" @click="addToFavorites(product.id)">В избранное</VBtn>
+        <VBtn
+          color="secondary"
+          class="mr-2"
+          :disabled="isInFavorites"
+          @click="addToFavorites(product.id)"
+        >
+          {{ isInFavorites ? 'В избранном' : 'В избранное' }}
+        </VBtn>
+
         <VBtn color="primary" @click="handleOrderClick">Заказать</VBtn>
         <div class="mt-4 shop-details">
           <strong>{{ product?.shop?.legal_name }}</strong>
