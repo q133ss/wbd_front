@@ -343,7 +343,7 @@ const openImage = (url) => {
 
 // Redirect to user profile
 const goToUserProfile = (userId) => {
-  router.push(`/dashboard/users/${userId}`)
+  router.push(`/users/${userId}`)
 }
 
 // Redirect to product page

@@ -13,5 +13,15 @@ export default {
     })
 
     return response
+  },
+
+  async getPublicProfile(buyerId) {
+    const url = `/buyer/${buyerId}`
+
+    const response = await $api(url, {
+      method: 'GET',
+    })
+
+    return response
   }
 }

@@ -1,28 +1,6 @@
 <script setup>
-import appleImg from '@images/front-pages/landing-page/apple-icon.png'
-import googlePlayImg from '@images/front-pages/landing-page/google-play-icon.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
-
-const menus = [
-  {
-    name: 'Pricing',
-    to: { name: 'front-pages-pricing' },
-  },
-  {
-    name: 'Payment',
-    to: { name: 'front-pages-payment' },
-    isNew: true,
-  },
-  {
-    name: 'Maintenance',
-    to: { name: 'pages-misc-under-maintenance' },
-  },
-  {
-    name: 'Comming Soon',
-    to: { name: 'pages-misc-coming-soon' },
-  },
-]
 </script>
 
 <template>
@@ -54,7 +32,8 @@ const menus = [
               <router-link to="/terms">Пользовательское соглашение</router-link>
               <br>
               <router-link to="/privacy">Политика конфидициальности</router-link>
-
+              <br>
+              <router-link to="/sitemap.xml">Карта сайта</router-link>
             </div>
           </VCol>
 

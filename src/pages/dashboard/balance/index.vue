@@ -72,15 +72,15 @@ const redemptionCount = computed(() => {
 })
 
 const spentToday = computed(() => {
-  return balance.value?.transactionData.today || '0'
+  return balance.value?.transactionData?.today || '0'
 })
 
 const spentYesterday = computed(() => {
-  return balance.value?.transactionData.yesterday || '0'
+  return balance.value?.transactionData?.yesterday || '0'
 })
 
 const spentLast7Days = computed(() => {
-  return balance.value?.transactionData.last_7_days || '0'
+  return balance.value?.transactionData?.last_7_days || '0'
 })
 
 const selectedProductName = computed(() => {
