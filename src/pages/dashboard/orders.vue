@@ -1,580 +1,891 @@
-<template>
-  <v-container fluid class="pa-0 chat-container">
-    <v-row no-gutters>
-      <!-- Левая колонка: список диалогов -->
-      <v-col cols="12" md="4" class="dialog-list">
-        <v-card flat class="pa-4 dialog-list-card">
-          <!-- Выбор статуса -->
-          <v-select
-            v-model="selectedStatus"
-            :items="statuses"
-            item-title="title"
-            item-value="slug"
-            label="Статус"
-            density="compact"
-            variant="outlined"
-            class="mb-4"
-            @update:modelValue="fetchChatList"
-          ></v-select>
-          <!-- Список диалогов -->
-          <v-list class="dialog-list-items">
-            <v-list-item
-              v-for="chat in chatList"
-              :key="chat.id"
-              :class="{ 'selected-chat': selectedChat?.id === chat.id }"
-              @click="selectChat(chat)"
-            >
-              <v-row align="center">
-                <v-col cols="3">
-                  <v-avatar size="60" class="dialog-avatar">
-                    <v-img
-                      :src="chat.ad.product.images[0] || '/placeholder.png'"
-                      alt="Продукт"
-                    ></v-img>
-                  </v-avatar>
-                </v-col>
-                <v-col cols="9">
-                  <v-list-item-title>{{ chat.ad.product.name }}</v-list-item-title>
-                  <v-chip
-                    v-if="chat.messages.some((m) => !m.is_read)"
-                    color="red"
-                    x-small
-                    class="not-read-chip"
-                  >
-                    {{ chat.messages.filter((m) => !m.is_read).length }}
-                  </v-chip>
-                </v-col>
-              </v-row>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-col>
-
-      <!-- Правая колонка: диалог -->
-      <v-col cols="12" md="8" class="chat-dialog">
-        <v-card flat v-if="selectedChat" class="chat-card">
-          <!-- Заголовок чата -->
-          <v-toolbar flat class="chat-toolbar">
-            <v-row align="center">
-              <v-col cols="2">
-                <v-avatar size="40" @click="goToProduct(selectedChat.ad)">
-                  <v-img
-                    :src="selectedChat.ad.product.images[0] || '/placeholder.png'"
-                    alt="Продукт"
-                  ></v-img>
-                </v-avatar>
-              </v-col>
-              <v-col cols="2">
-                <v-avatar size="40" color="primary" @click="goToShop(selectedChat.user)">
-                  <span class="white--text">{{
-                      selectedChat.user.name.charAt(0).toUpperCase()
-                    }}</span>
-                </v-avatar>
-              </v-col>
-              <v-col cols="8">
-                <v-toolbar-title>{{ selectedChat.ad.product.name }}</v-toolbar-title>
-                <v-toolbar-subtitle>{{ selectedChat.user.name }}</v-toolbar-subtitle>
-              </v-col>
-            </v-row>
-          </v-toolbar>
-
-          <!-- Сообщения -->
-          <v-card-text
-            class="messages-container"
-            ref="messagesContainer"
-            @scroll="handleScroll"
-          >
-            <v-progress-circular
-              v-if="isLoadingMore"
-              indeterminate
-              color="primary"
-              size="24"
-              class="loading-indicator"
-            ></v-progress-circular>
-            <v-alert
-              v-if="!messages.length && !isLoadingMore"
-              type="info"
-              dense
-              class="empty-chat-alert"
-            >
-              В этом чате пока нет сообщений
-            </v-alert>
-            <div
-              v-for="message in messages"
-              :key="message.id || message.tempId"
-              :class="[
-                'message',
-                { 'message-mine': message.sender_id === userId },
-                { 'message-other': message.sender_id !== userId },
-                { 'message-temp': message.tempId }
-              ]"
-            >
-              <v-chip class="message-chip" :class="message.sender_id === userId ? 'mine' : 'other'">
-                {{ message.text }}
-              </v-chip>
-              <div class="message-time">
-                {{ formatDate(message.created_at || message.updated_at) }}
-              </div>
-            </div>
-          </v-card-text>
-
-          <!-- Поле ввода сообщения -->
-          <v-card-actions class="message-input">
-            <v-text-field
-              v-model="newMessage"
-              label="Напишите сообщение..."
-              variant="outlined"
-              density="compact"
-              class="message-input-field"
-              @keyup.enter="sendMessage"
-            ></v-text-field>
-            <v-btn
-              color="primary"
-              class="ml-2"
-              @click="sendMessage"
-            >
-              Отправить
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-        <v-card v-else flat class="pa-4">
-          <v-card-text>Выберите диалог для просмотра сообщений</v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
-</template>
-
 <script setup>
-import Pusher from 'pusher-js';
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { useRouter } from 'vue-router';
-import api from '@/api';
-import { useSnackbarStore } from '@/stores/snackbar';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { useSnackbarStore } from '@/stores/snackbar'
+import { useDisplay } from 'vuetify'
+import { useRoute, useRouter } from 'vue-router'
+import Pusher from 'pusher-js'
+import api from '@/api/Index'
 
-const snackbar = useSnackbarStore();
-const router = useRouter();
+definePage({ meta: { layoutWrapperClasses: 'layout-content-height-fixed' } })
 
-const statuses = ref([]);
-const selectedStatus = ref('all');
-const chatList = ref([]);
-const selectedChat = ref(null);
-const messages = ref([]);
-const newMessage = ref('');
-const pusher = ref(null);
-const channel = ref(null);
-const messagesContainer = ref(null);
-const userId = ref(useCookie('userData').value?.id || null);
-const pagination = ref({
-  current_page: 1,
-  last_page: 1,
-  next_page_url: null,
-});
-const isLoadingMore = ref(false);
-let tempMessageId = 0;
+const snackbar = useSnackbarStore()
+const { smAndDown } = useDisplay()
+const route = useRoute()
+const router = useRouter()
 
-// Обработка ошибок
-const handleError = (error, errMessage = 'Произошла неизвестная ошибка') => {
-  if (error.response?.status === 422) {
-    const message = error.response._data.message;
-    snackbar.error(message);
+// Current user
+const currentUser = ref(null)
+
+// Statuses and chats
+const statuses = ref([])
+const chatsByStatus = ref({})
+const selectedStatus = ref('all')
+const loadingStatuses = ref(true)
+const loadingChats = ref(false)
+
+// Active chat
+const activeChat = ref(null)
+const messages = ref([])
+const chatLogPS = ref()
+const messageInput = ref('')
+const fileInput = ref(null)
+
+// Client form refs
+const pendingFile = ref(null)
+const barcodeFile = ref(null)
+const reviewFile = ref(null)
+const reviewText = ref('')
+const pendingPreview = ref(null)
+const barcodePreview = ref(null)
+const reviewPreview = ref(null)
+
+// Image modal
+const imageModal = ref(false)
+const selectedImage = ref('')
+
+// Timer
+const timer = ref('')
+const timerInterval = ref(null)
+
+// Pusher
+let pusher = null
+let channel = null
+
+// Declension for "выкуп"
+const getBuybackDeclension = (count) => {
+  const num = Math.abs(count)
+  if (num % 10 === 1 && num % 100 !== 11) {
+    return 'выкуп'
+  } else if ([2, 3, 4].includes(num % 10) && ![12, 13, 14].includes(num % 100)) {
+    return 'выкупа'
   } else {
-    snackbar.error(errMessage);
+    return 'выкупов'
   }
-};
+}
 
-// Получение списка статусов
-const fetchStatuses = async () => {
-  try {
-    const response = await api.chat.getStatusList();
-    statuses.value = response;
-  } catch (error) {
-    console.error('Ошибка получения статусов:', error);
-    handleError(error, 'Не удалось загрузить статусы');
-  }
-};
-
-// Получение списка чатов
-const fetchChatList = async () => {
-  try {
-    const response = await api.chat.getChatList(selectedStatus.value);
-    chatList.value = response;
-    if (chatList.value.length && !selectedChat.value) {
-      selectChat(chatList.value[0]);
-    }
-  } catch (error) {
-    console.error('Ошибка получения списка чатов:', error);
-    handleError(error, 'Не удалось загрузить список чатов');
-  }
-};
-
-// Выбор чата
-const selectChat = async (chat) => {
-  selectedChat.value = chat;
-  pagination.value = { current_page: 1, last_page: 1, next_page_url: null };
-  messages.value = [];
-  console.log('Выбран чат, buybackId:', chat.id);
-  await fetchMessages(chat.id, 1);
-  subscribeToPusherChannel(chat.id);
-  await scrollToBottom();
-};
-
-// Получение сообщений
-const fetchMessages = async (buybackId, page = 1) => {
-  try {
-    const response = await api.chat.getMessages(buybackId, page);
-    const newMessages = response.data || [];
-    console.log('Получены сообщения:', newMessages, 'Страница:', page, 'buybackId:', buybackId);
-    if (newMessages.length || page === 1) {
-      messages.value = page === 1 ? newMessages : [...newMessages, ...messages.value];
-    }
-    pagination.value = {
-      current_page: response.current_page || 1,
-      last_page: response.last_page || 1,
-      next_page_url: response.next_page_url || null,
-    };
-    console.log('Пагинация обновлена:', pagination.value);
-    if (page === 1) {
-      await scrollToBottom();
-    }
-  } catch (error) {
-    console.error('Ошибка получения сообщений:', error);
-    handleError(error, 'Не удалось загрузить сообщения');
-  }
-};
-
-// Загрузка дополнительных сообщений
-const loadMoreMessages = async () => {
-  if (isLoadingMore.value || pagination.value.current_page >= pagination.value.last_page) return;
-  isLoadingMore.value = true;
-  try {
-    const nextPage = pagination.value.current_page + 1;
-    console.log('Загрузка сообщений, страница:', nextPage, 'buybackId:', selectedChat.value.id);
-    await fetchMessages(selectedChat.value.id, nextPage);
-  } finally {
-    isLoadingMore.value = false;
-  }
-};
-
-// Обработка прокрутки
-const handleScroll = () => {
-  if (!messagesContainer.value) {
-    console.warn('Контейнер сообщений не инициализирован');
-    return;
-  }
-  const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value;
-  console.log('Событие прокрутки: scrollTop=', scrollTop, 'scrollHeight=', scrollHeight, 'clientHeight=', clientHeight);
-  if (scrollTop < 300 && !isLoadingMore.value && clientHeight > 0 && Number.isFinite(scrollTop)) {
-    loadMoreMessages();
-  }
-};
-
-// Инициализация Pusher
-const initPusher = () => {
-  pusher.value = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
-    cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-    encrypted: true,
-  });
-  pusher.value.connection.bind('connected', () => {
-    console.log('Pusher подключен');
-  });
-  pusher.value.connection.bind('error', (err) => {
-    console.error('Ошибка подключения Pusher:', err);
-  });
-};
-
-// Подписка на канал Pusher
-const subscribeToPusherChannel = (buybackId) => {
-  if (channel.value) {
-    channel.value.unbind_all();
-    pusher.value.unsubscribe(`messages-${selectedChat.value?.id}`);
-  }
-  channel.value = pusher.value.subscribe(`messages-${buybackId}`);
-  console.log(`Подписка на канал: messages-${buybackId}`);
-  channel.value.bind('MessageSent', (data) => {
-    console.log('Получено событие MessageSent:', data);
-    if (data.message && !messages.value.some(msg => msg.id === data.message.id)) {
-      messages.value = [...messages.value, {
-        ...data.message,
-        sender_id: data.message.sender_id || 0,
-        created_at: data.message.created_at || data.message.updated_at || new Date().toISOString(),
-        is_read: data.message.is_read || 0,
-        color: data.message.color || '#7F56D9',
-      }];
-      scrollToBottom();
-    } else {
-      console.error('Некорректные или дублирующиеся данные сообщения:', data);
-    }
-  });
-};
-
-// Отправка сообщения
-const sendMessage = async () => {
-  if (!newMessage.value.trim() || !selectedChat.value) {
-    snackbar.error('Введите сообщение и выберите чат');
-    return;
-  }
-  const token = useCookie('accessToken').value;
-  if (!token) {
-    snackbar.error('Пользователь не авторизован');
-    console.error('Отсутствует токен доступа');
-    return;
-  }
-  if (!userId.value) {
-    snackbar.error('Пользователь не определен');
-    console.error('Отсутствует ID пользователя');
-    return;
-  }
-
-  // Добавление временного сообщения
-  const tempId = `temp-${tempMessageId++}`;
-  const tempMessage = {
-    tempId,
-    text: newMessage.value,
-    sender_id: userId.value,
-    buyback_id: selectedChat.value.id,
-    type: 'text',
-    is_read: 0,
-    color: '#7F56D9',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-  messages.value = [...messages.value, tempMessage];
-  console.log('Добавлено временное сообщение:', tempMessage);
-  await scrollToBottom();
-  const localNewMessage = newMessage.value;
-  newMessage.value = '';
-
-  // Отправка на сервер
-  try {
-    const response = await api.chat.sendMessage(selectedChat.value.id, localNewMessage);
-    console.log('Ответ отправки сообщения:', response);
-    // Замена временного сообщения
-    messages.value = messages.value.filter(msg => msg.tempId !== tempId);
-    if (response?.id) {
-      messages.value = [...messages.value, response];
-      console.log('Добавлено серверное сообщение:', response);
-      await scrollToBottom();
-    }
-  } catch (error) {
-    console.error('Ошибка отправки сообщения:', error);
-    messages.value = messages.value.filter(msg => msg.tempId !== tempId);
-    handleError(error, 'Не удалось отправить сообщение');
-  }
-};
-
-// Прокрутка вниз
-const scrollToBottom = async () => {
-  if (!messagesContainer.value) {
-    console.warn('Контейнер сообщений не инициализирован');
-    return;
-  }
-  console.log('Контейнер сообщений:', messagesContainer.value);
-  let attempts = 0;
-  const maxAttempts = 3;
-  const tryScroll = () => {
-    const { scrollHeight, clientHeight } = messagesContainer.value;
-    if (scrollHeight && clientHeight && Number.isFinite(scrollHeight)) {
-      messagesContainer.value.scrollTop = scrollHeight - clientHeight;
-      console.log('Прокручено вниз: scrollHeight=', scrollHeight, 'clientHeight=', clientHeight, 'scrollTop=', messagesContainer.value.scrollTop);
-    } else {
-      console.warn('Некорректные размеры контейнера: scrollHeight=', scrollHeight, 'clientHeight=', clientHeight);
-      if (attempts < maxAttempts) {
-        attempts++;
-        setTimeout(tryScroll, 200);
-      }
-    }
-  };
-  await nextTick();
-  setTimeout(tryScroll, 100);
-};
-
-// Форматирование даты
-const formatDate = (date) => {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString('ru-RU');
-};
-
-// Переход к продукту
-const goToProduct = (ad) => {
-  router.push(`/products/${ad.id}`);
-};
-
-// Переход к магазину
-const goToShop = (user) => {
-  router.push(`/shops/${user.id}`);
-};
-
+// Fetch current user and statuses
 onMounted(async () => {
-  await fetchStatuses();
-  await fetchChatList();
-  initPusher();
-});
+  try {
+    currentUser.value = await api.user.profile()
+    const response = await api.chat.getStatusList()
+    statuses.value = response || []
+    await fetchChats()
 
-onBeforeUnmount(() => {
-  if (channel.value) {
-    channel.value.unbind_all();
-    pusher.value.unsubscribe(`messages-${selectedChat.value?.id}`);
-  }
-  if (pusher.value) {
-    pusher.value.disconnect();
-  }
-});
+    const chatId = route.query.chatId
+    const res = await api.buyback.getBuybackById(chatId)
+    const chat = res
 
-definePage({
-  meta: {
-    layout: 'default',
-    authRequired: true,
-  },
-});
+    if (chat) {
+      selectChat(chat)
+    } else {
+      console.warn(`Чат с id=${chatId} не найден.`)
+    }
+  } catch (error) {
+    console.error('Error loading data:', error)
+    snackbar.notify({
+      text: 'Ошибка загрузки данных',
+      color: 'error'
+    })
+  } finally {
+    loadingStatuses.value = false
+  }
+})
+
+// Fetch chats for selected status
+const fetchChats = async () => {
+  loadingChats.value = true
+  try {
+    const response = await api.chat.getChatList(selectedStatus.value)
+    chatsByStatus.value[selectedStatus.value] = response || []
+  } catch (error) {
+    console.error('Error loading chats:', error)
+    snackbar.notify({
+      text: 'Ошибка загрузки чатов',
+      color: 'error'
+    })
+  } finally {
+    loadingChats.value = false
+  }
+}
+
+// Select status
+const selectStatus = async (status) => {
+  selectedStatus.value = status
+  if (!chatsByStatus.value[status]) {
+    await fetchChats()
+  }
+}
+
+// Select chat
+const selectChat = async (chat) => {
+  activeChat.value = chat
+  messages.value = []
+  try {
+    const response = await api.chat.getMessages(chat.id)
+    messages.value = response.data?.data || response.data || []
+    console.log('Fetched messages:', JSON.stringify(messages.value, null, 2)) // Debug: Inspect message structure
+    setupPusher(chat.id)
+    updateStatusTimer()
+    scrollToBottom()
+  } catch (error) {
+    console.error('Error loading messages:', error)
+    snackbar.notify({
+      text: 'Ошибка загрузки сообщений',
+      color: 'error'
+    })
+  }
+  if (smAndDown.value) {
+    isLeftSidebarOpen.value = false
+  }
+}
+
+// Pusher setup
+const setupPusher = (chatId) => {
+  if (pusher) {
+    channel?.unsubscribe()
+    pusher.disconnect()
+  }
+  pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+    cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+    encrypted: true
+  })
+  channel = pusher.subscribe(`chat-${chatId}`)
+  channel.bind('MessageSent', (data) => {
+    console.log('Pusher MessageSent:', JSON.stringify(data, null, 2)) // Debug: Inspect incoming message
+    // Normalize Pusher data to match server response
+    const normalizedMessage = {
+      ...data,
+      file: data.file || null,
+      type: data.type || 'text'
+    }
+    messages.value.push(normalizedMessage)
+    nextTick(() => scrollToBottom())
+  })
+}
+
+// Cleanup Pusher
+onUnmounted(() => {
+  if (channel) {
+    channel.unsubscribe()
+  }
+  if (pusher) {
+    pusher.disconnect()
+  }
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+  }
+})
+
+// Scroll to bottom
+const scrollToBottom = () => {
+  nextTick(() => {
+    const scrollEl = chatLogPS.value?.$el || chatLogPS.value
+    if (scrollEl) {
+      scrollEl.scrollTop = scrollEl.scrollHeight
+    }
+  })
+}
+
+// Send message (with file support)
+const sendMessage = async () => {
+  if (!messageInput.value.trim() && !fileInput.value?.files?.length) return
+
+  try {
+    const formData = new FormData()
+    if (fileInput.value?.files?.length) {
+      formData.append('file', fileInput.value.files[0])
+    }
+    await api.chat.sendMessage(activeChat.value.id, messageInput.value, formData)
+    messageInput.value = ''
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+    scrollToBottom()
+  } catch (error) {
+    console.error('Error sending message:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отправки файла или сообщения',
+      color: 'error'
+    })
+  }
+}
+
+// Upload file for pending status
+const uploadPendingFile = async () => {
+  if (!pendingFile.value) return
+
+  try {
+    await api.chat.sendPhoto(activeChat.value.id, [pendingFile.value], 'send_photo')
+    pendingFile.value = null
+    pendingPreview.value = null
+    snackbar.notify({
+      text: 'Скриншот заказа отправлен',
+      color: 'success'
+    })
+    scrollToBottom()
+  } catch (error) {
+    console.error('Error uploading pending file:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отправки скриншота',
+      color: 'error'
+    })
+  }
+}
+
+// Upload files for on_confirmation status
+const uploadConfirmationFiles = async () => {
+  if (!barcodeFile.value || !reviewFile.value) return
+
+  try {
+    await api.chat.sendPhoto(activeChat.value.id, [barcodeFile.value], 'review')
+    await api.chat.sendPhoto(activeChat.value.id, [reviewFile.value], 'review')
+    barcodeFile.value = null
+    reviewFile.value = null
+    barcodePreview.value = null
+    reviewPreview.value = null
+    snackbar.notify({
+      text: 'Файлы отправлены',
+      color: 'success'
+    })
+    scrollToBottom()
+  } catch (error) {
+    console.error('Error uploading confirmation files:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отправки файлов',
+      color: 'error'
+    })
+  }
+}
+
+// Submit review for cashback_received status
+const submitReview = async () => {
+  if (!reviewText.value.trim()) return
+
+  try {
+    await api.chat.sendMessage(activeChat.value.id, reviewText.value)
+    reviewText.value = ''
+    snackbar.notify({
+      text: 'Отзыв отправлен',
+      color: 'success'
+    })
+    scrollToBottom()
+  } catch (error) {
+    console.error('Error submitting review:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отправки отзыва',
+      color: 'error'
+    })
+  }
+}
+
+// Cancel order for pending status
+const cancelOrder = async () => {
+  try {
+    await api.buyback.cancelOrder(activeChat.value.id)
+    activeChat.value.status = 'cancelled'
+    updateStatusTimer()
+    snackbar.notify({
+      text: 'Заказ отменен',
+      color: 'success'
+    })
+  } catch (error) {
+    console.error('Error canceling order:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отмены заказа',
+      color: 'error'
+    })
+  }
+}
+
+// Status messages for client
+const statusMessages = {
+  cancelled: 'Заказ отменен',
+  order_expired: 'Срок для размещения заказа истек',
+  pending: 'Ожидание размещения заказа',
+  awaiting_receipt: 'Ожидание получения товара',
+  on_confirmation: 'Ожидание подтверждения продавцом',
+  cashback_received: 'Кэшбек зачислен на ваш баланс в размере {price}',
+  completed: 'Заказ завершен',
+  archive: 'В архиве'
+}
+
+// Generate file preview
+const generatePreview = (file, previewRef) => {
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewRef.value = e.target.result
+    }
+    reader.readAsDataURL(file)
+  } else {
+    previewRef.value = null
+  }
+}
+
+// Status timer
+const updateStatusTimer = () => {
+  if (timerInterval.value) {
+    clearInterval(timerInterval.value)
+  }
+  timer.value = ''
+  if (!activeChat.value) {
+    console.log('Timer skipped: No active chat')
+    return
+  }
+
+  const status = activeChat.value.status
+  const startTime = activeChat.value.updated_at || activeChat.value.created_at || new Date().toISOString()
+
+  if (!['pending', 'awaiting_receipt', 'on_confirmation'].includes(status)) {
+    console.log('Timer skipped: Status not timed', { status })
+    return
+  }
+
+  const start = new Date(startTime).getTime()
+  if (isNaN(start)) {
+    console.error('Invalid start time:', startTime)
+    return
+  }
+
+  let duration
+  if (status === 'pending') {
+    duration = 30 * 60 * 1000 // 30 minutes
+  } else if (status === 'awaiting_receipt') {
+    duration = 10 * 24 * 60 * 60 * 1000 // 10 days
+  } else if (status === 'on_confirmation') {
+    duration = 72 * 60 * 60 * 1000 // 72 hours
+  }
+
+  const update = () => {
+    const now = Date.now()
+    const remaining = start + duration - now
+    if (remaining <= 0) {
+      timer.value = 'Истек'
+      clearInterval(timerInterval.value)
+      console.log('Timer expired:', timer.value)
+      return
+    }
+    const seconds = Math.floor((remaining / 1000) % 60)
+    const minutes = Math.floor((remaining / (1000 * 60)) % 60)
+    const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24)
+    const days = Math.floor(remaining / (1000 * 60 * 60 * 24))
+    if (days > 0) {
+      timer.value = `${days} д ${hours} ч ${minutes} м`
+    } else if (hours > 0) {
+      timer.value = `${hours} ч ${minutes} м ${seconds} с`
+    } else {
+      timer.value = `${minutes} м ${seconds} с`
+    }
+    console.log('Timer updated:', timer.value)
+  }
+
+  update()
+  timerInterval.value = setInterval(update, 1000)
+}
+
+// Computed status message
+const statusMessage = computed(() => {
+  if (!activeChat.value) return ''
+  const status = activeChat.value.status
+  let message = statusMessages[status] || ''
+  if (status === 'cashback_received') {
+    message = message.replace('{price}', activeChat.value.price)
+  }
+  return message
+})
+
+// Open image modal
+const openImage = (url) => {
+  selectedImage.value = url || 'https://via.placeholder.com/48'
+  imageModal.value = true
+}
+
+// Redirect to user profile
+const goToUserProfile = (userId) => {
+  router.push(`/users/${userId}`)
+}
+
+// Redirect to product page
+const goToProduct = (adsId) => {
+  router.push(`/products/${adsId}`)
+}
+
+// Left sidebar state
+const isLeftSidebarOpen = ref(true)
 </script>
 
-<style scoped>
-.chat-container {
-  height: calc(100vh - 64px);
-  display: flex;
-  flex-direction: column;
-  background-color: #f5f5f5;
-  overflow: hidden;
+<template>
+  <div class="chats-container">
+    <div class="content-wrapper">
+      <h1 class="text-h4 mb-2">Чаты</h1>
+      <p class="text-body-1 mb-8">Общайтесь с продавцами и управляйте заказами</p>
+
+      <v-row>
+        <!-- Left Sidebar: Status Dropdown and Chats -->
+        <v-col cols="12" md="4">
+          <v-card class="chat-list-sidebar pa-4" min-height="600">
+            <h2 class="text-h6 mb-4">Чаты</h2>
+            <v-select
+              v-model="selectedStatus"
+              :items="statuses"
+              item-title="title"
+              item-value="slug"
+              label="Статус"
+              variant="outlined"
+              density="compact"
+              @update:model-value="selectStatus"
+            >
+              <template v-slot:selection="{ item }">
+                <span>{{ item.title }}</span>
+                <v-badge
+                  v-if="item.raw.not_read"
+                  :content="item.raw.not_read"
+                  color="error"
+                  inline
+                  class="ml-2"
+                />
+              </template>
+            </v-select>
+            <v-divider class="my-4" />
+            <v-progress-circular
+              v-if="loadingChats"
+              indeterminate
+              color="primary"
+              class="d-block mx-auto"
+            />
+            <v-list v-else>
+              <v-list-item
+                v-for="chat in chatsByStatus[selectedStatus] || []"
+                :key="chat.id"
+                :class="{ 'bg-light-primary': activeChat?.id === chat.id }"
+                @click="selectChat(chat)"
+              >
+                <v-list-item-title>
+                  {{ chat.ad.name }}
+                  <v-badge
+                    v-if="chat.messages.some(m => !m.is_read && m.whoSend === 'seller')"
+                    content="!"
+                    color="error"
+                    inline
+                  />
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ chat.user.name }} ({{ statusMessages[chat.status] || chat.status }})
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-col>
+
+        <!-- Main Content: Active Chat -->
+        <v-col cols="12" md="8">
+          <v-card class="chat-content pa-6" min-height="600">
+            <div v-if="activeChat" class="d-flex flex-column h-100">
+              <!-- Chat Header -->
+              <div class="chat-header mb-4">
+                <div class="d-flex align-center mb-2">
+                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToUserProfile(activeChat.user.id)">
+                    <v-img
+                      v-if="activeChat.user.avatar"
+                      :src="activeChat.user.avatar"
+                      :alt="activeChat.user.name"
+                    />
+                    <span v-else>{{ activeChat.user.name[0] }}</span>
+                  </v-avatar>
+                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToProduct(activeChat.ad.id)">
+                    <v-img
+                      :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'"
+                      :alt="activeChat.ad.name"
+                    />
+                  </v-avatar>
+                  <div>
+                    <h3 class="text-h6">{{ activeChat.user.name }}</h3>
+                    <p class="text-body-2">{{ activeChat.ad.name }}</p>
+                  </div>
+                </div>
+                <v-alert
+                  :type="['cancelled', 'order_expired'].includes(activeChat.status) ? 'error' : 'info'"
+                  class="status-alert"
+                >
+                  {{ statusMessage }}
+                  <span v-if="timer" class="timer ml-2">{{ timer }}</span>
+                  <span v-else-if="activeChat.status === 'pending'" class="timer ml-2 text-warning">
+                    Ожидание таймера...
+                  </span>
+                </v-alert>
+              </div>
+
+              <!-- Chat Log or No Messages -->
+              <div class="flex-grow-1 d-flex flex-column">
+                <PerfectScrollbar
+                  v-if="messages.length"
+                  ref="chatLogPS"
+                  tag="ul"
+                  :options="{ wheelPropagation: false }"
+                  class="flex-grow-1 chat-log"
+                >
+                  <li
+                    v-for="message in messages"
+                    :key="message.id"
+                    :class="{
+                      'd-flex flex-column align-end': message.sender_id === currentUser?.id,
+                      'd-flex flex-column align-start': message.sender_id !== currentUser?.id
+                    }"
+                    class="mb-4"
+                  >
+                    <div
+                      :style="{
+                        backgroundColor: message.sender_id === currentUser?.id ? message.color : '#f5f5f5',
+                        color: message.sender_id === currentUser?.id ? 'white' : 'black',
+                        borderRadius: '12px',
+                        padding: '8px 12px',
+                        maxWidth: '70%'
+                      }"
+                    >
+                      <span v-if="message.text" class="d-block mb-2">{{ message.text }}</span>
+                      <template v-if="message.type === 'image'">
+                        Фото
+                        <v-img
+                          v-if="message.file?.src"
+                          :key="`image-${message.id}`"
+                          :src="message.file.src"
+                          :lazy-src="'https://via.placeholder.com/50'"
+                          max-width="200"
+                          class="mt-2 cursor-pointer rounded"
+                          @click="openImage(message.file.src)"
+                          @error="console.error('Failed to load image:', message.file.src)"
+                        />
+                        <span v-else class="text-error">
+                          Изображение не загружено (нет URL)
+                        </span>
+                      </template>
+                    </div>
+                    <span class="text-caption text-disabled mt-1">
+                      {{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}
+                    </span>
+                  </li>
+                </PerfectScrollbar>
+                <div v-else class="flex-grow-1 d-flex align-center justify-center">
+                  <p class="text-disabled">Нет сообщений</p>
+                </div>
+
+                <!-- Pending Status Form -->
+                <div v-if="activeChat.status === 'pending'" class="mt-4">
+                  <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                    <v-card-title class="text-h6 d-flex align-center">
+                      <v-icon icon="ri-image-line" class="mr-2" />
+                      Загрузите скриншот заказа
+                    </v-card-title>
+                    <v-card-text>
+                      <p class="text-body-2 mb-4">
+                        Загрузите скриншот заказа из кабинета Wildberries чтобы продолжить или отмените заказ
+                      </p>
+                      <v-file-input
+                        label="Выберите скриншот"
+                        accept=".jpeg,.png,.jpg,.gif"
+                        v-model="pendingFile"
+                        variant="outlined"
+                        density="compact"
+                        show-size
+                        prepend-icon="ri-upload-cloud-line"
+                        @update:model-value="generatePreview(pendingFile, pendingPreview)"
+                        class="mb-4"
+                        aria-label="Загрузить скриншот заказа"
+                      />
+                      <v-img
+                        v-if="pendingPreview"
+                        :src="pendingPreview"
+                        max-width="100"
+                        class="mb-4 rounded"
+                        cover
+                      />
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-btn
+                        type="submit"
+                        color="primary"
+                        :disabled="!pendingFile"
+                        @click="uploadPendingFile"
+                        class="px-4"
+                        rounded
+                      >
+                        Отправить
+                      </v-btn>
+                      <v-btn
+                        color="error"
+                        @click="cancelOrder"
+                        variant="outlined"
+                        class="px-4"
+                        rounded
+                      >
+                        Отменить заказ
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </div>
+
+                <!-- On Confirmation Status Form -->
+                <div v-if="activeChat.status === 'on_confirmation'" class="mt-4">
+                  <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                    <v-card-title class="text-h6 d-flex align-center">
+                      <v-icon icon="ri-barcode-line" class="mr-2" />
+                      Загрузите фото штрихкода
+                    </v-card-title>
+                    <v-card-text>
+                      <p class="text-body-2 mb-4">
+                        Загрузите фото, на котором видно, как вы порезали штрихкод, чтобы не было возможности сдать товар обратно
+                      </p>
+                      <v-file-input
+                        label="Выберите фото штрихкода"
+                        accept=".jpeg,.png,.jpg,.gif"
+                        v-model="barcodeFile"
+                        variant="outlined"
+                        density="compact"
+                        show-size
+                        prepend-icon="ri-upload-cloud-line"
+                        @update:model-value="generatePreview(barcodeFile, barcodePreview)"
+                        class="mb-4"
+                        aria-label="Загрузить фото штрихкода"
+                      />
+                      <v-img
+                        v-if="barcodePreview"
+                        :src="barcodePreview"
+                        max-width="100"
+                        class="mb-4 rounded"
+                        cover
+                      />
+                    </v-card-text>
+                  </v-card>
+                  <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                    <v-card-title class="text-h6 d-flex align-center">
+                      <v-icon icon="ri-star-line" class="mr-2" />
+                      Загрузите скриншот отзыва
+                    </v-card-title>
+                    <v-card-text>
+                      <p class="text-body-2 mb-4">
+                        Загрузите скриншот, где видно, что вы оставили отзыв
+                      </p>
+                      <v-file-input
+                        label="Выберите скриншот отзыва"
+                        accept=".jpeg,.png,.jpg,.gif"
+                        v-model="reviewFile"
+                        variant="outlined"
+                        density="compact"
+                        show-size
+                        prepend-icon="ri-upload-cloud-line"
+                        @update:model-value="generatePreview(reviewFile, reviewPreview)"
+                        class="mb-4"
+                        aria-label="Загрузить скриншот отзыва"
+                      />
+                      <v-img
+                        v-if="reviewPreview"
+                        :src="reviewPreview"
+                        max-width="100"
+                        class="mb-4 rounded"
+                        cover
+                      />
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-btn
+                        color="primary"
+                        :disabled="!barcodeFile || !reviewFile"
+                        @click="uploadConfirmationFiles"
+                        class="px-4"
+                        rounded
+                      >
+                        Отправить
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </div>
+
+                <!-- Cashback Received Status Form -->
+                <div v-if="activeChat.status === 'cashback_received'" class="mt-4">
+                  <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                    <v-card-title class="text-h6 d-flex align-center">
+                      <v-icon icon="ri-star-line" class="mr-2" />
+                      Оставьте отзыв
+                    </v-card-title>
+                    <v-card-text>
+                      <p class="text-body-2 mb-4">
+                        Пожалуйста, оставьте отзыв о заказе
+                      </p>
+                      <v-textarea
+                        v-model="reviewText"
+                        label="Ваш отзыв"
+                        variant="outlined"
+                        density="compact"
+                        class="mb-4"
+                        aria-label="Оставить отзыв о заказе"
+                      />
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-btn
+                        type="submit"
+                        color="primary"
+                        :disabled="!reviewText"
+                        @click="submitReview"
+                        class="px-4"
+                        rounded
+                      >
+                        Отправить отзыв
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </div>
+
+                <!-- Message Input -->
+                <v-form
+                  v-if="!['pending', 'on_confirmation', 'cashback_received'].includes(activeChat.status)"
+                  @submit.prevent="sendMessage"
+                  class="mt-4"
+                >
+                  <v-text-field
+                    v-model="messageInput"
+                    placeholder="Введите сообщение..."
+                    variant="solo"
+                    density="default"
+                    append-inner-icon="ri-send-plane-line"
+                    @click:append-inner="sendMessage"
+                  >
+                    <template #prepend-inner>
+                      <v-tooltip text="Прикрепить файл (.jpeg, .png, .jpg, .gif)">
+                        <template v-slot:activator="{ props }">
+                          <v-btn
+                            icon
+                            size="small"
+                            v-bind="props"
+                            @click="fileInput.click()"
+                          >
+                            <v-icon icon="ri-attachment-2" />
+                          </v-btn>
+                        </template>
+                      </v-tooltip>
+                    </template>
+                  </v-text-field>
+                  <input
+                    ref="fileInput"
+                    type="file"
+                    accept=".jpeg,.png,.jpg,.gif"
+                    multiple
+                    hidden
+                  />
+                </v-form>
+              </div>
+            </div>
+            <div v-else class="d-flex h-100 align-center justify-center flex-column">
+              <v-avatar size="98" variant="tonal" color="primary" class="mb-4">
+                <v-icon size="50" icon="ri-wechat-line" />
+              </v-avatar>
+              <p class="text-center text-disabled">
+                Выберите чат для начала общения
+              </p>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <!-- Image Modal -->
+      <v-dialog v-model="imageModal" max-width="800">
+        <v-card>
+          <v-img :src="selectedImage" contain max-height="600" />
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="secondary" @click="imageModal = false">Закрыть</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.chats-container {
+  padding: 24px;
 }
 
-.dialog-list {
-  height: calc(100vh - 64px);
-  overflow-y: auto;
-  background-color: #ffffff;
-  border-right: 1px solid #e0e0e0;
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.dialog-list-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.chat-list-sidebar {
+  background-color: #fff;
   border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.dialog-list-items {
-  padding: 8px;
-}
-
-.dialog-avatar {
-  transition: transform 0.2s;
-}
-
-.dialog-avatar:hover {
-  transform: scale(1.05);
-}
-
-.selected-chat .dialog-avatar {
-  border: 2px solid #7F56D9;
-}
-
-.not-read-chip {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.chat-dialog {
-  height: calc(100vh - 64px);
-  display: flex;
-  flex-direction: column;
-}
-
-.chat-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.chat-content {
+  background-color: #fff;
   border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.chat-toolbar {
+.chat-header {
   border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #f5f5f5, #ffffff);
+  padding-bottom: 16px;
 }
 
-.messages-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  scroll-behavior: smooth;
-  padding-bottom: 80px;
-  min-height: 200px;
-}
-
-.loading-indicator {
-  margin: 16px auto;
-}
-
-.empty-chat-alert {
-  margin: 16px;
-}
-
-.message {
-  display: flex;
-  flex-direction: column;
-  max-width: 70%;
-  transition: background-color 0.2s;
-}
-
-.message:hover {
-  background-color: #f9f9f9;
-}
-
-.message-mine {
-  align-self: flex-end;
-}
-
-.message-other {
-  align-self: flex-start;
-}
-
-.message-temp .message-chip {
-  opacity: 0.7;
-}
-
-.message-chip {
-  border-radius: 20px;
-  padding: 10px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.message-chip.mine {
-  background: linear-gradient(135deg, #7F56D9, #9b59b6);
-  color: white;
-}
-
-.message-chip.other {
-  background: linear-gradient(135deg, #e0e0e0, #ffffff);
-  color: black;
-}
-
-.message-time {
-  font-size: 12px;
-  color: #757575;
-  margin-top: 4px;
-  align-self: flex-end;
-}
-
-.message-input {
-  position: fixed;
-  bottom: 0;
-  left: 33.33%;
-  width: 66.67%;
-  background-color: #ffffff;
-  border-top: 1px solid #e0e0e0;
-  padding: 16px;
+.status-alert {
+  font-size: 0.875rem;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
-  z-index: 10;
+  gap: 8px;
 }
 
-.message-input-field {
-  background-color: #f5f5f5;
-  border-radius: 20px;
-  flex: 1;
-  margin-right: 8px;
+.timer {
+  font-weight: 500;
+  color: #d81b60;
+}
+
+.text-warning {
+  color: #ff9800;
+}
+
+.chat-log {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+:deep(.v-btn) {
+  text-transform: none;
+  letter-spacing: normal;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+:deep(.v-card) {
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+}
+
+:deep(.v-file-input) {
+  .v-input__prepend {
+    .v-icon {
+      color: #1976d2;
+    }
+  }
+}
+
+.bg-light-primary {
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+.rounded {
+  border-radius: 8px;
+}
+
+.text-error {
+  color: #d32f2f;
+  font-size: 0.875rem;
 }
 </style>
+

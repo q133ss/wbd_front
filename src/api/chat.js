@@ -90,5 +90,29 @@ export default {
     })
 
     return response
+  },
+
+  // send_photo --- заказ сденан
+  // review -- оставил отзыв
+  async sendPhoto(chatId, files = [], fileType = 'send_photo') {
+    const token = useCookie('accessToken').value
+    if (!token || !files.length) return null
+
+    const formData = new FormData()
+    files.forEach(file => {
+      formData.append('files[]', file)
+    })
+    formData.append('file_type', fileType)
+
+    const response = await $api(`/chat/${chatId}/photo`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+      body: formData
+    })
+
+    return response
   }
 }
