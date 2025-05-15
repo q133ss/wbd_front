@@ -6,6 +6,11 @@ export default [
     to: 'profile',
   },
   {
+    title: 'Мои заказы',
+    icon: { icon: 'ri-shopping-bag-line' },
+    to: 'dashboard-orders',
+  },
+  {
     title: 'Баланс',
     icon: { icon: 'ri-wallet-line' },
     to: 'dashboard-balance',
