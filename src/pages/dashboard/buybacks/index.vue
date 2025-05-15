@@ -166,20 +166,8 @@ const scrollToBottom = () => {
 const sendMessage = async () => {
   if (!messageInput.value.trim() && !fileInput.value?.files?.length) return
 
-  const formData = new FormData()
-  formData.append('text', messageInput.value)
-  if (fileInput.value?.files?.length) {
-    Array.from(fileInput.value.files).forEach(file => {
-      formData.append('files[]', file)
-    })
-  }
-  console.log('Sending FormData:', {
-    text: messageInput.value,
-    files: fileInput.value?.files ? Array.from(fileInput.value.files).map(f => f.name) : []
-  })
-
   try {
-    await api.chat.sendMessage(activeChat.value.id, formData)
+    await api.chat.sendMessage(activeChat.value.id, messageInput.value)
     messageInput.value = ''
     if (fileInput.value) {
       fileInput.value.value = ''
@@ -251,7 +239,7 @@ const statusMessages = {
   pending: 'Ожидание заказа',
   awaiting_receipt: 'Ожидание получения',
   on_confirmation: 'На подтверждении',
-  cashback_received: 'Кэшбек в размере {price}₽ был зачислен на баланс покупателя',
+  cashback_received: 'Кэшбек был зачислен на баланс покупателя',
   completed: 'Завершено',
   archive: 'Архив'
 }
