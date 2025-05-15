@@ -31,20 +31,18 @@ export default {
     return response
   },
 
-  async sendMessage(chatId, { text = '', files = [] }) {
+  async sendMessage(chatId, text = '') {
     const token = useCookie('accessToken').value
-    if (!token) return null
+    if (!token || !text) return null
 
     const formData = new FormData()
-    if (text) formData.append('text', text)
-    if (files && files.length > 0) {
-      files.forEach(file => formData.append('files[]', file))
-    }
+    formData.append('text', text)
 
     const response = await $api(`/chat/${chatId}/send`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'Accept': 'application/json'
       },
       body: formData
     })
