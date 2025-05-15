@@ -219,7 +219,7 @@ const addToFavorites = async (productId) => {
   }
 }
 
-const handleOrderClick = () => {
+const handleOrderClick = async () => {
   const token = useCookie('accessToken').value
   const user = useCookie('userData').value
 
@@ -228,8 +228,14 @@ const handleOrderClick = () => {
     return
   }
 
-  // здесь логика оформления заказа
-  console.log('Оформляем заказ…')
+  try{
+    const response = await api.order.createOrder(productId.value)
+    if(response.status){
+      router.push(`/orders?orderId=${response.message?.id}`)
+    }
+  }catch (error){
+    snackbar.notify({text: error.response?._data?.message, color: "error"})
+  }
 }
 
 

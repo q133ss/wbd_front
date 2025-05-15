@@ -15,6 +15,7 @@ import chatApi from "@/api/chat"
 import referralApi from "@/api/referral"
 import notificationApi from "@/api/notification"
 import roleApi from "@/api/role"
+import orderApi from "@/api/order"
 
 export default {
   products: productsApi,
@@ -33,5 +34,6 @@ export default {
   chat: chatApi,
   referral: referralApi,
   notification: notificationApi,
-  role: roleApi
+  role: roleApi,
+  order: orderApi
 }
