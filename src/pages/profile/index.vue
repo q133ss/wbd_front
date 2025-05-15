@@ -107,7 +107,7 @@ const switchRole = async () => {
   <VContainer>
     <VCard>
       <VImg
-        src="/src/assets/images/pages/user-profile-header-bg.png"
+        :src="role === 'seller' ? '/src/assets/images/pages/user-profile-header-bg.png' : '/src/assets/images/pages/app-search-header-bg.png'"
         min-height="125"
         max-height="250"
         cover
@@ -190,6 +190,7 @@ const switchRole = async () => {
                 class="mb-4"
               />
               <VTextField
+                v-if="role === 'seller'"
                 v-model="formData.inn"
                 label="ИНН"
                 prepend-icon="ri-file-text-line"
@@ -197,6 +198,7 @@ const switchRole = async () => {
                 disabled
               />
               <VTextField
+                v-if="role === 'seller'"
                 v-model="formData.legal_name"
                 label="Наименование юр. лица"
                 prepend-icon="ri-building-line"
@@ -204,6 +206,7 @@ const switchRole = async () => {
                 disabled
               />
               <VTextField
+                v-if="role === 'seller'"
                 v-model="formData.wb_name"
                 label="Название магазина на WB"
                 prepend-icon="ri-store-line"
@@ -281,12 +284,12 @@ const switchRole = async () => {
                                 'text-warning': statistics.cashback_paid >= 1000 && statistics.cashback_paid < 10000,
                                 'text-error': statistics.cashback_paid < 1000
                               }"
-                  >{{ statistics.cashback_paid }}%</VCardTitle>
+                  >{{ statistics.cashback_paid }}</VCardTitle>
                   <VCardText>Кэшбэка выплаченно</VCardText>
                 </VCard>
               </VCol>
               <VCol cols="6">
-                <VCard class="text-center pa-4">
+                <VCard class="text-center pa-4" v-if="role === 'seller'">
                   <VCardTitle class="justify-center"
                   :class="{
                     'text-success': statistics.product_rating >= 4,
@@ -298,7 +301,7 @@ const switchRole = async () => {
                 </VCard>
               </VCol>
               <VCol cols="6">
-                <VCard class="text-center pa-4">
+                <VCard class="text-center pa-4" v-if="role === 'seller'">
                   <VCardTitle class="justify-center"
                   :class="{
                     'text-success': statistics.total_reviews >= 15,

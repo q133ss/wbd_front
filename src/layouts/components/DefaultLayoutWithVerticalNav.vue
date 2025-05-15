@@ -44,7 +44,7 @@ watch([
           <VIcon icon="ri-menu-line" />
         </IconBtn>
 
-        <NavSearchBar class="ms-lg-n2" />
+<!--        <NavSearchBar class="ms-lg-n2" />-->
 
         <VSpacer />
 
