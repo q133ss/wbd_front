@@ -16,6 +16,7 @@ import referralApi from "@/api/referral"
 import notificationApi from "@/api/notification"
 import roleApi from "@/api/role"
 import orderApi from "@/api/order"
+import buybackApi from "@/api/buyback"
 
 export default {
   products: productsApi,
@@ -35,5 +36,6 @@ export default {
   referral: referralApi,
   notification: notificationApi,
   role: roleApi,
-  order: orderApi
+  order: orderApi,
+  buyback: buybackApi
 }

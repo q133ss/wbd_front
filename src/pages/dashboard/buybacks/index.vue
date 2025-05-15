@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { useDisplay } from 'vuetify'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Pusher from 'pusher-js'
 import api from '@/api/Index'
 
@@ -11,6 +11,7 @@ definePage({ meta: { layoutWrapperClasses: 'layout-content-height-fixed' } })
 
 const snackbar = useSnackbarStore()
 const { smAndDown } = useDisplay()
+const route = useRoute()
 const router = useRouter()
 
 // Current user
@@ -58,10 +59,22 @@ const getBuybackDeclension = (count) => {
 onMounted(async () => {
   try {
     currentUser.value = await api.user.profile()
-    console.log('Current user:', currentUser.value)
     const response = await api.chat.getStatusList()
     statuses.value = response || []
     await fetchChats()
+
+    // Получение чата по ID
+    const chatId = route.query.chatId
+
+    const res = await api.buyback.getBuybackById(chatId)
+
+    const chat = res
+
+    if (chat) {
+      selectChat(chat)
+    } else {
+      console.warn(`Чат с id=${chatId} не найден.`)
+    }
   } catch (error) {
     console.error('Error loading data:', error)
     snackbar.notify({
@@ -100,6 +113,7 @@ const selectStatus = async (status) => {
 
 // Select chat
 const selectChat = async (chat) => {
+  console.log(chat)
   activeChat.value = chat
   messages.value = []
   try {
