@@ -6,10 +6,10 @@ const role = userData?.value?.role?.slug
 
 let arr = []
 
-if (role === 'buyer') {
-  arr = [...buyer]
-} else {
+if (role === 'seller') {
   arr = [...seller]
+} else {
+  arr = [...buyer]
 }
 
 export default arr

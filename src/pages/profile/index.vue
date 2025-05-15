@@ -76,6 +76,31 @@ const updateProfile = async () => {
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('ru-RU')
 }
+
+const roleToggleText = ref('Переключится на продавца')
+const role = userData?.value?.role?.slug
+if (role === 'seller') {
+  roleToggleText.value = 'Переключится на покупателя';
+}
+
+const switchRole = async () => {
+  try {
+    const response = await api.role.switchRole()
+
+    if(response){
+      snackbar.notify({text: "Роль успешно переключена", color: "success"})
+      const updatedData = await api.user.profile()
+      useCookie('userData').value = updatedData
+
+      setTimeout(() => {
+        location.reload()
+      }, 1000) // небольшая задержка, чтобы показать snackbar
+    }
+  }catch (error){
+    console.log(error)
+    snackbar.notify({text: error.response._data.message, color: "error"})
+  }
+}
 </script>
 
 <template>
@@ -138,8 +163,8 @@ const formatDate = (date) => {
               </div>
             </div>
 
-            <VBtn prepend-icon="ri-user-follow-line">
-              Страница на wildberries
+            <VBtn prepend-icon="ri-user-follow-line" @click="switchRole">
+              {{roleToggleText}}
             </VBtn>
           </div>
         </div>
