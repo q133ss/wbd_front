@@ -64,33 +64,33 @@ export default {
     return response
   },
 
-  async approveFile(chatId, fileId) {
-    const token = useCookie('accessToken').value
-    if (!token) return null
+  // async approveFile(chatId, fileId) {
+  //   const token = useCookie('accessToken').value
+  //   if (!token) return null
+  //
+  //   const response = await $api(`/seller/chat/${chatId}/file/${fileId}/approve`, {
+  //     method: 'POST',
+  //     headers: {
+  //       Authorization: `Bearer ${token}`
+  //     }
+  //   })
+  //
+  //   return response
+  // },
 
-    const response = await $api(`/seller/chat/${chatId}/file/${fileId}/approve`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
-    return response
-  },
-
-  async rejectFile(chatId, fileId) {
-    const token = useCookie('accessToken').value
-    if (!token) return null
-
-    const response = await $api(`/seller/chat/${chatId}/file/${fileId}/reject`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
-    return response
-  },
+  // async rejectFile(chatId, fileId) {
+  //   const token = useCookie('accessToken').value
+  //   if (!token) return null
+  //
+  //   const response = await $api(`/seller/chat/${chatId}/file/${fileId}/reject`, {
+  //     method: 'POST',
+  //     headers: {
+  //       Authorization: `Bearer ${token}`
+  //     }
+  //   })
+  //
+  //   return response
+  // },
 
   // send_photo --- заказ сденан
   // review -- оставил отзыв

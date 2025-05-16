@@ -65,15 +65,14 @@ onMounted(async () => {
 
     // Получение чата по ID
     const chatId = route.query.chatId
-
-    const res = await api.buyback.getBuybackById(chatId)
-
-    const chat = res
-
-    if (chat) {
-      selectChat(chat)
-    } else {
-      console.warn(`Чат с id=${chatId} не найден.`)
+    if(chatId){
+      const res = await api.buyback.getBuybackById(chatId)
+      const chat = res
+      if (chat) {
+        selectChat(chat)
+      } else {
+        console.warn(`Чат с id=${chatId} не найден.`)
+      }
     }
   } catch (error) {
     console.error('Error loading data:', error)
@@ -197,9 +196,9 @@ const sendMessage = async () => {
 }
 
 // Approve file
-const approveFile = async (fileId) => {
+const approveFile = async (chatIdValue, fileIdValue) => {
   try {
-    const response = await api.chat.approveFile(activeChat.value.id, fileId)
+    const response = await api.buyback.approvePhoto(chatIdValue, fileIdValue)
     if (response.buyback) {
       activeChat.value.status = response.buyback.status
       updateStatusTimer()
@@ -330,16 +329,6 @@ const goToProduct = (adsId) => {
 
 // Left sidebar state
 const isLeftSidebarOpen = ref(true)
-const approvePhoto = async (chatId, fileId) => {
-  try {
-    const response = api.buyback.approvePhoto(chatId, fileId)
-    if(response.success){
-      snackbar.notify({text: "Фото успешно подтверждено", color: "success"})
-    }
-  }catch (error){
-    snackbar.notify({ text: error.response?._data?.message ?? 'Ошибка, попробуйте еще раз', color: 'error'})
-  }
-}
 
 const chatId = ref('')
 const fileId = ref('')
@@ -362,7 +351,7 @@ const resetForm = () => {
 // Reject file
 const rejectFile = async () => {
   try {
-    const response = await api.chat.rejectFile(chatId, fileId)
+    const response = await api.buyback.rejectPhoto(chatId.value, fileId.value, comment.value)
     if (response.buyback) {
       activeChat.value.status = response.buyback.status
       updateStatusTimer()
@@ -371,6 +360,7 @@ const rejectFile = async () => {
       messages.value.push(response.message)
       scrollToBottom()
     }
+    isRejectVisible.value = false
     snackbar.notify({
       text: 'Файл отклонен',
       color: 'success'
@@ -530,10 +520,13 @@ const rejectFile = async () => {
                         <span v-else class="text-error">
                           Изображение не загружено (нет URL)
                         </span>
-                        <v-row no-gutters class="mt-2">
-                          <v-col><v-btn color="success" @click="approvePhoto(activeChat.id, message.file?.id)">Принять</v-btn></v-col>
-                          <v-col><v-btn color="error" @click="openRejectModal(activeChat.id, message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
+                        <v-row no-gutters class="mt-2" v-if="message.file?.status == null">
+                          <v-col><v-btn color="success" @click="approveFile(message.buyback_id, message.file?.id)">Принять</v-btn></v-col>
+                          <v-col><v-btn color="error" @click="openRejectModal(message.buyback_id, message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
                         </v-row>
+                        <span v-else>
+                          {{message.file?.status == true ? 'Файл подтвержден' : 'Файл отклонен'}}
+                        </span>
                       </template>
                       <div
                         v-if="message.file && message.whoSend === 'buyer' && activeChat.status === 'on_confirmation'"
@@ -543,14 +536,14 @@ const rejectFile = async () => {
                           color="success"
                           size="small"
                           class="mr-2"
-                          @click="approveFile(message.id)"
+                          @click="approveFile(message.buyback_id, message.file?.id)"
                         >
                           Подтвердить
                         </v-btn>
                         <v-btn
                           color="error"
                           size="small"
-                          @click="rejectFile(message.id)"
+                          @click="rejectFile()"
                         >
                           Отклонить
                         </v-btn>

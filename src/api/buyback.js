@@ -53,7 +53,6 @@ export default {
     const token = useCookie('accessToken').value
     if (!token) return null
 
-    // TODO Body!
     const response = await $api(`/seller/chat/${chatId}/file/${fileId}/reject`, {
       method: 'POST',
       body: {
