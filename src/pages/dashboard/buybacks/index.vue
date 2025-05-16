@@ -221,31 +221,6 @@ const approveFile = async (fileId) => {
   }
 }
 
-// Reject file
-const rejectFile = async (fileId) => {
-  try {
-    const response = await api.chat.rejectFile(activeChat.value.id, fileId)
-    if (response.buyback) {
-      activeChat.value.status = response.buyback.status
-      updateStatusTimer()
-    }
-    if (response.message) {
-      messages.value.push(response.message)
-      scrollToBottom()
-    }
-    snackbar.notify({
-      text: 'Файл отклонен',
-      color: 'success'
-    })
-  } catch (error) {
-    console.error('Error rejecting file:', error)
-    snackbar.notify({
-      text: error.response?._data?.message || 'Ошибка отклонения файла',
-      color: 'error'
-    })
-  }
-}
-
 // Status message and timer
 const statusMessages = {
   cancelled: 'Отменен',
@@ -355,6 +330,59 @@ const goToProduct = (adsId) => {
 
 // Left sidebar state
 const isLeftSidebarOpen = ref(true)
+const approvePhoto = async (chatId, fileId) => {
+  try {
+    const response = api.buyback.approvePhoto(chatId, fileId)
+    if(response.success){
+      snackbar.notify({text: "Фото успешно подтверждено", color: "success"})
+    }
+  }catch (error){
+    snackbar.notify({ text: error.response?._data?.message ?? 'Ошибка, попробуйте еще раз', color: 'error'})
+  }
+}
+
+const chatId = ref('')
+const fileId = ref('')
+const comment = ref('')
+
+const isRejectVisible = ref(false)
+const openRejectModal = (chatIdValue, fileIdValue) => {
+  isRejectVisible.value = true
+  chatId.value = chatIdValue
+  fileId.value = fileIdValue
+}
+
+const resetForm = () => {
+  chatId.value = ''
+  fileId.value = ''
+  comment.value = ''
+  isRejectVisible.value = false
+}
+
+// Reject file
+const rejectFile = async () => {
+  try {
+    const response = await api.chat.rejectFile(chatId, fileId)
+    if (response.buyback) {
+      activeChat.value.status = response.buyback.status
+      updateStatusTimer()
+    }
+    if (response.message) {
+      messages.value.push(response.message)
+      scrollToBottom()
+    }
+    snackbar.notify({
+      text: 'Файл отклонен',
+      color: 'success'
+    })
+  } catch (error) {
+    console.error('Error rejecting file:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отклонения файла',
+      color: 'error'
+    })
+  }
+}
 </script>
 
 <template>
@@ -486,13 +514,27 @@ const isLeftSidebarOpen = ref(true)
                       }"
                     >
                       <span v-if="message.text">{{ message.text }}</span>
-                      <v-img
-                        v-if="message.file"
-                        :src="message.file"
-                        max-width="200"
-                        class="mt-2 cursor-pointer"
-                        @click="openImage(message.file)"
-                      />
+                      <template v-if="message.type === 'image'">
+                        <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
+                        <span v-if="message.system_type == 'review'">Покупатель оставил отзыв</span>
+                        <v-img
+                          v-if="message.file?.src"
+                          :key="`image-${message.id}`"
+                          :src="message.file.src"
+                          :lazy-src="'https://via.placeholder.com/50'"
+                          max-width="200"
+                          class="mt-2 cursor-pointer rounded"
+                          @click="openImage(message.file.src)"
+                          @error="console.error('Failed to load image:', message.file.src)"
+                        />
+                        <span v-else class="text-error">
+                          Изображение не загружено (нет URL)
+                        </span>
+                        <v-row no-gutters class="mt-2">
+                          <v-col><v-btn color="success" @click="approvePhoto(activeChat.id, message.file?.id)">Принять</v-btn></v-col>
+                          <v-col><v-btn color="error" @click="openRejectModal(activeChat.id, message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
+                        </v-row>
+                      </template>
                       <div
                         v-if="message.file && message.whoSend === 'buyer' && activeChat.status === 'on_confirmation'"
                         class="mt-2"
@@ -582,6 +624,27 @@ const isLeftSidebarOpen = ref(true)
       </v-dialog>
     </div>
   </div>
+
+  <!--  Модальное окно для отклонения -->
+
+  <VDialog
+    v-model="isRejectVisible"
+    width="500"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Отклонить фото">
+      <DialogCloseBtn
+        variant="text"
+        size="default"
+        @click="resetForm()"
+      />
+
+      <VCardText>
+        <v-textarea v-model="comment" placeholder="Укажите причину"></v-textarea>
+        <v-btn color="danger" @click="rejectFile()">Отклонить</v-btn>
+      </VCardText>
+    </VCard>
+  </VDialog>
 </template>
 
 <style scoped lang="scss">
@@ -595,13 +658,11 @@ const isLeftSidebarOpen = ref(true)
 }
 
 .chat-list-sidebar {
-  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .chat-content {
-  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

@@ -814,13 +814,11 @@ const isLeftSidebarOpen = ref(true)
 }
 
 .chat-list-sidebar {
-  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .chat-content {
-  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
