@@ -14,5 +14,20 @@ export default {
     })
 
     return response
+  },
+
+  async cancelOrder(id) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api(`/buyback/${id}/cancel`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+    })
+
+    return response
   }
 }

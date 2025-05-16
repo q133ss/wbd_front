@@ -73,13 +73,15 @@ onMounted(async () => {
     await fetchChats()
 
     const chatId = route.query.chatId
-    const res = await api.buyback.getBuybackById(chatId)
-    const chat = res
+    if(chatId) {
+      const res = await api.buyback.getBuybackById(chatId)
+      const chat = res
 
-    if (chat) {
-      selectChat(chat)
-    } else {
-      console.warn(`Чат с id=${chatId} не найден.`)
+      if (chat) {
+        selectChat(chat)
+      } else {
+        console.warn(`Чат с id=${chatId} не найден.`)
+      }
     }
   } catch (error) {
     console.error('Error loading data:', error)
@@ -545,7 +547,8 @@ const isLeftSidebarOpen = ref(true)
                     >
                       <span v-if="message.text" class="d-block mb-2">{{ message.text }}</span>
                       <template v-if="message.type === 'image'">
-                        Фото
+                        <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
+                        <span v-if="message.system_type == 'review'">Покупатель оставил отзыв</span>
                         <v-img
                           v-if="message.file?.src"
                           :key="`image-${message.id}`"
