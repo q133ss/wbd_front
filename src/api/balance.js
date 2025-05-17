@@ -66,5 +66,53 @@ export default {
     })
 
     return response
+  },
+
+  async withdraw(amount, card_number) {
+    console.log(amount)
+    console.log(typeof amount)
+    const token = useCookie('accessToken').value;
+    if (!token) return null;
+
+    // Жёсткое преобразование типов
+    const numericAmount = parseFloat(amount);
+    const cleanCardNumber = String(card_number).replace(/\D/g, '');
+
+    // Расширенная валидация
+    if (isNaN(numericAmount) || !isFinite(numericAmount)) {
+      throw new Error('Сумма должна быть числом');
+    }
+
+    if (numericAmount <= 0) {
+      throw new Error('Сумма должна быть положительной');
+    }
+
+    if (!/^\d{16}$/.test(cleanCardNumber)) {
+      throw new Error('Номер карты должен содержать 16 цифр');
+    }
+
+    // Формируем тело запроса
+    const requestData = {
+      amount: numericAmount,
+      card_number: cleanCardNumber
+    };
+
+    // Отправка запроса с обработкой ошибок
+    try {
+      const response = await $api('/withdraw', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Ошибка запроса:', error);
+      throw error;
+    }
   }
 }

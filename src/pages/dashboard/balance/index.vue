@@ -4,6 +4,19 @@ import { useRouter } from 'vue-router'
 import { useSnackbarStore } from '@/stores/snackbar'
 import api from '@/api/Index'
 
+definePage({
+  meta: {
+    layout: 'default',
+  },
+})
+
+const user = useCookie('userData').value
+const role = user?.value?.role?.slug
+const isSeller = ref(false)
+if (role === 'seller') {
+  isSeller.value = true
+}
+
 const snackbar = useSnackbarStore()
 const router = useRouter()
 
@@ -13,7 +26,10 @@ const loading = ref(true)
 
 // Top-up popup
 const showTopUpModal = ref(false)
+const showWithdrawModal = ref(false)
+const withdrawAmount = ref(false)
 const topUpAmount = ref('')
+const cardNumber = ref('')
 
 // Promo code modal
 const showPromoModal = ref(false)
@@ -150,6 +166,47 @@ const topUpBalance = async () => {
   }
 }
 
+const withdraw = async () => {
+  if(!cardNumber.value || !withdrawAmount.value) {
+    snackbar.notify({
+      text: 'Введите номер карты и сумму',
+      color: 'error'
+    })
+    return
+  }
+
+  // Исправленная проверка длины (value.length вместо lenght)
+  if(cardNumber.value.length < 16) {
+    snackbar.notify({
+      text: 'Введите корректный номер карты (16 цифр)',
+      color: 'error'
+    })
+    return
+  }
+
+  try {
+    // Передаём значения отдельными аргументами, а не объектом
+    const response = await api.balance.withdraw(
+      withdrawAmount.value,  // первый аргумент - amount
+      cardNumber.value       // второй аргумент - card_number
+    )
+
+    if(response.status) {
+      snackbar.notify({
+        text: response.message,
+        color: 'success'
+      })
+    }
+    location.reload();
+  } catch (err) {
+    console.error('Full error:', err)
+    snackbar.notify({
+      text: err.response?._data?.message || 'Произошла ошибка',
+      color: 'error'
+    })
+  }
+}
+
 const applyPromoCode = async () => {
   if (!promoCode.value) {
     snackbar.notify({
@@ -240,13 +297,23 @@ const goToTariffs = () => {
               <v-btn
                 color="primary"
                 class="mt-4"
+                v-if="isSeller"
                 @click="showTopUpModal = true"
               >
                 Пополнить
               </v-btn>
+
+              <v-btn
+                color="primary"
+                class="mt-4"
+                v-if="!isSeller"
+                @click="showWithdrawModal = true"
+              >
+                Вывести
+              </v-btn>
             </div>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="4" v-if="isSeller">
             <div class="details-box pa-4">
               <h3 class="text-h6 mb-4">Детализация</h3>
               <p class="text-body-1">Потрачено сегодня: {{ spentToday }} ₽</p>
@@ -257,7 +324,7 @@ const goToTariffs = () => {
         </v-row>
 
         <!-- Redemptions and Promo Code -->
-        <div class="redemptions-box pa-6 mb-6">
+        <div class="redemptions-box pa-6 mb-6" v-if="isSeller">
           <v-row align="center">
             <v-col cols="12" md="6">
               <p class="text-h5 font-weight-bold primary--text">
@@ -286,7 +353,7 @@ const goToTariffs = () => {
         <div class="filters-box pa-4 mb-6">
           <h3 class="text-h6 mb-4">Фильтры транзакций</h3>
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="6" v-if="isSeller">
               <v-btn
                 color="primary"
                 block
@@ -379,6 +446,43 @@ const goToTariffs = () => {
         </v-sheet>
       </v-dialog>
 
+<!--      Вывод средств-->
+      <v-dialog v-model="showWithdrawModal" max-width="400px">
+        <v-sheet class="pa-6">
+          <h2 class="text-h5 mb-4">Вывести деньги</h2>
+          <v-text-field
+            v-model="withdrawAmount"
+            label="Сумма (₽)"
+            type="number"
+            min="1000"
+            outlined
+          />
+          <v-text-field
+            v-model="cardNumber"
+            label="Номер карты"
+            v-mask="'#### #### #### ####'"
+            class="mt-2"
+            type="text"
+            outlined
+          />
+          <div class="d-flex justify-end mt-4">
+            <v-btn
+              color="secondary"
+              class="mr-2"
+              @click="showWithdrawModal = false"
+            >
+              Отмена
+            </v-btn>
+            <v-btn
+              color="primary"
+              @click="withdraw"
+            >
+              Вывести
+            </v-btn>
+          </div>
+        </v-sheet>
+      </v-dialog>
+
       <!-- Promo Code Modal -->
       <v-dialog v-model="showPromoModal" max-width="400px">
         <v-sheet class="pa-6">
@@ -463,7 +567,6 @@ const goToTariffs = () => {
 .redemptions-box,
 .filters-box,
 .transactions-box {
-  background-color: #fff;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
@@ -476,17 +579,12 @@ const goToTariffs = () => {
 }
 
 :deep(.v-field) {
-  background-color: #f5f5f5;
   border-radius: 4px;
 }
 
 :deep(.v-btn) {
   text-transform: none;
   letter-spacing: normal;
-}
-
-:deep(.v-table) {
-  background-color: #fff;
 }
 
 :deep(.v-table th) {

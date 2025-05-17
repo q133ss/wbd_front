@@ -14,8 +14,11 @@ export const redirects = [
   },
   {
     path: '/dashboard/balance',
-    name: 'index',
+    name: 'balance',
     component: () => import('@/pages/dashboard/balance/index.vue'),
+    meta: {
+      layout: 'default'
+    }
   },
   {
     path: '/pages/user-profile',

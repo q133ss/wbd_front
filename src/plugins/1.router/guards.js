@@ -24,7 +24,6 @@ export const setupGuards = router => {
     }
 
     if (isLoggedIn) {
-      console.log(user)
       // Проверка роли и настройки профиля
       if (user.is_configured != 1) {
         // Если пользователь не на странице настройки профиля, перенаправляем

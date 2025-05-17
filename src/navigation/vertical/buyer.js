@@ -1,6 +1,11 @@
 export default [
   { heading: 'Мой аккаунт' },
   {
+    title: 'Главная',
+    icon: { icon: 'ri-home-line' },
+    to: 'index',
+  },
+  {
     title: 'Профиль',
     icon: { icon: 'ri-user-line' },
     to: 'profile',

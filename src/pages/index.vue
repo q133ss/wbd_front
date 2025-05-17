@@ -5,6 +5,12 @@ import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import ProductCard from '@/components/ProductCard.vue'
 import productApi from '@/api/index'
 
+definePage({
+  meta: {
+    layout: 'blank',
+  },
+})
+
 // Состояния
 const products = ref([])
 const paginationInfo = ref({
