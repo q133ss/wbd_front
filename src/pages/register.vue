@@ -54,6 +54,7 @@ const sendCode = async () => {
 }
 
 const route = useRoute()
+const router = useRouter()
 
 const roleMap = {
   user: 2,
@@ -66,7 +67,6 @@ const role_id = roleMap[role] || 2
 const verifyCode = async () => {
   if (step.value == 2) {
     try{
-      const router = useRouter()
       const response = await api.auth.verifyCode({phone: form.value.phone,
         code: form.value.code,
         role_id: role_id})
@@ -76,8 +76,9 @@ const verifyCode = async () => {
 
       useCookie('accessToken').value = token
       useCookie('userData').value = user
-      router.replace('/profile')
+      router.push('/profile')
     }catch (error) {
+      console.log(error)
       handleError(error, 'Неверный код')
     }
   }

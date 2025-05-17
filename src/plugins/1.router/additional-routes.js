@@ -13,6 +13,11 @@ export const redirects = [
     }
   },
   {
+    path: '/dashboard/balance',
+    name: 'index',
+    component: () => import('@/pages/dashboard/balance/index.vue'),
+  },
+  {
     path: '/pages/user-profile',
     name: 'pages-user-profile',
     redirect: () => ({ name: 'pages-user-profile-tab', params: { tab: 'profile' } }),
