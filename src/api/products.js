@@ -10,6 +10,7 @@ export default {
 
     const response = await $api('/products', {
       method: 'GET',
+      Accept: 'application/json',
       params: {
         ...defaultParams,
         ...params
@@ -19,15 +20,17 @@ export default {
     return response
   },
   async getProductById(productId) {
-    const response = await $api(`/product/${productId}`, {
-      method: 'GET'
+    const response = await $api(`/wb/product/${productId}`, {
+      method: 'GET',
+      Accept: 'application/json'
     })
 
     return response
   },
   async getRelatedProducts(productId) {
     const response = await $api(`/product/related/${productId}`, {
-      method: 'GET'
+      method: 'GET',
+      Accept: 'application/json'
     })
     return response
   },
@@ -43,7 +46,8 @@ export default {
     const response = await $api('/seller/products', {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
       },
       params: {
         ...defaultParams,
