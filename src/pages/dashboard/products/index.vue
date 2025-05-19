@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, nextTick } from 'vue'
 import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
+import { computed, nextTick, ref } from 'vue'
 
 const snackbar = useSnackbarStore()
 const products = ref([])
@@ -437,13 +437,13 @@ const userData = useCookie('userData')
           <td>
             <div class="d-flex align-center">
               <v-img
-                v-if="item.images && item.images.length"
+                v-if="item.images"
                 :src="item.images[0]"
                 max-width="50"
                 max-height="66"
                 class="mr-2"
               ></v-img>
-              <span>{{ truncateName(item.name) }}</span>
+              <router-link :to="'/dashboard/advertisements?product_id='+item.id">{{ truncateName(item.name) }}</router-link>
             </div>
           </td>
           <td>

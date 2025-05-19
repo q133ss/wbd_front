@@ -1,16 +1,17 @@
 <template>
   <VCol
-    cols="12"
-    sm="6"
-    md="4"
-    lg="3"
+    :cols="gridConfig.cols"
+    :sm="gridConfig.sm"
+    :md="gridConfig.md"
+    :lg="gridConfig.lg"
+    :xl="gridConfig.xl"
   >
     <VCard class="product-card">
       <template v-if="item.product.images?.length">
         <VCarousel
           :continuous="false"
           :show-arrows="item.product.images.length > 1"
-          height="200"
+          height="100%"
           hide-delimiters
         >
           <VCarouselItem
@@ -91,11 +92,21 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   item: {
     type: Object,
-    required: true,
+    required: true
   },
+  gridConfig: {
+    type: Object,
+    default: () => ({
+      cols: "2",  // 6 в ряд (12/2)
+      sm: "4",    // 3 в ряд (12/4)
+      md: "3",    // 4 в ряд (12/3)
+      lg: "2",    // 6 в ряд (12/2)
+      xl: "2"     // 6 в ряд
+    })
+  }
 });
 
 const router = useRouter()

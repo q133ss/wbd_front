@@ -1,14 +1,14 @@
 <script setup>
-import api from '@/api'
-import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import api from '@/api';
+import favoriteApi from "@/api/favorite";
 import productsApi from '@/api/products';
 import reviewsApi from '@/api/reviews';
-import favoriteApi from "@/api/favorite";
 import ProductCard from '@/components/ProductCard.vue';
-import Navbar from "@/views/front-pages/front-page-navbar.vue";
+import { useSnackbarStore } from '@/stores/snackbar';
 import Footer from "@/views/front-pages/front-page-footer.vue";
-import { useSnackbarStore } from '@/stores/snackbar'
+import Navbar from "@/views/front-pages/front-page-navbar.vue";
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const snackbar = useSnackbarStore()
 
@@ -77,7 +77,7 @@ const loadProductData = async (id) => {
     errorMessage.value = null;
 
     // Загружаем данные о товаре
-    product.value = await productsApi.getProductById(id);
+    product.value = await productsApi.getAdById(id);
 
     // Загружаем первую страницу отзывов
     const reviewsResponse = await reviewsApi.getProductReviews(id, currentPage.value);
@@ -261,8 +261,8 @@ const resetLoginForm = () => {
     <VBreadcrumbs class="breadcrumbs-container">
       <VBreadcrumbsItem to="/">Главная</VBreadcrumbsItem>
       <span>/</span>
-      <VBreadcrumbsItem v-if="product?.product?.category" :to="`/categories/${product.product.category.id}`">
-        {{ product.product.category.name }}
+      <VBreadcrumbsItem v-if="product?.product?.category" :to="`/categories/${product?.product?.category?.id}`">
+        {{ product?.product?.category.name }}
       </VBreadcrumbsItem>
       <span>/</span>
       <VBreadcrumbsItem>{{ product?.name }}</VBreadcrumbsItem>
@@ -276,9 +276,9 @@ const resetLoginForm = () => {
           <template v-if="parsedImages?.length">
             <VCarousel
               :continuous="false"
-              :show-arrows="parsedImages.length > 1"
-              height="400"
+              :show-arrows="parsedImages?.length > 1"
               hide-delimiters
+              height="100%"
             >
               <VCarouselItem
                 v-for="(image, idx) in parsedImages"
@@ -287,6 +287,7 @@ const resetLoginForm = () => {
                 <VImg
                   :src="image"
                   cover
+                  style="width: 100%; height: 100%; object-fit: cover; object-position: center"
                   height="100%"
                   class="product-image"
                 />
@@ -328,7 +329,7 @@ const resetLoginForm = () => {
         </div>
         <div class="buybacks_data">
           <div>Кол-во выкупов: {{ product?.redemption_count }}</div>
-          <div>Осталось товаров с кэшбеком: {{ product?.product?.quantity_available }}</div>
+          <div>Осталось товаров с кэшбеком: {{ product?.quantity_available }}</div>
         </div>
         <VBtn
           color="secondary"
@@ -342,7 +343,7 @@ const resetLoginForm = () => {
         <VBtn color="primary" @click="handleOrderClick">Заказать</VBtn>
         <div class="mt-4 shop-details">
           <strong>{{ product?.shop?.legal_name }}</strong>
-          <VBtn variant="text" class="link-button ml-5" :to="`/shop/${product.shop?.user_id}`">Подробнее</VBtn>
+          <VBtn variant="text" class="link-button ml-5" :to="`/shop/${product?.shop?.user_id}`">Подробнее</VBtn>
           <VRating
             :model-value="1"
             length="1"
@@ -409,6 +410,13 @@ const resetLoginForm = () => {
             v-for="item in relatedProducts"
             :key="item.id"
             :item="item"
+            :grid-config="{
+              cols: '12',
+              sm: '6',
+              md: '4',
+              lg: '3',
+              xl: '2'
+            }"
           />
         </VRow>
       </VCol>

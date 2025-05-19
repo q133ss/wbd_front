@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed, nextTick } from 'vue'
 import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const snackbar = useSnackbarStore()
 const router = useRouter()
+const route = useRoute()
 const ads = ref([])
 const selectedRows = ref([])
 const showAddModal = ref(false)
@@ -40,16 +41,29 @@ const truncateName = (name, lenght = 27) => {
 
 // Load advertisements
 const loadAds = async () => {
+
+  if(route.query.ad_id){
+    
+  }
+
   try {
     loading.value = true
     await nextTick()
-    const response = await api.ads.getAds({
+
+    const params = {
       page: currentPage.value,
       per_page: itemsPerPage,
       status: filters.value.status !== null ? filters.value.status : undefined,
       is_archived: filters.value.is_archived !== null ? (filters.value.is_archived ? 1 : 0) : undefined,
-      search: searchQuery.value || undefined
-    })
+      search: searchQuery.value || undefined,
+    };
+
+    // Если есть `product_id` в URL, добавляем его в параметры запроса
+    if (route.query.product_id) {
+      params.product_id = route.query.product_id;
+    }
+
+    const response = await api.ads.getAds(params)
     ads.value = response.data
     totalItems.value = response.total || 0
   } catch (error) {
@@ -392,7 +406,7 @@ const getFirstImage = (images) => {
             {{ truncateName(item.product.name) }}
             </div>
           </td>
-          <td>{{ item.cashback_percentage }}%</td>
+          <td>{{ parseInt(item.cashback_percentage) }}%</td>
           <td>{{ item.redemption_count }}</td>
           <td>{{ item.views_count }}</td>
           <td>{{ item.cr }}</td>

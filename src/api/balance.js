@@ -114,5 +114,19 @@ export default {
       console.error('Ошибка запроса:', error);
       throw error;
     }
-  }
+  },
+
+  async getBalaceOnly() {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api(`/balance/only`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    return response
+  },
 }

@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useSnackbarStore } from '@/stores/snackbar'
 import api from '@/api/Index'
+import { useSnackbarStore } from '@/stores/snackbar'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const snackbar = useSnackbarStore()
 const route = useRoute() // Correctly use useRoute
@@ -39,20 +39,21 @@ onMounted(() => {
     router.push('/dashboard/advertisements')
   }
 })
-
+const user = useCookie('userData').value
 // Fetch product, balance, and templates
 onMounted(async () => {
   if (!productId.value) return
   try {
     const [productResponse, balanceResponse, templatesResponse] = await Promise.all([
       api.products.getProductById(productId.value),
-      api.balance.getBalance(),
+      api.balance.getBalaceOnly(),
       api.template.getAllTemplates()
     ])
     product.value = productResponse
     balance.value = balanceResponse
     templates.value = templatesResponse || {}
   } catch (error) {
+    console.log(error)
     snackbar.notify({
       text: 'Ошибка загрузки данных',
       color: 'error'
@@ -77,13 +78,12 @@ const getFirstImage = (images) => {
 // Computed properties for calculations
 const userPrice = computed(() => {
   if (!product.value?.product) return 0
-  const price = parseFloat(product.value.product.price)
+  const price = parseFloat(product.value.price)
   return Math.floor(price * (1 - adData.value.cashback_percentage / 100))
 })
 
 const totalCost = computed(() => {
-  if (!product.value?.product) return 0
-  const price = parseFloat(product.value.product.price)
+  const price = parseFloat(product.value.price)
   const cashbackAmount = price * (adData.value.cashback_percentage / 100)
   const neededRedemptions = adData.value.redemption_count
   const availableRedemptions = balance.value?.redemption_count || 0
@@ -99,18 +99,17 @@ const additionalRedemptions = computed(() => {
 })
 
 const availableRedemptions = computed(() => {
-  return product.value?.product?.quantity_available || 0
+  return product.value?.quantity_available || 0
 })
 
 const cashbackPerRedemption = computed(() => {
-  if (!product.value?.product) return 0
-  const price = parseFloat(product.value.product.price)
+  const price = parseFloat(product.value.price)
   return Math.floor(price * adData.value.cashback_percentage / 100)
 })
 
 // Handlers
 const incrementRedemptions = () => {
-  if (adData.value.redemption_count < availableRedemptions.value) {
+  if (adData.value.redemption_count < balance.value.redemption_count) {
     adData.value.redemption_count++
   }
 }
@@ -119,10 +118,6 @@ const decrementRedemptions = () => {
   if (adData.value.redemption_count > 1) {
     adData.value.redemption_count--
   }
-}
-
-const setMaxRedemptions = () => {
-  adData.value.redemption_count = availableRedemptions.value
 }
 
 const insertTemplate = async (field) => {
@@ -199,14 +194,14 @@ const submitAd = async () => {
         <v-progress-circular indeterminate color="primary" />
       </div>
 
-      <div v-else-if="product?.product">
+      <div v-else-if="product">
         <!-- Product Info -->
         <div class="product-info mb-6">
           <v-row>
             <v-col cols="12" md="3">
               <v-img
-                v-if="getFirstImage(product.product.images)"
-                :src="getFirstImage(product.product.images)"
+                v-if="getFirstImage(product?.images)"
+                :src="getFirstImage(product?.images)"
                 max-height="150"
                 contain
               />
@@ -216,10 +211,10 @@ const submitAd = async () => {
               </v-sheet>
             </v-col>
             <v-col cols="12" md="9">
-              <h2 class="text-h5">{{ product.product.name }}</h2>
-              <p class="text-body-1">Цена: {{ product.product.price }} ₽</p>
-              <p class="text-body-1">Бренд: {{ product.product.brand }}</p>
-              <p class="text-body-1">Доступно: {{ product.product.quantity_available }} шт.</p>
+              <h2 class="text-h5">{{ product?.name }}</h2>
+              <p class="text-body-1">Цена: {{ product?.price }} ₽</p>
+              <p class="text-body-1">Бренд: {{ product?.brand }}</p>
+              <p class="text-body-1">Доступно: {{ product?.quantity_available }} шт.</p>
             </v-col>
           </v-row>
         </div>
@@ -320,17 +315,9 @@ const submitAd = async () => {
                     </svg>
                   </button>
                 </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <p class="text-body-1 mb-2">
-                  Доступно выкупов: {{ availableRedemptions }}
+                <p class="text-body-1 mt-2">
+                  Доступно выкупов: {{ balance.redemption_count }}
                 </p>
-                <v-btn
-                  color="primary"
-                  @click="setMaxRedemptions"
-                >
-                  Добавить все
-                </v-btn>
               </v-col>
             </v-row>
 
@@ -401,14 +388,12 @@ const submitAd = async () => {
 .product-info,
 .ad-form,
 .cost-breakdown {
-  background-color: #fff;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
 }
 
 :deep(.v-field) {
-  background-color: #f5f5f5;
   border-radius: 4px;
 }
 

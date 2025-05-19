@@ -10,7 +10,10 @@ export default {
 
     const response = await $api('/products', {
       method: 'GET',
-      Accept: 'application/json',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       params: {
         ...defaultParams,
         ...params
@@ -19,10 +22,29 @@ export default {
 
     return response
   },
+  async getAdById(adId) {
+    const response = await $api(`/product/${adId}`, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+    })
+
+    return response
+  },
   async getProductById(productId) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
     const response = await $api(`/wb/product/${productId}`, {
       method: 'GET',
-      Accept: 'application/json'
+      redirect: 'follow',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
     })
 
     return response
@@ -30,7 +52,10 @@ export default {
   async getRelatedProducts(productId) {
     const response = await $api(`/product/related/${productId}`, {
       method: 'GET',
-      Accept: 'application/json'
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
     })
     return response
   },

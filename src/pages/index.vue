@@ -1,9 +1,9 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import productApi from '@/api/index'
+import ProductCard from '@/components/ProductCard.vue'
 import Footer from '@/views/front-pages/front-page-footer.vue'
 import Navbar from '@/views/front-pages/front-page-navbar.vue'
-import ProductCard from '@/components/ProductCard.vue'
-import productApi from '@/api/index'
+import { onMounted, ref } from 'vue'
 
 definePage({
   meta: {
@@ -126,25 +126,30 @@ onUnmounted(() => {
         <img
           src="@/assets/images/index/banner.png"
           alt="WB Discount баннер"
-          class="banner-img"
+          class="banner-img banner-desktop"
+        />
+        <img
+          src="@/assets/images/index/mobileBanner.png"
+          alt="WB Discount баннер"
+          class="banner-img banner-mobile"
         />
       </div>
     </div>
 
-    <!-- Фильтры -->
-    <VContainer class="filters-container">
+    <VContainer class="products-container">
+    <h2 class="pb-2">Товары с кэшбеком:</h2>
       <VRow>
-        <VCol cols="12" md="4">
+        <VCol cols="12" md="2">
           <VBtn block @click="dialogPrice = true">Цена</VBtn>
         </VCol>
-        <VCol cols="12" md="4">
+        <VCol cols="12" md="2">
           <VBtn block @click="dialogCashback = true">Кешбек</VBtn>
         </VCol>
-        <VCol cols="12" md="4">
+        <VCol cols="12" md="2">
           <VBtn block @click="dialogSort = true">Сортировка</VBtn>
         </VCol>
       </VRow>
-    </VContainer>
+      </VContainer>
 
     <!-- Модалка: Цена -->
     <VDialog v-model="dialogPrice" max-width="500">
@@ -250,7 +255,7 @@ onUnmounted(() => {
   width: 100%;
   overflow: hidden;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  //box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .banner-img {
@@ -286,5 +291,19 @@ onUnmounted(() => {
 
 .product-image {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.banner-mobile{
+  display: none;
+}
+
+@media screen and (max-width: 956px){
+  .banner-desktop{
+    display: none;
+  }
+
+  .banner-mobile{
+    display: block;
+  }
 }
 </style>

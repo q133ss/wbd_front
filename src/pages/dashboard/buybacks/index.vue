@@ -506,7 +506,7 @@ const rejectFile = async () => {
                       <span v-if="message.text">{{ message.text }}</span>
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
-                        <span v-if="message.system_type == 'review'">Покупатель оставил отзыв</span>
+                        <span v-if="message.system_type == 'review'">{{message.sender_id == currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв'}}</span>
                         <v-img
                           v-if="message.file?.src"
                           :key="`image-${message.id}`"
@@ -520,11 +520,11 @@ const rejectFile = async () => {
                         <span v-else class="text-error">
                           Изображение не загружено (нет URL)
                         </span>
-                        <v-row no-gutters class="mt-2" v-if="message.file?.status == null">
+                        <v-row no-gutters class="mt-2" v-if="message.file?.status == null && message.sender_id != currentUser.id">
                           <v-col><v-btn color="success" @click="approveFile(message.buyback_id, message.file?.id)">Принять</v-btn></v-col>
                           <v-col><v-btn color="error" @click="openRejectModal(message.buyback_id, message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
                         </v-row>
-                        <span v-else>
+                        <span v-else-if="message.file?.status != null">
                           {{message.file?.status == true ? 'Файл подтвержден' : 'Файл отклонен'}}
                         </span>
                       </template>

@@ -1,3 +1,20 @@
+import api from '@/api/Index'
+import { ref } from 'vue'
+
+const buybacks = ref(0)
+
+const buybacksCount = async () => {
+  try {
+    const response = await api.buyback.buybacksCount()
+    buybacks.value = response.count
+    console.log('Buybacks count:', buybacks.value)
+  } catch (error) {
+    console.error('Ошибка при получении количества бэкапов:', error)
+  }
+}
+
+buybacksCount()
+
 export default [
   { heading: 'Продвижение' },
   {
@@ -19,7 +36,7 @@ export default [
     title: 'Выкупы',
     icon: { icon: 'ri-shopping-cart-line' },
     to: 'dashboard-buybacks',
-    badgeContent: '5',
+    badgeContent: buybacks,
     badgeClass: 'bg-primary',
   },
 

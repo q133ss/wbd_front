@@ -574,7 +574,7 @@ const isLeftSidebarOpen = ref(true)
                 </div>
 
                 <!-- Pending Status Form -->
-                <div v-if="activeChat.status === 'pending'" class="mt-4">
+                <div v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == false" class="mt-4">
                   <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                     <v-card-title class="text-h6 d-flex align-center">
                       <v-icon icon="ri-image-line" class="mr-2" />
@@ -629,7 +629,7 @@ const isLeftSidebarOpen = ref(true)
                 </div>
 
                 <!-- On Confirmation Status Form -->
-                <div v-if="activeChat.status === 'on_confirmation'" class="mt-4">
+                <div v-if="activeChat.status === 'on_confirmation' && activeChat.is_review_photo_sent == false" class="mt-4">
                   <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                     <v-card-title class="text-h6 d-flex align-center">
                       <v-icon icon="ri-barcode-line" class="mr-2" />
@@ -704,7 +704,7 @@ const isLeftSidebarOpen = ref(true)
                 </div>
 
                 <!-- Cashback Received Status Form -->
-                <div v-if="activeChat.status === 'cashback_received'" class="mt-4">
+                <div v-if="activeChat.status === 'cashback_received' && has_review_by_buyer == false" class="mt-4">
                   <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                     <v-card-title class="text-h6 d-flex align-center">
                       <v-icon icon="ri-star-line" class="mr-2" />
@@ -740,7 +740,9 @@ const isLeftSidebarOpen = ref(true)
 
                 <!-- Message Input -->
                 <v-form
-                  v-if="!['pending', 'on_confirmation', 'cashback_received'].includes(activeChat.status)"
+                  v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == true ||
+                        activeChat.status === 'on_confirmation' && activeChat.is_review_photo_sent == true ||
+                        activeChat.status === 'cashback_received' && has_review_by_buyer == true"
                   @submit.prevent="sendMessage"
                   class="mt-4"
                 >
