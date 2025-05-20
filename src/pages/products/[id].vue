@@ -271,7 +271,7 @@ const resetLoginForm = () => {
     <!-- Основной контент -->
     <VRow>
       <!-- Слайдер изображений -->
-      <VCol cols="12" md="6">
+      <VCol cols="12" md="5">
         <VCard class="product-card">
           <template v-if="parsedImages?.length">
             <VCarousel
@@ -483,13 +483,32 @@ const resetLoginForm = () => {
 }
 
 .product-card {
-  height: 100%;
+  width: 100%;
+  height: 519px; /* Mobile height */
   display: flex;
   flex-direction: column;
 }
 
 .product-image {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  object-position: center;
+}
+
+.product-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 960px) {
+  .product-card {
+    width: 526px;
+    height: 705px;
+  }
 }
 
 .mb-4 {

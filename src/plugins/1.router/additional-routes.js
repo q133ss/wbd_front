@@ -13,9 +13,9 @@ export const redirects = [
     }
   },
   {
-    path: '/dashboard/balance',
+    path: '/balance',
     name: 'balance',
-    component: () => import('@/pages/dashboard/balance/index.vue'),
+    component: () => import('@/pages/balance/index.vue'),
     meta: {
       layout: 'default'
     }

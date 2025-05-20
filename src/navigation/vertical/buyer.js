@@ -18,7 +18,7 @@ export default [
   {
     title: 'Баланс',
     icon: { icon: 'ri-wallet-line' },
-    to: 'dashboard-balance',
+    to: 'balance',
   },
   {
     title: 'Партнерам',

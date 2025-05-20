@@ -31,107 +31,6 @@ watch(() => display, () => {
 
 const isMenuOpen = ref(false)
 
-const menuItems = [
-  {
-    listTitle: 'Page',
-    listIcon: 'ri-layout-grid-line',
-    navItems: [
-      {
-        name: 'Pricing',
-        to: { name: 'front-pages-pricing' },
-      },
-      {
-        name: 'Payment',
-        to: { name: 'front-pages-payment' },
-      },
-      {
-        name: 'Checkout',
-        to: { name: 'front-pages-checkout' },
-      },
-      {
-        name: 'Help Center',
-        to: { name: 'front-pages-help-center' },
-      },
-    ],
-  },
-  {
-    listTitle: 'Auth Demo',
-    listIcon: 'ri-lock-unlock-line',
-    navItems: [
-      {
-        name: 'Login (Basic)',
-        to: { name: 'pages-authentication-login-v1' },
-      },
-      {
-        name: 'Login (Cover)',
-        to: { name: 'pages-authentication-login-v2' },
-      },
-      {
-        name: 'Register (Basic)',
-        to: { name: 'pages-authentication-register-v1' },
-      },
-      {
-        name: 'Register (Cover)',
-        to: { name: 'pages-authentication-register-v2' },
-      },
-      {
-        name: 'Register (Multi-steps)',
-        to: { name: 'pages-authentication-register-multi-steps' },
-      },
-      {
-        name: 'Forgot Password (Basic)',
-        to: { name: 'pages-authentication-forgot-password-v1' },
-      },
-      {
-        name: 'Forgot Password (Cover)',
-        to: { name: 'pages-authentication-forgot-password-v2' },
-      },
-      {
-        name: 'Reset Password (Basic)',
-        to: { name: 'pages-authentication-reset-password-v1' },
-      },
-      {
-        name: 'Reset Password (cover  )',
-        to: { name: 'pages-authentication-reset-password-v2' },
-      },
-    ],
-  },
-  {
-    listTitle: 'Other',
-    listIcon: 'ri-image-line',
-    navItems: [
-      {
-        name: 'Under Maintenance',
-        to: { name: 'pages-misc-under-maintenance' },
-      },
-      {
-        name: 'Coming Soon',
-        to: { name: 'pages-misc-coming-soon' },
-      },
-      {
-        name: 'Not Authorized',
-        to: { path: '/not-authorized' },
-      },
-      {
-        name: 'Verify Email (Basic)',
-        to: { name: 'pages-authentication-verify-email-v1' },
-      },
-      {
-        name: 'Verify Email (Cover)',
-        to: { name: 'pages-authentication-verify-email-v2' },
-      },
-      {
-        name: 'Two Steps (Basic)',
-        to: { name: 'pages-authentication-two-steps-v1' },
-      },
-      {
-        name: 'Two Steps (Cover)',
-        to: { name: 'pages-authentication-two-steps-v2' },
-      },
-    ],
-  },
-]
-
 const userData = useCookie('userData')
 const accessToken = useCookie('accessToken')
 
@@ -144,8 +43,6 @@ const isCurrentRoute = to => {
 
 // return route.matched.some(_route => _route.path === router.resolve(to).path)
 }
-
-const isPageActive = computed(() => menuItems.some(item => item.navItems.some(listItem => isCurrentRoute(listItem.to))))
 </script>
 
 <template>
@@ -274,6 +171,46 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
             class="nav-link font-weight-medium"
           >
             Избранное
+          </RouterLink>
+
+          <RouterLink
+            v-if="isLoggedIn"
+            to="/profile"
+            class="nav-link font-weight-medium"
+          >
+            Профиль
+          </RouterLink>
+
+          <RouterLink
+            v-if="isLoggedIn"
+            to="/dashboard/orders"
+            class="nav-link font-weight-medium"
+          >
+            Мои заказы
+          </RouterLink>
+
+          <RouterLink
+            v-if="isLoggedIn"
+            to="/balance"
+            class="nav-link font-weight-medium"
+          >
+            Баланс
+          </RouterLink>
+
+          <RouterLink
+            v-if="isLoggedIn"
+            to="/dashboard/partners"
+            class="nav-link font-weight-medium"
+          >
+            Партнерам
+          </RouterLink>
+
+          <RouterLink
+            v-if="isLoggedIn"
+            to="/dashboard/support"
+            class="nav-link font-weight-medium"
+          >
+            Поддержка
           </RouterLink>
         </div>
       </div>

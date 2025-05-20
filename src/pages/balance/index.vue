@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useSnackbarStore } from '@/stores/snackbar'
-import api from '@/api/Index'
+import { useSnackbarStore } from '@/stores/snackbar.js'
+import api from '@/api/index.js'
 
 definePage({
   meta: {

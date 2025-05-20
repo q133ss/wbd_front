@@ -38,7 +38,7 @@ watch(() => configStore.theme, () => {
         mandatory
       >
         <VListItem
-          v-for="{ name, icon } in props.themes"
+          v-for="{ name, icon, label } in props.themes"
           :key="name"
           :value="name"
           :prepend-icon="icon"
@@ -47,7 +47,7 @@ watch(() => configStore.theme, () => {
           @click="() => { configStore.theme = name }"
         >
           <VListItemTitle class="text-capitalize">
-            {{ name }}
+            {{ label }}
           </VListItemTitle>
         </VListItem>
       </VList>
