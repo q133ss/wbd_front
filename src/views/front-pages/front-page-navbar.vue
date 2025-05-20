@@ -161,25 +161,48 @@ const isPageActive = computed(() => menuItems.some(item => item.navItems.some(li
     >
       <!-- Nav items -->
       <div>
-        <div class="d-flex flex-column gap-y-4 pa-4">
+
+        <div class="d-flex pa-4 mt-3 gap-x-3 align-center">
+          <VNodeRenderer :nodes="themeConfig.app.logo" />
+
+          <div
+            class="nav-title text-truncate"
+            :class="[$vuetify.display.lgAndUp ? 'd-block' : 'd-none', $vuetify.display.mdAndUp ? 'd-none' : 'd-block']"
+          >
+            {{ themeConfig.app.title }}
+          </div>
+        </div>
+
+        <div class="d-flex flex-column gap-y-4 pa-4 pt-0 justify-center">
           <RouterLink
             to="/"
-            class="text-body-1 font-weight-medium nav-link px-0"
+            class="text-h5 font-weight-medium nav-link px-0"
           >
+            <VIcon>ri-home-3-line</VIcon>
             Главная
           </RouterLink>
 
           <RouterLink
-            to="/categories"
-            class="text-body-1 font-weight-medium nav-link px-0"
+            to="/dashboard/orders"
+            class="text-h5 font-weight-medium nav-link px-0"
           >
+            <VIcon>ri-truck-line</VIcon>
+            Мои заказы
+          </RouterLink>
+
+          <RouterLink
+            to="/categories"
+            class="text-h5 font-weight-medium nav-link px-0"
+          >
+            <VIcon>ri-list-unordered</VIcon>
             Категории
           </RouterLink>
 
           <RouterLink
             to="/favorites"
-            class="text-body-1 font-weight-medium nav-link px-0"
+            class="text-h5 font-weight-medium nav-link px-0"
           >
+            <VIcon>ri-heart-line</VIcon>
             Избранное
           </RouterLink>
         </div>
