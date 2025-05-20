@@ -140,13 +140,28 @@ onUnmounted(() => {
     <h2 class="pb-2">Товары с кэшбеком:</h2>
       <VRow>
         <VCol cols="12" md="2">
-          <VBtn block @click="dialogPrice = true">Цена</VBtn>
+          <VBtn block @click="dialogPrice = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
+            Цена, ₽
+            <template v-slot:append>
+              <v-icon>ri-cash-line</v-icon>
+            </template>
+          </VBtn>
         </VCol>
         <VCol cols="12" md="2">
-          <VBtn block @click="dialogCashback = true">Кешбек</VBtn>
+          <VBtn block @click="dialogCashback = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
+            Кешбек, %
+            <template v-slot:append>
+              <v-icon>ri-arrow-go-back-line</v-icon>
+            </template>
+          </VBtn>
         </VCol>
         <VCol cols="12" md="2">
-          <VBtn block @click="dialogSort = true">Сортировка</VBtn>
+          <VBtn block @click="dialogSort = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
+            Сортировка
+            <template v-slot:append>
+              <v-icon>ri-filter-line</v-icon>
+            </template>
+          </VBtn>
         </VCol>
       </VRow>
       </VContainer>
@@ -228,6 +243,13 @@ onUnmounted(() => {
           v-for="item in products"
           :key="item.id"
           :item="item"
+          :grid-config="{
+              cols: '6',
+              sm: '4',
+              md: '3',
+              lg: '2',
+              xl: '2'
+            }"
         />
       </VRow>
 
@@ -248,7 +270,6 @@ onUnmounted(() => {
   width: 100%;
   max-width: calc(1440px - 32px);
   margin: 80px auto 0;
-  padding: 0 16px;
 }
 
 .banner-wrap {
@@ -269,6 +290,10 @@ onUnmounted(() => {
   margin-top: 40px;
   padding: 20px;
   border-radius: 8px;
+}
+
+.filter-btn{
+  font-weight: 600;
 }
 
 .products-container {

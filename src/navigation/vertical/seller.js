@@ -18,11 +18,6 @@ buybacksCount()
 export default [
   { heading: 'Продвижение' },
   {
-    title: 'Главная',
-    icon: { icon: 'ri-home-line' },
-    to: 'index'
-  },
-  {
     title: 'Товары',
     icon: { icon: 'ri-box-3-line' },
     to: 'dashboard-products'

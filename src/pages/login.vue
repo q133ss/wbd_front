@@ -83,6 +83,12 @@ const onSubmit = () => {
       login()
   })
 }
+
+const reloadPage = () => {
+  router.push('/login?role=seller').then(() => {
+    window.location.reload()
+  })
+}
 </script>
 
 <template>
@@ -223,6 +229,10 @@ const onSubmit = () => {
                 class="text-center"
               >
                 <AuthProvider />
+              </VCol>
+
+              <VCol class="text-center">
+                <router-link to="/login?role=seller" @click.prevent="reloadPage">Вход для продавцов</router-link>
               </VCol>
             </VRow>
           </VForm>

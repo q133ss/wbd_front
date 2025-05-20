@@ -27,9 +27,14 @@ export const setupGuards = router => {
       // Проверка роли и настройки профиля
       if (user.is_configured != 1) {
         // Если пользователь не на странице настройки профиля, перенаправляем
-        console.log(to.fullPath)
         if (to.fullPath !== '/profile/setup') {
           return '/profile/setup'
+        }
+      }
+
+      if(user.role?.slug == 'seller'){
+        if (to.fullPath === '/') {
+          return '/profile'
         }
       }
     }

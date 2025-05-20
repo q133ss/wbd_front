@@ -80,7 +80,6 @@ const faqs = ref([
 }
 
 .faq-box {
-  background-color: #fff;
   border-radius: 8px;
   padding: 16px;
 }
@@ -91,16 +90,10 @@ const faqs = ref([
 }
 
 :deep(.v-expansion-panel) {
-  background-color: #f5f5f5;
   border-radius: 4px;
 }
 
 :deep(.v-expansion-panel-title) {
   font-weight: 500;
-  color: #333;
-}
-
-:deep(.v-expansion-panel-text) {
-  color: #555;
 }
 </style>

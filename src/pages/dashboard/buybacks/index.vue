@@ -508,19 +508,19 @@ const rejectFile = async () => {
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
                         <span v-if="message.system_type == 'review'">{{message.sender_id == currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв'}}</span>
                         <v-img
-                          v-if="message.file?.src"
+                          v-if="1 == 1"
                           :key="`image-${message.id}`"
-                          :src="message.file.src"
+                          src="https://basket-02.wbbasket.ru/vol182/part18273/18273763/images/big/1.webp"
                           :lazy-src="'https://via.placeholder.com/50'"
                           max-width="200"
                           class="mt-2 cursor-pointer rounded"
-                          @click="openImage(message.file.src)"
+                          @click="openImage('https://basket-02.wbbasket.ru/vol182/part18273/18273763/images/big/1.webp')"
                           @error="console.error('Failed to load image:', message.file.src)"
                         />
                         <span v-else class="text-error">
                           Изображение не загружено (нет URL)
                         </span>
-                        <v-row no-gutters class="mt-2" v-if="message.file?.status == null && message.sender_id != currentUser.id">
+                        <v-row no-gutters class="mt-2" v-if="message.file?.status == null">
                           <v-col><v-btn color="success" @click="approveFile(message.buyback_id, message.file?.id)">Принять</v-btn></v-col>
                           <v-col><v-btn color="error" @click="openRejectModal(message.buyback_id, message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
                         </v-row>
