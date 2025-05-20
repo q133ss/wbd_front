@@ -6,26 +6,16 @@
     :lg="gridConfig.lg"
     :xl="gridConfig.xl"
   >
-    <VCard class="product-card">
+    <div style="display: flex; flex-direction: column; height: 100%;">
       <template v-if="item.product.images?.length">
-        <VCarousel
-          :continuous="false"
-          :show-arrows="item.product.images.length > 1"
-          height="100%"
-          hide-delimiters
-        >
-          <VCarouselItem
-            v-for="(image, idx) in item.product.images"
-            :key="idx"
-          >
-            <VImg
-              :src="image"
-              cover
-              height="100%"
-              class="product-image"
-            />
-          </VCarouselItem>
-        </VCarousel>
+        <router-link :to="`/products/${item.id}`" class="text-decoration-none">
+          <VImg
+            :src="item.product.images[0]"
+            cover
+            height="100%"
+            class="product-image"
+          />
+        </router-link>
       </template>
 
       <!-- Показываем плейсхолдер если нет картинок -->
@@ -35,59 +25,25 @@
         </div>
       </template>
 
-      <VCardItem>
-        <router-link :to="`/products/${item.id}`" class="text-decoration-none">
-          <VCardTitle class="text-body-1">
-            {{ item.product.name }}
-          </VCardTitle>
-        </router-link>
-        <router-link v-if="item.product?.category" :to="`/categories/${item.product?.category?.id}`" class="text-decoration-none">
-          <VChip
-            size="small"
-            color="orange-lighten-5"
-            text-color="orange-darken-2"
-            class="mt-2"
-          >
-            {{ item.product.category.name }}
-          </VChip>
-        </router-link>
-      </VCardItem>
-
-      <VCardText>
-        <div class="d-flex align-center gap-2 mb-2">
-                <span class="text-h6 text-primary">
-                  {{ item.price_with_cashback }} ₽
-                </span>
+      <div>
+        <div class="d-flex align-center gap-2 mt-1">
+          <span class="text-h4 text-primary">
+            {{ parseInt(item.price_with_cashback) }} ₽
+          </span>
           <span class="text-body-2 text-disabled text-decoration-line-through">
-                  {{ item.product.price }} ₽
-                </span>
-        </div>
-
-        <div class="d-flex align-center mb-2">
-          <VIcon icon="ri-money-dollar-circle-line" color="success" size="20" class="me-1" />
-          <span class="text-caption">
-              Кешбек {{ item.cashback_percentage }}%
+            {{ parseInt(item.product.price) }} ₽
           </span>
         </div>
+      </div>
 
-        <div class="d-flex align-center mb-4">
-          <VRating
-            :model-value="parseFloat(item.product.rating)"
-            density="compact"
-            size="small"
-            readonly
-            half-increments
-          />
-          <span class="text-caption ms-1">
-                  ({{item.product.rating}})
-                </span>
-        </div>
-
-        <VBtn block color="primary" prepend-icon="mdi-cart-plus" @click="goToProduct(item.id)">
-          Перейти
-        </VBtn>
-      </VCardText>
-    </VCard>
+      <div>
+        <router-link :to="`/products/${item.id}`" class="text-decoration-none mb-2">
+          <h3 class="text-body-1">
+            {{ item.product.name }}
+          </h3>
+        </router-link>
+      </div>
+    </div>
   </VCol>
 </template>
 
@@ -108,23 +64,9 @@ const props = defineProps({
     })
   }
 });
-
-const router = useRouter()
-
-const goToProduct = (productId) => {
-  router.push(`/products/${productId}`)
-}
-
-defineEmits(['go-to-product']);
 </script>
 
 <style scoped>
-.product-card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
 .product-image {
   object-fit: cover;
 }
