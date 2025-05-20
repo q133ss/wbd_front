@@ -11,7 +11,7 @@ definePage({
 })
 
 const user = useCookie('userData').value
-const role = user?.value?.role?.slug
+const role = user?.role?.slug
 const isSeller = ref(false)
 if (role === 'seller') {
   isSeller.value = true
@@ -292,8 +292,8 @@ const goToTariffs = () => {
           <v-col cols="12" md="8">
             <div class="balance-box pa-6">
               <h3 class="text-h6 mb-4">Баланс</h3>
-              <p class="text-h5 font-weight-bold primary--text">Доступный баланс: {{ accessBalance }} ₽</p>
-              <p class="text-h5 font-weight-bold primary--text">Замороженный баланс: {{ onConfirmation }} ₽</p>
+              <p class="text-h5 font-weight-bold primary--text balance-text">Доступный баланс: {{ accessBalance }} ₽</p>
+              <p class="text-h5 font-weight-bold primary--text balance-text">Замороженный баланс: {{ onConfirmation }} ₽</p>
               <v-btn
                 color="primary"
                 class="mt-4"
@@ -615,5 +615,11 @@ const goToTariffs = () => {
 
 .error--text {
   color: #f44336 !important;
+}
+
+@media screen and (max-width: 800px){
+  .balance-text{
+    font-size: 16px !important;
+  }
 }
 </style>

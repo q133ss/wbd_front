@@ -126,8 +126,6 @@ const checkIfInFavorites = async () => {
   }
 }
 
-
-
 // Выполняем загрузку данных при монтировании
 onMounted(async () => {
   loadProductData(productId.value);
@@ -308,12 +306,12 @@ const resetLoginForm = () => {
         <h1>{{ product?.name }}</h1>
         <div class="d-flex align-center mb-2">
           <VRating
-            :model-value="parseFloat(summary?.averageRating || 0)"
+            :model-value="parseFloat(product?.product?.rating || 0)"
             readonly
             density="compact"
             size="small"
           />
-          <span class="text-caption ml-2">({{ summary?.totalReviews || 0 }})</span>
+          <span class="text-caption ml-2">({{ product?.product?.rating || 0 }})</span>
         </div>
         <div class="d-flex align-center gap-2 mb-2">
           <span class="text-h5">{{ product?.price_with_cashback }} ₽</span>
@@ -388,7 +386,7 @@ const resetLoginForm = () => {
                 </div>
               </div>
             </div>
-            <div v-else class="text-caption">Нет отзывов</div>
+            <div v-else class="text-caption">Не удалось загрузить отзывы</div>
             <VBtn
               v-if="pagination?.last_page && currentPage < pagination.last_page"
               @click="loadMoreReviews"
@@ -560,5 +558,12 @@ h2.mb-4 {
 
 .product-tab-content {
   margin-top: 20px;
+}
+
+@media screen and (max-width: 500px){
+  .breadcrumbs-container{
+    font-size: 12px;
+    margin-top: 40px;
+  }
 }
 </style>
