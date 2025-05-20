@@ -176,7 +176,6 @@ import { themeConfig } from '@themeConfig'
             <template
               v-for="(item, index) in [
                 { title: 'Telegram', icon: 'ri-telegram-line', href: 'http://telegram.org' },
-                { title: 'Instagram', icon: 'ri-instagram-line', href: 'https://www.instagram.com' },
                 { title: 'VK', icon: 'ri-vk-line', href: 'https://vk.ru' },
               ]"
               :key="index"

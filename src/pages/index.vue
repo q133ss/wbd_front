@@ -255,7 +255,7 @@ onUnmounted(() => {
 
       <!-- Индикатор загрузки при скролле -->
       <VRow v-if="isLoading">
-        <VCol cols="12" class="text-center py-6">
+        <VCol cols="12" class="text-center py-6" style="height: 100vh">
           <VProgressCircular indeterminate color="primary" />
         </VCol>
       </VRow>

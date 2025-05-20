@@ -487,7 +487,7 @@ const isLeftSidebarOpen = ref(true)
               <!-- Chat Header -->
               <div class="chat-header mb-4">
                 <div class="d-flex align-center mb-2">
-                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToUserProfile(activeChat.user.id)">
+                  <v-avatar size="48" class="mr-2 cursor-pointer" color="primary" @click="goToUserProfile(activeChat.user.id)">
                     <v-img
                       v-if="activeChat.user.avatar"
                       :src="activeChat.user.avatar"
@@ -495,7 +495,7 @@ const isLeftSidebarOpen = ref(true)
                     />
                     <span v-else>{{ activeChat.user.name[0] }}</span>
                   </v-avatar>
-                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToProduct(activeChat.ad.id)">
+                  <v-avatar size="48" class="cursor-pointer" @click="goToProduct(activeChat.ad.id)" style="position: relative; left: -20px;">
                     <v-img
                       :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'"
                       :alt="activeChat.ad.name"
@@ -744,7 +744,7 @@ const isLeftSidebarOpen = ref(true)
                         activeChat.status === 'on_confirmation' && activeChat.is_review_photo_sent == true ||
                         activeChat.status === 'cashback_received' && has_review_by_buyer == true"
                   @submit.prevent="sendMessage"
-                  class="mt-4"
+                  class="mt-10"
                 >
                   <v-text-field
                     v-model="messageInput"

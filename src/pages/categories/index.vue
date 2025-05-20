@@ -46,7 +46,7 @@ onMounted(fetchCategories)
     <VContainer class="categories-container my-6">
 
       <VRow v-if="isLoading">
-        <VCol cols="12" class="text-center py-10">
+        <VCol cols="12" class="text-center py-10" style="height: 100vh">
           <VProgressCircular indeterminate color="primary" />
         </VCol>
       </VRow>

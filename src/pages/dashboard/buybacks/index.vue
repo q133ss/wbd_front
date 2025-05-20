@@ -445,7 +445,7 @@ const rejectFile = async () => {
               <!-- Chat Header -->
               <div class="chat-header mb-4">
                 <div class="d-flex align-center mb-2">
-                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToUserProfile(activeChat.user.id)">
+                  <v-avatar size="48" class="mr-2 cursor-pointer" color="primary" @click="goToUserProfile(activeChat.user.id)">
                     <v-img
                       v-if="activeChat.user.avatar"
                       :src="activeChat.user.avatar"
@@ -453,7 +453,7 @@ const rejectFile = async () => {
                     />
                     <span v-else>{{ activeChat.user.name[0] }}</span>
                   </v-avatar>
-                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToProduct(activeChat.ad.id)">
+                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToProduct(activeChat.ad.id)" style="position: relative; left: -20px;">
                     <v-img
                       :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'"
                       :alt="activeChat.ad.name"

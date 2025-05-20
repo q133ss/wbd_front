@@ -248,7 +248,7 @@ const resetLoginForm = () => {
 
 <template>
   <Navbar />
-  <VCol cols="12" v-if="isLoading" class="text-center py-10 mt-10">
+  <VCol cols="12" v-if="isLoading" class="text-center py-10 mt-10" style="height: 100vh">
     <VProgressCircular indeterminate color="primary" />
   </VCol>
   <VContainer v-else>
