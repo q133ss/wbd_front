@@ -237,11 +237,10 @@ const isCurrentRoute = to => {
           rounded
           variant="elevated"
           color="primary"
-          href="https://1.envato.market/materialize_admin"
-          target="_blank"
+          href="/login"
           rel="noopener noreferrer"
         >
-          <VIcon icon="ri-shopping-cart-line" />
+          <VIcon icon="ri-login-box-line" />
         </VBtn>
       </div>
     </VAppBar>

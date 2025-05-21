@@ -269,7 +269,7 @@ const resetLoginForm = () => {
     <!-- Основной контент -->
     <VRow>
       <!-- Слайдер изображений -->
-      <VCol cols="12" md="5">
+      <VCol cols="12" md="8" lg="6">
         <VCard class="product-card">
           <template v-if="parsedImages?.length">
             <VCarousel
@@ -302,34 +302,41 @@ const resetLoginForm = () => {
       </VCol>
 
       <!-- Информация о товаре -->
-      <VCol cols="12" md="6">
-        <h1>{{ product?.name }}</h1>
+      <VCol cols="12" md="8" lg="6">
+        <h1 class="product-name">{{ product?.name }}</h1>
         <div class="d-flex align-center mb-2">
           <VRating
-            :model-value="parseFloat(product?.product?.rating || 0)"
+            :model-value="1"
+            length="1"
             readonly
-            density="compact"
-            size="small"
+            size="x-large"
+            class="shop-rating"
           />
-          <span class="text-caption ml-2">({{ product?.product?.rating || 0 }})</span>
+          <span>{{ product?.product?.rating || 0 }}</span>
+          ·
+          <span class="text-subtitle-1">2343 оценки</span>
         </div>
-        <div class="d-flex align-center gap-2 mb-2">
-          <span class="text-h5">{{ product?.price_with_cashback }} ₽</span>
-          <span class="text-body-2 text-disabled text-decoration-line-through">
-            {{ product?.price_without_cashback }} ₽
+        <div class="d-flex align-center gap-2 mb-2 price-wrap">
+          <div class="price-detail">
+          <span class="text-h5 product-price">{{ parseInt(product?.price_with_cashback) }} ₽</span>
+          <span class="text-body-2 text-disabled text-decoration-line-through product-price-old">
+            {{ parseInt(product?.price_without_cashback) }} ₽
           </span>
+          </div>
           <VChip
             size="small"
             color="primary"
+            class="product-percentage"
           >
-            {{ product?.cashback_percentage }}%
+            {{ parseInt(product?.cashback_percentage) }}%
           </VChip>
         </div>
-        <div class="buybacks_data">
+        <div class="buybacks_data pt-3 pb-3 mt-5">
           <div>Кол-во выкупов: {{ product?.redemption_count }}</div>
           <div>Осталось товаров с кэшбеком: {{ product?.quantity_available }}</div>
         </div>
         <VBtn
+          block
           color="secondary"
           class="mr-2"
           :disabled="isInFavorites"
@@ -338,7 +345,7 @@ const resetLoginForm = () => {
           {{ isInFavorites ? 'В избранном' : 'В избранное' }}
         </VBtn>
 
-        <VBtn color="primary" @click="handleOrderClick">Заказать</VBtn>
+        <VBtn color="primary" class="mt-2" block @click="handleOrderClick">Заказать</VBtn>
         <div class="mt-4 shop-details">
           <strong>{{ product?.shop?.legal_name }}</strong>
           <VBtn variant="text" class="link-button ml-5" :to="`/shop/${product?.shop?.user_id}`">Подробнее</VBtn>
@@ -358,7 +365,7 @@ const resetLoginForm = () => {
     <!-- Вкладки -->
     <VRow>
       <VCol cols="12">
-        <VTabs v-model="tab" @update:modelValue="onTabChange">
+        <VTabs v-model="tab" @update:modelValue="onTabChange" class="tabs-mobile-justify">
           <VTab value="order">Условия</VTab>
           <VTab value="description">Описание</VTab>
           <VTab value="reviews">Отзывы</VTab>
@@ -552,7 +559,7 @@ h2.mb-4 {
   align-items: center;
   border: 1px solid #eeeeee;
   padding: 10px;
-  width: 300px;
+  width: 100%;
   border-radius: 5px;
 }
 
@@ -560,10 +567,61 @@ h2.mb-4 {
   margin-top: 20px;
 }
 
+.product-name{
+  font-size: 1.33em!important;
+}
+
+.product-price{
+  font-size: 1.7em!important;
+  color: rgb(var(--v-theme-primary));
+  font-weight: 700;
+}
+
+.product-price-old{
+  font-size: 1rem!important;
+  line-height: normal;
+  position: relative;
+  top: 8px;
+}
+.product-percentage{
+  font-size: 14px!important;
+}
+
 @media screen and (max-width: 500px){
   .breadcrumbs-container{
     font-size: 12px;
     margin-top: 40px;
+  }
+
+  .breadcrumbs-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .breadcrumbs-container::-webkit-scrollbar {
+    display: none; /* Chrome */
+  }
+}
+
+.price-wrap{
+  justify-content: space-between;
+}
+
+.price-detail{
+  display: flex;
+  gap: 10px;
+}
+
+.tabs-mobile-justify ::v-deep .v-slide-group__content {
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+/* Сброс для больших экранов */
+@media (min-width: 600px) {
+  .tabs-mobile-justify ::v-deep .v-slide-group__content {
+    justify-content: flex-start !important;
   }
 }
 </style>

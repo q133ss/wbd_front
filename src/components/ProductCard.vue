@@ -25,9 +25,18 @@
         </div>
       </template>
 
+      <VChip
+        size="small"
+        color="primary"
+        variant="flat"
+        class="product-percentage"
+      >
+        {{parseInt(item.cashback_percentage)}}%
+      </VChip>
+
       <div>
         <div class="d-flex align-center gap-2 mt-1">
-          <span class="text-h4 text-primary">
+          <span class="text-h4 text-primary product-price">
             {{ parseInt(item.price_with_cashback) }} ₽
           </span>
           <span class="text-body-2 text-disabled text-decoration-line-through">
@@ -38,7 +47,7 @@
 
       <div>
         <router-link :to="`/products/${item.id}`" class="text-decoration-none mb-2">
-          <h3 class="text-body-1">
+          <h3 class="text-body-1 product-name">
             {{ item.product.name }}
           </h3>
         </router-link>
@@ -69,5 +78,24 @@ const props = defineProps({
 <style scoped>
 .product-image {
   object-fit: cover;
+  border-radius: 15px;
+  background: hsl(0, 0%, 90%);
+}
+
+.product-price{
+  font-size: 1.2rem!important;
+  font-weight: 700;
+}
+
+.product-name{
+  font-size: 0.8rem !important;
+}
+
+.product-percentage{
+  width: 45px;
+  position: relative;
+  bottom: 40px;
+  left: 10px;
+  text-align: center;
 }
 </style>

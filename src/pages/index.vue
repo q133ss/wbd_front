@@ -329,6 +329,7 @@ onUnmounted(() => {
 
   .banner-mobile{
     display: block;
+    padding: 0 16px 0 16px;
   }
 }
 </style>
