@@ -254,6 +254,14 @@ const getFirstImage = (images) => {
     return ''
   }
 }
+
+// Image modal
+const imageModal = ref(false)
+const selectedImage = ref('')
+const openImage = (url) => {
+  selectedImage.value = url || 'https://via.placeholder.com/48'
+  imageModal.value = true
+}
 </script>
 
 <template>
@@ -357,6 +365,7 @@ const getFirstImage = (images) => {
         </th>
         <th class="text-uppercase">Объявление</th>
         <th class="text-uppercase">Статус</th>
+        <th class="text-uppercase">Изображение</th>
         <th class="text-uppercase">Товар</th>
         <th class="text-uppercase">Кэшбек</th>
         <th class="text-uppercase">Выкупов</th>
@@ -397,14 +406,18 @@ const getFirstImage = (images) => {
             ></v-switch>
           </td>
           <td>
-            <div class="d-flex align-center">
             <v-img
               v-if="item.product.images && getFirstImage(item.product.images)"
               :src="getFirstImage(item.product.images)"
-              class="mr-2"
+              class="mr-2 rounded cursor-pointer"
+              @click="openImage(getFirstImage(item.product.images))"
+              cover
+              width="50"
+              height="50"
             ></v-img>
+          </td>
+          <td>
             {{ truncateName(item.product.name) }}
-            </div>
           </td>
           <td>{{ parseInt(item.cashback_percentage) }}%</td>
           <td>{{ item.redemption_count }}</td>
@@ -591,6 +604,18 @@ const getFirstImage = (images) => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Image Modal -->
+    <v-dialog v-model="imageModal" max-width="800">
+      <v-card>
+        <v-img :src="selectedImage" contain max-height="600" />
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="secondary" @click="imageModal = false">Закрыть</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 

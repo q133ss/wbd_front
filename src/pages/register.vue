@@ -91,6 +91,12 @@ const handleBtnClick = () => {
     verifyCode()
   }
 }
+
+const reloadPage = (role) => {
+  router.push('/register?role='+role).then(() => {
+    window.location.reload()
+  })
+}
 </script>
 
 <template>
@@ -219,7 +225,8 @@ const handleBtnClick = () => {
             </VRow>
           </VForm>
         </VCardText>
-        <div class="text-center"><router-link to="/register?role=seller">Регистрация для продавцов</router-link></div>
+        <div v-if="role != 'seller'" class="text-center"><router-link to="/register?role=seller" @click.prevent="reloadPage('seller')">Регистрация для продавцов</router-link></div>
+        <div v-else class="text-center"><router-link to="/register" @click.prevent="reloadPage('buyer')">Регистрация для покупателей</router-link></div>
       </VCard>
     </VCol>
   </VRow>

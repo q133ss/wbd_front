@@ -84,8 +84,8 @@ const onSubmit = () => {
   })
 }
 
-const reloadPage = () => {
-  router.push('/login?role=seller').then(() => {
+const reloadPage = (role) => {
+  router.push('/login?role='+role).then(() => {
     window.location.reload()
   })
 }
@@ -232,7 +232,8 @@ const reloadPage = () => {
 <!--              </VCol>-->
 
               <VCol class="text-center">
-                <router-link to="/login?role=seller" @click.prevent="reloadPage">Вход для продавцов</router-link>
+                <router-link v-if="role != 'seller'" to="/login?role=seller" @click.prevent="reloadPage('seller')">Вход для продавцов</router-link>
+                <router-link v-else to="/login" @click.prevent="reloadPage('user')">Вход для покупателей</router-link>
               </VCol>
             </VRow>
           </VForm>

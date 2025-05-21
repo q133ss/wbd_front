@@ -77,7 +77,7 @@ const getFirstImage = (images) => {
 
 // Computed properties for calculations
 const userPrice = computed(() => {
-  if (!product.value?.product) return 0
+  if (!product) return 0
   const price = parseFloat(product.value.price)
   return Math.floor(price * (1 - adData.value.cashback_percentage / 100))
 })
@@ -176,6 +176,14 @@ const submitAd = async () => {
     })
     router.push('/dashboard/advertisements')
   } catch (error) {
+    console.error(error)
+    if (error.response?.status === 400) {
+      snackbar.notify({
+        text: 'У вас недостаточно средств',
+        color: 'error'
+      })
+      return
+    }
     snackbar.notify({
       text: error.response._data.message || 'Ошибка при создании объявления',
       color: 'error'
