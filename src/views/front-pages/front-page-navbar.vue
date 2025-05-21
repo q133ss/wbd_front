@@ -51,6 +51,7 @@ const isCurrentRoute = to => {
     v-model="sidebar"
     data-allow-mismatch
     disable-resize-watcher
+    :class="['mobile-nav-menu', { 'mobile-nav-menu--active': sidebar }]"
   >
     <PerfectScrollbar
       :options="{ wheelPropagation: false }"
@@ -59,7 +60,7 @@ const isCurrentRoute = to => {
       <!-- Nav items -->
       <div>
 
-        <div class="d-flex pa-4 mt-3 gap-x-3 align-center">
+        <div class="d-flex pa-4 mt-3 gap-x-3 align-center menu-logo mb-2">
           <VNodeRenderer :nodes="themeConfig.app.logo" />
 
           <div
@@ -70,7 +71,7 @@ const isCurrentRoute = to => {
           </div>
         </div>
 
-        <div class="d-flex flex-column gap-y-4 pa-4 pt-0 justify-center">
+        <div class="d-flex flex-column gap-y-4 pa-4 pt-0 justify-center mt-5 mobile-menu-wrap">
           <RouterLink
             to="/"
             class="text-h5 font-weight-medium nav-link px-0"
@@ -80,7 +81,7 @@ const isCurrentRoute = to => {
           </RouterLink>
 
           <RouterLink
-            to="/dashboard/orders"
+            :to="isLoggedIn ? '/dashboard/orders' : '/login'"
             class="text-h5 font-weight-medium nav-link px-0"
           >
             <VIcon>ri-truck-line</VIcon>
@@ -96,11 +97,29 @@ const isCurrentRoute = to => {
           </RouterLink>
 
           <RouterLink
-            to="/favorites"
+            :to="isLoggedIn ? '/dashboard/orders' : '/login'"
             class="text-h5 font-weight-medium nav-link px-0"
           >
             <VIcon>ri-heart-line</VIcon>
             Избранное
+          </RouterLink>
+
+          <RouterLink
+            v-if="!isLoggedIn"
+            to="/login"
+            class="text-h5 font-weight-medium nav-link px-0"
+          >
+            <VIcon>ri-login-box-line</VIcon>
+            Вход
+          </RouterLink>
+
+          <RouterLink
+            v-if="!isLoggedIn"
+            to="/login?role=seller"
+            class="text-h5 font-weight-medium nav-link px-0 seller-login"
+          >
+            <VIcon>ri-shopping-bag-2-line</VIcon>
+            Вход для продавцов
           </RouterLink>
         </div>
       </div>
@@ -380,5 +399,40 @@ const isCurrentRoute = to => {
       padding-inline: 1rem !important;
     }
   }
+}
+
+.mobile-nav-menu.v-navigation-drawer--active {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  left: 0 !important;
+  top: 0 !important;
+  background: rgb(var(--v-theme-primary)) !important;
+  overflow-x: hidden !important;
+
+  .ps {
+    width: 100% !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+  }
+}
+
+.menu-logo{
+  justify-content: center;
+}
+
+.menu-logo .nav-title{
+  color: #ffffff!important;
+}
+
+.seller-login{
+  position: absolute;
+  bottom: 30px;
+}
+
+.mobile-menu-wrap .nav-link{
+  color: #ffffff!important;
 }
 </style>

@@ -27,14 +27,14 @@
 
       <VChip
         size="small"
-        color="primary"
+        color="#fff"
         variant="flat"
         class="product-percentage"
       >
         {{parseInt(item.cashback_percentage)}}%
       </VChip>
 
-      <div>
+      <div class="product-info-wrap">
         <div class="d-flex align-center gap-2 mt-1">
           <span class="text-h4 text-primary product-price">
             {{ parseInt(item.price_with_cashback) }} ₽
@@ -82,6 +82,10 @@ const props = defineProps({
   background: hsl(0, 0%, 90%);
 }
 
+.product-info-wrap{
+  margin-top: -20px;
+}
+
 .product-price{
   font-size: 1.2rem!important;
   font-weight: 700;
@@ -89,6 +93,8 @@ const props = defineProps({
 
 .product-name{
   font-size: 0.8rem !important;
+  font-weight: 200;
+  line-height: 1rem;
 }
 
 .product-percentage{

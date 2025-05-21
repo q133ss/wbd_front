@@ -309,12 +309,13 @@ const resetLoginForm = () => {
             :model-value="1"
             length="1"
             readonly
-            size="x-large"
+            size="30"
+            density="compact"
             class="shop-rating"
           />
           <span>{{ product?.product?.rating || 0 }}</span>
           ·
-          <span class="text-subtitle-1">2343 оценки</span>
+          <span class="text-subtitle-1">{{summary.totalReviews}} оценки</span>
         </div>
         <div class="d-flex align-center gap-2 mb-2 price-wrap">
           <div class="price-detail">
@@ -324,7 +325,7 @@ const resetLoginForm = () => {
           </span>
           </div>
           <VChip
-            size="small"
+            size="large"
             color="primary"
             class="product-percentage"
           >
@@ -584,7 +585,7 @@ h2.mb-4 {
   top: 8px;
 }
 .product-percentage{
-  font-size: 14px!important;
+  font-size: 1rem!important;
 }
 
 @media screen and (max-width: 500px){
