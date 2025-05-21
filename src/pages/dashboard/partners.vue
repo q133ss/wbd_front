@@ -53,11 +53,10 @@
 
         <v-alert
           v-if="referralLink"
-          type="info"
-          border="start"
-          colored-border
-          class="mb-4"
-          dense
+          type="primary"
+          class="mb-4 cursor-pointer"
+          icon="$success"
+          @click="copyReferralLink"
         >
           <strong>{{ referralLink }}</strong>
         </v-alert>
@@ -78,6 +77,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api'
+import { useSnackbarStore } from "@/stores/snackbar.js"
+
+const snackbar = useSnackbarStore()
 
 const stats = ref({
   clicks_count: 0,
@@ -102,4 +104,17 @@ onMounted(async () => {
     stats.value = referralStats
   }
 })
+
+const copyReferralLink = () => {
+  if (referralLink) {
+    navigator.clipboard.writeText(referralLink.value)
+      .then(() => {
+        snackbar.notify({text: "Ссылка скопирована в буфер обмена", color: 'success'})
+      })
+      .catch(err => {
+        snackbar.notify({text: "Ошибка при копировании ссылки", color: 'error'})
+      })
+  }
+}
+
 </script>

@@ -573,6 +573,7 @@ const isLeftSidebarOpen = ref(true)
                   <p class="text-disabled">Нет сообщений</p>
                 </div>
 
+                {{activeChat.status}}
                 <!-- Pending Status Form -->
                 <div v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == false" class="mt-4">
                   <v-card class="pa-4 mb-4" elevation="2" rounded="lg">

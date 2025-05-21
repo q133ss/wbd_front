@@ -27,7 +27,7 @@
 
       <VChip
         size="small"
-        color="#fff"
+        color="rgb(var(--v-theme-on-surface))"
         variant="flat"
         class="product-percentage"
       >
@@ -98,6 +98,7 @@ const props = defineProps({
 }
 
 .product-percentage{
+  color: #ffffff;
   width: 45px;
   position: relative;
   bottom: 40px;

@@ -55,7 +55,7 @@ onMounted(fetchCategories)
         <VCol
           v-for="category in categories"
           :key="category.category_id"
-          cols="6"
+          cols="4"
           sm="4"
           md="3"
           lg="2"
@@ -70,6 +70,7 @@ onMounted(fetchCategories)
               :src="category.img?.src || '/assets/images/no_image.svg'"
               alt=""
               cover
+              position="right"
               height="335px"
               class="rounded mb-3"
             />
@@ -115,7 +116,7 @@ onMounted(fetchCategories)
 }
 
 .img-wrap{
-  height: 335px;
+  height: 235px;
   background-color: #f5f5f4;
 }
 </style>

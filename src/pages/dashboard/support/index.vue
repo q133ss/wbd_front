@@ -48,7 +48,7 @@ const faqs = ref([
       </div>
 
       <!-- FAQ Section -->
-      <div class="faq-box pa-6">
+      <div class="faq-box">
         <h2 class="text-h5 mb-4">Часто задаваемые вопросы</h2>
         <v-expansion-panels>
           <v-expansion-panel
@@ -81,7 +81,6 @@ const faqs = ref([
 
 .faq-box {
   border-radius: 8px;
-  padding: 16px;
 }
 
 :deep(.v-btn) {

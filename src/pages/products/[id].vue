@@ -229,7 +229,7 @@ const handleOrderClick = async () => {
   try{
     const response = await api.order.createOrder(productId.value)
     if(response.status){
-      router.push(`/dashboard/orders?orderId=${response.message?.id}`)
+      router.push(`/dashboard/orders?chatId=${response.message?.id}`)
     }
   }catch (error){
     snackbar.notify({text: error.response?._data?.message, color: "error"})

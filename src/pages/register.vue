@@ -201,21 +201,21 @@ const handleBtnClick = () => {
                 </div>
               </VCol>
 
-              <VCol cols="12">
-                <div class="d-flex align-center">
-                  <VDivider />
-                  <span class="mx-4 text-high-emphasis">или</span>
-                  <VDivider />
-                </div>
-              </VCol>
+<!--              <VCol cols="12">-->
+<!--                <div class="d-flex align-center">-->
+<!--                  <VDivider />-->
+<!--                  <span class="mx-4 text-high-emphasis">или</span>-->
+<!--                  <VDivider />-->
+<!--                </div>-->
+<!--              </VCol>-->
 
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider />
-              </VCol>
+<!--              &lt;!&ndash; auth providers &ndash;&gt;-->
+<!--              <VCol-->
+<!--                cols="12"-->
+<!--                class="text-center"-->
+<!--              >-->
+<!--                <AuthProvider />-->
+<!--              </VCol>-->
             </VRow>
           </VForm>
         </VCardText>
