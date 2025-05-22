@@ -12,12 +12,6 @@ import { useRoute, useRouter } from 'vue-router';
 
 const snackbar = useSnackbarStore()
 
-definePage({
-  meta: {
-    layout: 'blank',
-  },
-})
-
 const route = useRoute();
 const router = useRouter();
 const productId = ref(route.params.id);

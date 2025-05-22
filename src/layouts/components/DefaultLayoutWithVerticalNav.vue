@@ -52,10 +52,12 @@ watch([
           v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
           :languages="themeConfig.app.i18n.langConfig"
         />
+        <div class="bg-menu-white">
         <NavbarThemeSwitcher />
         <NavbarShortcuts />
         <NavBarNotifications class="me-2" />
         <UserProfile />
+        </div>
       </div>
     </template>
 
@@ -89,5 +91,12 @@ watch([
       transform: rotate(0deg);
     }
   }
+}
+
+.bg-menu-white{
+  background: rgb(var(--v-theme-surface));
+  display: inline-flex;
+  padding: 5px;
+  border-radius: 15px;
 }
 </style>

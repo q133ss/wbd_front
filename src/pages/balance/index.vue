@@ -553,14 +553,6 @@ const goToTariffs = () => {
 </template>
 
 <style scoped lang="scss">
-.balance-container {
-  padding: 24px;
-}
-
-.content-wrapper {
-  max-width: 1200px;
-  margin-left: 0;
-}
 
 .balance-box,
 .details-box,

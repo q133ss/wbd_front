@@ -7,12 +7,6 @@ import productApi from '@/api/index'
 import categoriesApi from '@/api/categories'
 import ProductCard from "@/components/ProductCard.vue"
 
-definePage({
-  meta: {
-    layout: 'blank',
-  },
-})
-
 // Состояния
 const productsData = ref(null)
 const subCategories = ref([])

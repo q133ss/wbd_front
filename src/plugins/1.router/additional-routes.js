@@ -7,10 +7,8 @@ export const redirects = [
   {
     path: '/',
     name: 'index',
-    component: () => import('@/pages/index.vue'),
-    meta: {
-      public: true
-    }
+    // component: () => import('@/pages/index.vue'),
+    component: () => import('@/pages/main.vue'),
   },
   {
     path: '/balance',

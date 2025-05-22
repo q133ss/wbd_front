@@ -1,14 +1,6 @@
 <script setup>
 import categoriesApi from '@/api/categories'
-import Footer from '@/views/front-pages/front-page-footer.vue'
-import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import { onMounted, ref } from 'vue'
-
-definePage({
-  meta: {
-    layout: 'blank',
-  },
-})
 
 // Состояния
 const categories = ref([])
@@ -41,8 +33,6 @@ onMounted(fetchCategories)
 
 <template>
   <div class="categories-page-wrapper">
-    <Navbar />
-
     <VContainer class="categories-container my-6">
 
       <VRow v-if="isLoading">
@@ -88,17 +78,10 @@ onMounted(fetchCategories)
         </VCol>
       </VRow>
     </VContainer>
-
-    <Footer />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.categories-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding-top: 80px;
-}
 
 .category-name{
   position: relative;

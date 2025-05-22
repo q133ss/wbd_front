@@ -271,12 +271,6 @@ import Footer from '@/views/front-pages/front-page-footer.vue'
 import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import ProductCard from '@/components/ProductCard.vue'
 
-definePage({
-  meta: {
-    layout: 'blank',
-  },
-})
-
 const route = useRoute()
 const router = useRouter()
 const sellerId = ref(route.params.id)

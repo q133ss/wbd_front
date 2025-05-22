@@ -42,7 +42,7 @@
     </v-row>
 
     <!-- Ссылка и инструкция -->
-    <v-row class="mt-10">
+    <v-row class="mt-10" v-if="user?.role?.slug == 'seller'">
       <v-col cols="12">
         <p class="text-body-1 mb-4">
           Специально для вас мы создали партнёрскую программу, по которой вы сможете зарабатывать независимо от собственных продвижений.
@@ -67,6 +67,36 @@
 
         <p class="text-body-1">
           А если вы являетесь веб-специалистом или медийной личностью, то для вас есть особые условия. <br />
+          <a href="/dashboard/support" class="text-primary font-weight-medium">Напишите нам</a> и узнайте все подробности.
+        </p>
+      </v-col>
+    </v-row>
+    <v-row v-else>
+      <v-col cols="12">
+        <p class="text-body-1 mb-4">
+          Специально для вас мы создали партнёрскую программу, по которой вы сможете зарабатывать не только с кэшбека, но и за рекомендации сервиса!
+        </p>
+        <p class="text-body-1 mb-2">
+          Копируйте вашу индивидуальную ссылку:
+        </p>
+
+        <v-alert
+          v-if="referralLink"
+          type="primary"
+          class="mb-4 cursor-pointer"
+          icon="$success"
+          @click="copyReferralLink"
+        >
+          <strong>{{ referralLink }}</strong>
+        </v-alert>
+
+        <p class="text-body-1 mb-4">
+          Отправляйте другу, который хочет продвигать свои товары на Wildberries и получайте <strong>10% от всех его платежей в системе.</strong>
+        </p>
+
+        <p class="text-body-1">
+          Выводите отчисления по партнёрской программе от <strong>1000 ₽</strong>.<br />
+          А если вы являетесь веб-специалистом или медийной личностью, то для вас есть особые условия.
           <a href="/dashboard/support" class="text-primary font-weight-medium">Напишите нам</a> и узнайте все подробности.
         </p>
       </v-col>
