@@ -158,9 +158,10 @@ const setupPusher = (chatId) => {
     // Normalize Pusher data to match server response
     const normalizedMessage = {
       ...data,
-      file: data.file || null,
+      file: data.files[0] || null,
       type: data.type || 'text'
     }
+    console.log(normalizedMessage)
     messages.value.push(normalizedMessage)
     nextTick(() => scrollToBottom())
   })
@@ -236,12 +237,18 @@ const uploadPendingFile = async () => {
 }
 
 // Upload files for on_confirmation status
+const recieptSent = ref(false)
 const uploadConfirmationFiles = async () => {
   if (!barcodeFile.value || !reviewFile.value) return
 
   try {
-    await api.chat.sendPhoto(activeChat.value.id, [barcodeFile.value], 'review')
-    await api.chat.sendPhoto(activeChat.value.id, [reviewFile.value], 'review')
+    await api.chat.sendPhoto(
+      activeChat.value.id,
+      [barcodeFile.value, reviewFile.value], // ⬅ объединяем файлы
+      'review'
+    )
+
+    // Сброс состояний
     barcodeFile.value = null
     reviewFile.value = null
     barcodePreview.value = null
@@ -250,6 +257,7 @@ const uploadConfirmationFiles = async () => {
       text: 'Файлы отправлены',
       color: 'success'
     })
+
     scrollToBottom()
   } catch (error) {
     console.error('Error uploading confirmation files:', error)
@@ -257,14 +265,21 @@ const uploadConfirmationFiles = async () => {
       text: error.response?._data?.message || 'Ошибка отправки файлов',
       color: 'error'
     })
+  } finally {
+    recieptSent.value = true
   }
 }
 
+
 // Submit review for cashback_received status
+const reviewRating = ref(null)
 const submitReview = async () => {
-  if (!reviewText.value.trim()) return
+  if (!reviewText.value.trim() || reviewRating == null) return
 
   try {
+    // TODO reviewText.value.trim()
+    // reviewRating
+    // Отправляем отзыв!!!!
     await api.chat.sendMessage(activeChat.value.id, reviewText.value)
     reviewText.value = ''
     snackbar.notify({
@@ -550,9 +565,9 @@ const isLeftSidebarOpen = ref(true)
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
                         <span v-if="message.system_type == 'review'">Покупатель оставил отзыв</span>
                         <v-img
-                          v-if="message.file?.src"
+                          v-if="message?.file"
                           :key="`image-${message.id}`"
-                          :src="message.file.src"
+                          :src="message.file?.src"
                           :lazy-src="'https://via.placeholder.com/50'"
                           max-width="200"
                           class="mt-2 cursor-pointer rounded"
@@ -573,7 +588,6 @@ const isLeftSidebarOpen = ref(true)
                   <p class="text-disabled">Нет сообщений</p>
                 </div>
 
-                {{activeChat.status}}
                 <!-- Pending Status Form -->
                 <div v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == false" class="mt-4">
                   <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
@@ -630,7 +644,7 @@ const isLeftSidebarOpen = ref(true)
                 </div>
 
                 <!-- On Confirmation Status Form -->
-                <div v-if="activeChat.status === 'on_confirmation' && activeChat.is_review_photo_sent == false" class="mt-4">
+                <div v-if="activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == false && !recieptSent" class="mt-4">
                   <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                     <v-card-title class="text-h6 d-flex align-center">
                       <v-icon icon="ri-barcode-line" class="mr-2" />
@@ -705,7 +719,7 @@ const isLeftSidebarOpen = ref(true)
                 </div>
 
                 <!-- Cashback Received Status Form -->
-                <div v-if="activeChat.status === 'cashback_received' && has_review_by_buyer == false" class="mt-4">
+                <div v-if="activeChat.status === 'cashback_received' && activeChat.has_review_by_buyer == false" class="mt-4">
                   <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                     <v-card-title class="text-h6 d-flex align-center">
                       <v-icon icon="ri-star-line" class="mr-2" />
@@ -715,6 +729,15 @@ const isLeftSidebarOpen = ref(true)
                       <p class="text-body-2 mb-4">
                         Пожалуйста, оставьте отзыв о заказе
                       </p>
+                      <v-rating
+                        v-model="reviewRating"
+                        length="5"
+                        size="32"
+                        color="yellow darken-3"
+                        background-color="grey lighten-2"
+                        class="mb-4"
+                        aria-label="Выберите рейтинг"
+                      />
                       <v-textarea
                         v-model="reviewText"
                         label="Ваш отзыв"
@@ -728,7 +751,7 @@ const isLeftSidebarOpen = ref(true)
                       <v-btn
                         type="submit"
                         color="primary"
-                        :disabled="!reviewText"
+                        :disabled="!reviewText && reviewRating != null"
                         @click="submitReview"
                         class="px-4"
                         rounded
@@ -738,12 +761,13 @@ const isLeftSidebarOpen = ref(true)
                     </v-card-actions>
                   </v-card>
                 </div>
-
                 <!-- Message Input -->
                 <v-form
                   v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == true ||
                         activeChat.status === 'on_confirmation' && activeChat.is_review_photo_sent == true ||
-                        activeChat.status === 'cashback_received' && has_review_by_buyer == true"
+                        activeChat.status === 'cashback_received' && activeChat.has_review_by_buyer == true ||
+                        activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == true ||
+                        recieptSent"
                   @submit.prevent="sendMessage"
                   class="mt-10"
                 >

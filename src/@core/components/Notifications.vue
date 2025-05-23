@@ -33,18 +33,22 @@ const emit = defineEmits(['read', 'unread', 'remove', 'click:notification'])
 const isAllMarkRead = computed(() => notifications.value.some(item => !item.is_read))
 const totalUnreadNotifications = computed(() => notifications.value.filter(item => !item.is_read).length)
 
+const dataUser = useCookie('userData').value
+const token = useCookie('accessToken').value
+const isLoggedIn = !!dataUser && !!token
+
 // Fetch user profile
 const fetchUserProfile = async () => {
-  try {
-    const response = await api.user.profile()
-    user.value = response
-    if (user.value.id) {
-      setupPusher()
-    } else {
-      snackbar.notify({ text: 'Ошибка: ID пользователя отсутствует', color: 'error' })
+  if(isLoggedIn) {
+    try {
+      const response = await api.user.profile()
+      user.value = response
+      if (user.value.id) {
+        setupPusher()
+      }
+    } catch (error) {
+      snackbar.notify({ text: 'Ошибка при загрузке профиля', color: 'error' })
     }
-  } catch (error) {
-    snackbar.notify({ text: 'Ошибка при загрузке профиля', color: 'error' })
   }
 }
 
@@ -63,32 +67,35 @@ const fetchNotifications = async () => {
 
 // Setup Pusher connection
 const setupPusher = () => {
-  try {
-    pusher.value = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
-      cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-      encrypted: true,
-    })
+  if(isLoggedIn) {
+    try {
+      pusher.value = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+        cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+        encrypted: true,
+      })
 
-    const channelName = `notification-${user.value.id}`
-    channel.value = pusher.value.subscribe(channelName)
+      const channelName = `notification-${user?.value?.id}`
+      channel.value = pusher.value.subscribe(channelName)
 
-    channel.value.bind('MessageSent', (data) => {
-      if (data && data.subtitle) {
-        const notification = {
-          id: data.id,
-          user_id: user.value.id,
-          buyback_id: data.buyback_id || null, // Note: Backend should include buyback_id for navigation
-          text: data.subtitle,
-          is_read: false,
-          created_at: data.date || new Date().toISOString(),
-          updated_at: data.date || new Date().toISOString(),
+      channel.value.bind('MessageSent', (data) => {
+        if (data && data.subtitle) {
+          const notification = {
+            id: data.id,
+            user_id: user.value.id,
+            buyback_id: data.buyback_id || null, // Note: Backend should include buyback_id for navigation
+            text: data.subtitle,
+            is_read: false,
+            created_at: data.date || new Date().toISOString(),
+            updated_at: data.date || new Date().toISOString(),
+          }
+          notifications.value.unshift(notification)
+          snackbar.notify({ text: notification.text, color: 'info' })
         }
-        notifications.value.unshift(notification)
-        snackbar.notify({ text: notification.text, color: 'info' })
-      }
-    })
-  } catch (error) {
-    snackbar.notify({ text: 'Ошибка при настройке уведомлений', color: 'error' })
+      })
+    } catch (error) {
+      console.error(error)
+      snackbar.notify({ text: 'Ошибка при настройке уведомлений', color: 'error' })
+    }
   }
 }
 

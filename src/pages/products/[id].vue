@@ -1,29 +1,27 @@
 <script setup>
-import api from '@/api';
-import favoriteApi from "@/api/favorite";
-import productsApi from '@/api/products';
-import reviewsApi from '@/api/reviews';
-import ProductCard from '@/components/ProductCard.vue';
-import { useSnackbarStore } from '@/stores/snackbar';
-import Footer from "@/views/front-pages/front-page-footer.vue";
-import Navbar from "@/views/front-pages/front-page-navbar.vue";
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import api from '@/api'
+import favoriteApi from "@/api/favorite"
+import productsApi from '@/api/products'
+import reviewsApi from '@/api/reviews'
+import ProductCard from '@/components/ProductCard.vue'
+import { useSnackbarStore } from '@/stores/snackbar'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const snackbar = useSnackbarStore()
 
-const route = useRoute();
-const router = useRouter();
-const productId = ref(route.params.id);
-const product = ref(null);
-const reviews = ref([]);
-const summary = ref(null);
-const pagination = ref(null);
-const relatedProducts = ref([]);
-const tab = ref('order');
-const currentPage = ref(1);
-const isLoading = ref(true);
-const errorMessage = ref(null);
+const route = useRoute()
+const router = useRouter()
+const productId = ref(route.params.id)
+const product = ref(null)
+const reviews = ref([])
+const summary = ref(null)
+const pagination = ref(null)
+const relatedProducts = ref([])
+const tab = ref('order')
+const currentPage = ref(1)
+const isLoading = ref(true)
+const errorMessage = ref(null)
 const isInFavorites = ref(false)
 
 
@@ -239,7 +237,6 @@ const resetLoginForm = () => {
 </script>
 
 <template>
-  <Navbar />
   <VCol cols="12" v-if="isLoading" class="text-center py-10 mt-10" style="height: 100vh">
     <VProgressCircular indeterminate color="primary" />
   </VCol>
@@ -422,7 +419,6 @@ const resetLoginForm = () => {
       </VCol>
     </VRow>
   </VContainer>
-  <Footer />
 
   <VDialog
     v-model="isLoginFormVisible"
@@ -478,10 +474,6 @@ const resetLoginForm = () => {
 </template>
 
 <style scoped lang="scss">
-.breadcrumbs-container {
-  margin-top: 80px;
-}
-
 .product-card {
   width: 100%;
   height: 519px; /* Mobile height */

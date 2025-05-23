@@ -7,7 +7,6 @@ export const redirects = [
   {
     path: '/',
     name: 'index',
-    // component: () => import('@/pages/index.vue'),
     component: () => import('@/pages/main.vue'),
   },
   {

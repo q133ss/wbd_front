@@ -29,6 +29,10 @@ watch([
   else
     verticalNavHeaderActionAnimationName.value = val[0] ? 'rotate-180' : 'rotate-back-180'
 }, { immediate: true })
+
+const dataUser = useCookie('userData').value
+const token = useCookie('accessToken').value
+const isLoggedIn = !!dataUser && !!token
 </script>
 
 <template>
@@ -53,10 +57,11 @@ watch([
           :languages="themeConfig.app.i18n.langConfig"
         />
         <div class="bg-menu-white">
-        <NavbarThemeSwitcher />
-        <NavbarShortcuts />
-        <NavBarNotifications class="me-2" />
-        <UserProfile />
+        <NavbarThemeSwitcher v-if="isLoggedIn" />
+        <NavbarShortcuts v-if="isLoggedIn" />
+        <NavBarNotifications class="me-2" v-if="isLoggedIn" />
+        <UserProfile v-if="isLoggedIn" />
+        <router-link v-if="!isLoggedIn" to="/login"><VIcon>ri-user-line</VIcon></router-link>
         </div>
       </div>
     </template>

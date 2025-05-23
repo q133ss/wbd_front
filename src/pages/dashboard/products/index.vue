@@ -22,6 +22,8 @@ const showShopConfirmModal = ref(false)
 const productData = ref(null)
 const shopData = ref(null)
 
+const userData = useCookie('userData')
+
 // Обрезка названия до 40 символов
 const truncateName = (name) => {
   if (!name) return ''
@@ -303,8 +305,6 @@ const handleFilterStatus = () => {
   currentPage.value = 1
   loadProducts()
 }
-
-const userData = useCookie('userData')
 </script>
 
 <template>

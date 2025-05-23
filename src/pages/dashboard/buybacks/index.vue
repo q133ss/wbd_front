@@ -207,6 +207,13 @@ const approveFile = async (chatIdValue, fileIdValue) => {
       messages.value.push(response.message)
       scrollToBottom()
     }
+
+    const res = await api.buyback.getBuybackById(chatIdValue)
+    const chat = res
+    if (chat) {
+      selectChat(chat)
+    }
+
     snackbar.notify({
       text: 'Файл подтвержден',
       color: 'success'
@@ -244,14 +251,6 @@ const updateStatusTimer = () => {
 
   const status = activeChat.value.status
   const startTime = activeChat.value.updated_at || activeChat.value.created_at || new Date().toISOString()
-  console.log('Timer debug:', {
-    status,
-    startTime,
-    updated_at: activeChat.value.updated_at,
-    created_at: activeChat.value.created_at,
-    timer: timer.value,
-    statusMessage: statusMessages[status]
-  })
 
   if (!['pending', 'awaiting_receipt', 'on_confirmation'].includes(status)) {
     console.log('Timer skipped: Status not timed', { status })
@@ -361,6 +360,13 @@ const rejectFile = async () => {
       scrollToBottom()
     }
     isRejectVisible.value = false
+
+    const res = await api.buyback.getBuybackById(chatId.value)
+    const chat = res
+    if (chat) {
+      selectChat(chat)
+    }
+
     snackbar.notify({
       text: 'Файл отклонен',
       color: 'success'
@@ -508,21 +514,21 @@ const rejectFile = async () => {
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
                         <span v-if="message.system_type == 'review'">{{message.sender_id == currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв'}}</span>
                         <v-img
-                          v-if="1 == 1"
+                          v-if="message?.file"
                           :key="`image-${message.id}`"
-                          src="https://basket-02.wbbasket.ru/vol182/part18273/18273763/images/big/1.webp"
+                          :src="message?.file?.src"
                           :lazy-src="'https://via.placeholder.com/50'"
                           max-width="200"
                           class="mt-2 cursor-pointer rounded"
-                          @click="openImage('https://basket-02.wbbasket.ru/vol182/part18273/18273763/images/big/1.webp')"
-                          @error="console.error('Failed to load image:', message.file.src)"
+                          @click="openImage(message?.file?.src)"
+                          @error="console.error('Failed to load image:', message?.file?.src)"
                         />
                         <span v-else class="text-error">
                           Изображение не загружено (нет URL)
                         </span>
                         <v-row no-gutters class="mt-2" v-if="message.file?.status == null">
-                          <v-col><v-btn color="success" @click="approveFile(message.buyback_id, message.file?.id)">Принять</v-btn></v-col>
-                          <v-col><v-btn color="error" @click="openRejectModal(message.buyback_id, message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
+                          <v-col><v-btn color="success" @click="approveFile(message.buyback_id, message.files?.[0]?.id || message.file?.id)">Принять</v-btn></v-col>
+                          <v-col><v-btn color="error" @click="openRejectModal(message.buyback_id, message.files?.[0]?.id || message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
                         </v-row>
                         <span v-else-if="message.file?.status != null">
                           {{message.file?.status == true ? 'Файл подтвержден' : 'Файл отклонен'}}
