@@ -379,18 +379,41 @@ const rejectFile = async () => {
     })
   }
 }
+
+// Submit review for cashback_received status
+const reviewText = ref('')
+const reviewRating = ref(null)
+const reviewSend = ref(false)
+const submitReview = async () => {
+  console.log(!reviewText.value.trim() , reviewRating.value == null)
+  if (!reviewText.value.trim() || reviewRating.value == null) return
+  try {
+    await api.reviews.storeReview(activeChat.value.id, reviewText.value, reviewRating.value)
+    reviewText.value = ''
+    snackbar.notify({
+      text: 'Отзыв отправлен',
+      color: 'success'
+    })
+    selectChat(activeChat.value)
+    reviewSend.value = true
+    scrollToBottom()
+  } catch (error) {
+    console.error('Error submitting review:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отправки отзыва',
+      color: 'error'
+    })
+  }
+}
 </script>
 
 <template>
   <div class="chats-container">
     <div class="content-wrapper">
-      <h1 class="text-h4 mb-2">Чаты</h1>
-      <p class="text-body-1 mb-8">Общайтесь с покупателями и управляйте заказами</p>
-
       <v-row>
         <!-- Left Sidebar: Status Dropdown and Chats -->
         <v-col cols="12" md="4">
-          <v-card class="chat-list-sidebar pa-4" min-height="600">
+          <v-card class="chat-list-sidebar pa-4" min-height="80vh">
             <h2 class="text-h6 mb-4">Чаты</h2>
             <v-select
               v-model="selectedStatus"
@@ -446,7 +469,7 @@ const rejectFile = async () => {
 
         <!-- Main Content: Active Chat -->
         <v-col cols="12" md="8">
-          <v-card class="chat-content pa-6" min-height="600">
+          <v-card class="chat-content pa-6" min-height="80vh">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
               <div class="chat-header mb-4">
@@ -509,10 +532,40 @@ const rejectFile = async () => {
                         maxWidth: '70%'
                       }"
                     >
+                      <template v-if="message.system_type === 'review' && message.type == 'system'">
+                        <v-rating
+                          v-model="message.color"
+                          length="5"
+                          size="32"
+                          readonly
+                          color="yellow darken-3"
+                          background-color="grey lighten-2"
+                          class="mb-4"
+                          aria-label="Рейтинг"
+                        />
+                        <br>
+                      </template>
                       <span v-if="message.text">{{ message.text }}</span>
+
+                      <template v-if="message.system_type === 'review' && message.type == 'image'">
+                        {{message.sender_id}}
+                        {{currentUser.id}}
+                        {{message.sender_id == currentUser.id ? 'Вы подтвердили скриншот' : 'Продавец подтвердил скриншот'}}
+                        <v-img
+                          v-if="message?.file"
+                          :key="`image-${message.id}`"
+                          :src="message.file?.src"
+                          :lazy-src="'https://via.placeholder.com/50'"
+                          max-width="200"
+                          class="mt-2 cursor-pointer rounded"
+                          @click="openImage(message.file.src)"
+                          @error="console.error('Failed to load image:', message.file.src)"
+                        />
+                      </template>
+
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
-                        <span v-if="message.system_type == 'review'">{{message.sender_id == currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв'}}</span>
+                        <span v-if="message.system_type == 'review'  && message.type == 'system'">{{message.sender_id == currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв'}}</span>
                         <v-img
                           v-if="message?.file"
                           :key="`image-${message.id}`"
@@ -559,11 +612,54 @@ const rejectFile = async () => {
                       {{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}
                     </span>
                   </li>
+
+                  <div v-if="activeChat.status === 'cashback_received' && activeChat.has_review_by_seller == false && !reviewSend" class="mt-4">
+                    <v-card class="pa-4" elevation="2" rounded="lg">
+                      <v-card-title class="text-h6 d-flex align-center">
+                        <v-icon icon="ri-star-line" class="mr-2" />
+                        Оставьте отзыв
+                      </v-card-title>
+                      <v-card-text>
+                        <p class="text-body-2 mb-4">
+                          Пожалуйста, оставьте отзыв о покупателе
+                        </p>
+                        <v-rating
+                          v-model="reviewRating"
+                          length="5"
+                          size="32"
+                          color="yellow darken-3"
+                          background-color="grey lighten-2"
+                          class="mb-4"
+                          aria-label="Выберите рейтинг"
+                        />
+                        <v-textarea
+                          v-model="reviewText"
+                          label="Ваш отзыв"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-4"
+                          aria-label="Оставить отзыв о покупателе"
+                        />
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn
+                          type="submit"
+                          color="primary"
+                          :disabled="!reviewText && reviewRating != null"
+                          @click="submitReview"
+                          class="px-4"
+                          rounded
+                        >
+                          Отправить отзыв
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </div>
+
                 </PerfectScrollbar>
                 <div v-else class="flex-grow-1 d-flex align-center justify-center">
                   <p class="text-disabled">Нет сообщений</p>
                 </div>
-
                 <!-- Message Input -->
                 <v-form @submit.prevent="sendMessage" class="mt-4">
                   <v-text-field
@@ -647,10 +743,6 @@ const rejectFile = async () => {
 </template>
 
 <style scoped lang="scss">
-.chats-container {
-  padding: 24px;
-}
-
 .content-wrapper {
   max-width: 1200px;
   margin: 0 auto;
@@ -689,7 +781,7 @@ const rejectFile = async () => {
 }
 
 .chat-log {
-  max-height: 400px;
+  max-height: 50vh;
   overflow-y: auto;
 }
 
@@ -704,5 +796,9 @@ const rejectFile = async () => {
 
 .bg-primary {
   background-color: #1976d2 !important;
+}
+
+.chats-container{
+  overflow-y: hidden!important;
 }
 </style>

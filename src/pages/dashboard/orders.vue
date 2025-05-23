@@ -214,6 +214,7 @@ const sendMessage = async () => {
 }
 
 // Upload file for pending status
+const orderSend = ref(false)
 const uploadPendingFile = async () => {
   if (!pendingFile.value) return
 
@@ -225,6 +226,7 @@ const uploadPendingFile = async () => {
       text: 'Скриншот заказа отправлен',
       color: 'success'
     })
+    orderSend.value = true;
     scrollToBottom()
   } catch (error) {
     console.error('Error uploading pending file:', error)
@@ -272,6 +274,7 @@ const uploadConfirmationFiles = async () => {
 
 // Submit review for cashback_received status
 const reviewRating = ref(null)
+const sendReview = ref(false)
 const submitReview = async () => {
   if (!reviewText.value.trim() || reviewRating.value == null) return
 
@@ -282,7 +285,7 @@ const submitReview = async () => {
       text: 'Отзыв отправлен',
       color: 'success'
     })
-    selectChat(activeChat.value)
+    sendReview.value = true
     scrollToBottom()
   } catch (error) {
     console.error('Error submitting review:', error)
@@ -430,15 +433,12 @@ const isLeftSidebarOpen = ref(true)
 </script>
 
 <template>
-  <div class="chats-container">
+  <div class="chats-container overflow-hidden">
     <div class="content-wrapper">
-      <h1 class="text-h4 mb-2">Чаты</h1>
-      <p class="text-body-1 mb-8">Общайтесь с продавцами и управляйте заказами</p>
-
       <v-row>
         <!-- Left Sidebar: Status Dropdown and Chats -->
         <v-col cols="12" md="4">
-          <v-card class="chat-list-sidebar pa-4" min-height="600">
+          <v-card class="chat-list-sidebar pa-4" min-height="80vh">
             <h2 class="text-h6 mb-4">Чаты</h2>
             <v-select
               v-model="selectedStatus"
@@ -494,7 +494,7 @@ const isLeftSidebarOpen = ref(true)
 
         <!-- Main Content: Active Chat -->
         <v-col cols="12" md="8">
-          <v-card class="chat-content pa-6" min-height="600">
+          <v-card class="chat-content pa-6" min-height="calc(100vh - 20%)">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
               <div class="chat-header mb-4">
@@ -557,7 +557,21 @@ const isLeftSidebarOpen = ref(true)
                         maxWidth: '70%'
                       }"
                     >
-                      <template v-if="message.system_type === 'review'">
+                      <template v-if="message.system_type === 'review' && message.type == 'image'">
+                        Продавец подтвердил ваш скриншот
+                        <v-img
+                          v-if="message?.file"
+                          :key="`image-${message.id}`"
+                          :src="message.file?.src"
+                          :lazy-src="'https://via.placeholder.com/50'"
+                          max-width="200"
+                          class="mt-2 cursor-pointer rounded"
+                          @click="openImage(message.file.src)"
+                          @error="console.error('Failed to load image:', message.file.src)"
+                        />
+                      </template>
+
+                      <template v-if="message.system_type === 'review' && message.type == 'system'">
                         <v-rating
                           v-model="message.color"
                           length="5"
@@ -566,13 +580,13 @@ const isLeftSidebarOpen = ref(true)
                           color="yellow darken-3"
                           background-color="grey lighten-2"
                           class="mb-4"
-                          aria-label="Выберите рейтинг"
+                          aria-label="Рейтинг"
                         />
                       </template>
                       <span v-if="message.text" class="d-block mb-2">{{ message.text }}</span>
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
-                        <span v-if="message.system_type == 'review'">Покупатель оставил отзыв</span>
+                        <span v-if="message.system_type == 'review' && message.type == 'system'">Покупатель оставил отзыв</span>
                         <v-img
                           v-if="message?.file"
                           :key="`image-${message.id}`"
@@ -592,191 +606,193 @@ const isLeftSidebarOpen = ref(true)
                       {{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}
                     </span>
                   </li>
+
+                  <!-- Cashback Received Status Form -->
+                  <div v-if="activeChat.status === 'cashback_received' && activeChat.has_review_by_buyer == false && !sendReview" class="mt-4">
+                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                      <v-card-title class="text-h6 d-flex align-center">
+                        <v-icon icon="ri-star-line" class="mr-2" />
+                        Оставьте отзыв
+                      </v-card-title>
+                      <v-card-text>
+                        <p class="text-body-2 mb-4">
+                          Пожалуйста, оставьте отзыв о заказе
+                        </p>
+                        <v-rating
+                          v-model="reviewRating"
+                          length="5"
+                          size="32"
+                          color="yellow darken-3"
+                          background-color="grey lighten-2"
+                          class="mb-4"
+                          aria-label="Выберите рейтинг"
+                        />
+                        <v-textarea
+                          v-model="reviewText"
+                          label="Ваш отзыв"
+                          variant="outlined"
+                          density="compact"
+                          class="mb-4"
+                          aria-label="Оставить отзыв о заказе"
+                        />
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn
+                          type="submit"
+                          color="primary"
+                          :disabled="!reviewText && reviewRating != null"
+                          @click="submitReview"
+                          class="px-4"
+                          rounded
+                        >
+                          Отправить отзыв
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </div>
+
+                  <!-- Pending Status Form -->
+                  <div v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == false && !orderSend" class="mt-4">
+                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                      <v-card-title class="text-h6 d-flex align-center">
+                        <v-icon icon="ri-image-line" class="mr-2" />
+                        Загрузите скриншот заказа
+                      </v-card-title>
+                      <v-card-text>
+                        <p class="text-body-2 mb-4">
+                          Загрузите скриншот заказа из кабинета Wildberries чтобы продолжить или отмените заказ
+                        </p>
+                        <v-file-input
+                          label="Выберите скриншот"
+                          accept=".jpeg,.png,.jpg,.gif"
+                          v-model="pendingFile"
+                          variant="outlined"
+                          density="compact"
+                          show-size
+                          prepend-icon="ri-upload-cloud-line"
+                          @update:model-value="generatePreview(pendingFile, pendingPreview)"
+                          class="mb-4"
+                          aria-label="Загрузить скриншот заказа"
+                        />
+                        <v-img
+                          v-if="pendingPreview"
+                          :src="pendingPreview"
+                          max-width="100"
+                          class="mb-4 rounded"
+                          cover
+                        />
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn
+                          type="submit"
+                          color="primary"
+                          :disabled="!pendingFile"
+                          @click="uploadPendingFile"
+                          class="px-4"
+                          rounded
+                        >
+                          Отправить
+                        </v-btn>
+                        <v-btn
+                          color="error"
+                          @click="cancelOrder"
+                          variant="outlined"
+                          class="px-4"
+                          rounded
+                        >
+                          Отменить заказ
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </div>
+
+                  <!-- On Confirmation Status Form -->
+                  <div v-if="activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == false && !recieptSent" class="mt-4">
+                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                      <v-card-title class="text-h6 d-flex align-center">
+                        <v-icon icon="ri-barcode-line" class="mr-2" />
+                        Загрузите фото штрихкода
+                      </v-card-title>
+                      <v-card-text>
+                        <p class="text-body-2 mb-4">
+                          Загрузите фото, на котором видно, как вы порезали штрихкод, чтобы не было возможности сдать товар обратно
+                        </p>
+                        <v-file-input
+                          label="Выберите фото штрихкода"
+                          accept=".jpeg,.png,.jpg,.gif"
+                          v-model="barcodeFile"
+                          variant="outlined"
+                          density="compact"
+                          show-size
+                          prepend-icon="ri-upload-cloud-line"
+                          @update:model-value="generatePreview(barcodeFile, barcodePreview)"
+                          class="mb-4"
+                          aria-label="Загрузить фото штрихкода"
+                        />
+                        <v-img
+                          v-if="barcodePreview"
+                          :src="barcodePreview"
+                          max-width="100"
+                          class="mb-4 rounded"
+                          cover
+                        />
+                      </v-card-text>
+                    </v-card>
+                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                      <v-card-title class="text-h6 d-flex align-center">
+                        <v-icon icon="ri-star-line" class="mr-2" />
+                        Загрузите скриншот отзыва
+                      </v-card-title>
+                      <v-card-text>
+                        <p class="text-body-2 mb-4">
+                          Загрузите скриншот, где видно, что вы оставили отзыв
+                        </p>
+                        <v-file-input
+                          label="Выберите скриншот отзыва"
+                          accept=".jpeg,.png,.jpg,.gif"
+                          v-model="reviewFile"
+                          variant="outlined"
+                          density="compact"
+                          show-size
+                          prepend-icon="ri-upload-cloud-line"
+                          @update:model-value="generatePreview(reviewFile, reviewPreview)"
+                          class="mb-4"
+                          aria-label="Загрузить скриншот отзыва"
+                        />
+                        <v-img
+                          v-if="reviewPreview"
+                          :src="reviewPreview"
+                          max-width="100"
+                          class="mb-4 rounded"
+                          cover
+                        />
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn
+                          color="primary"
+                          :disabled="!barcodeFile || !reviewFile"
+                          @click="uploadConfirmationFiles"
+                          class="px-4"
+                          rounded
+                        >
+                          Отправить
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </div>
+
                 </PerfectScrollbar>
                 <div v-else class="flex-grow-1 d-flex align-center justify-center">
                   <p class="text-disabled">Нет сообщений</p>
-                </div>
-
-                <!-- Pending Status Form -->
-                <div v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == false" class="mt-4">
-                  <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                    <v-card-title class="text-h6 d-flex align-center">
-                      <v-icon icon="ri-image-line" class="mr-2" />
-                      Загрузите скриншот заказа
-                    </v-card-title>
-                    <v-card-text>
-                      <p class="text-body-2 mb-4">
-                        Загрузите скриншот заказа из кабинета Wildberries чтобы продолжить или отмените заказ
-                      </p>
-                      <v-file-input
-                        label="Выберите скриншот"
-                        accept=".jpeg,.png,.jpg,.gif"
-                        v-model="pendingFile"
-                        variant="outlined"
-                        density="compact"
-                        show-size
-                        prepend-icon="ri-upload-cloud-line"
-                        @update:model-value="generatePreview(pendingFile, pendingPreview)"
-                        class="mb-4"
-                        aria-label="Загрузить скриншот заказа"
-                      />
-                      <v-img
-                        v-if="pendingPreview"
-                        :src="pendingPreview"
-                        max-width="100"
-                        class="mb-4 rounded"
-                        cover
-                      />
-                    </v-card-text>
-                    <v-card-actions>
-                      <v-btn
-                        type="submit"
-                        color="primary"
-                        :disabled="!pendingFile"
-                        @click="uploadPendingFile"
-                        class="px-4"
-                        rounded
-                      >
-                        Отправить
-                      </v-btn>
-                      <v-btn
-                        color="error"
-                        @click="cancelOrder"
-                        variant="outlined"
-                        class="px-4"
-                        rounded
-                      >
-                        Отменить заказ
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </div>
-
-                <!-- On Confirmation Status Form -->
-                <div v-if="activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == false && !recieptSent" class="mt-4">
-                  <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                    <v-card-title class="text-h6 d-flex align-center">
-                      <v-icon icon="ri-barcode-line" class="mr-2" />
-                      Загрузите фото штрихкода
-                    </v-card-title>
-                    <v-card-text>
-                      <p class="text-body-2 mb-4">
-                        Загрузите фото, на котором видно, как вы порезали штрихкод, чтобы не было возможности сдать товар обратно
-                      </p>
-                      <v-file-input
-                        label="Выберите фото штрихкода"
-                        accept=".jpeg,.png,.jpg,.gif"
-                        v-model="barcodeFile"
-                        variant="outlined"
-                        density="compact"
-                        show-size
-                        prepend-icon="ri-upload-cloud-line"
-                        @update:model-value="generatePreview(barcodeFile, barcodePreview)"
-                        class="mb-4"
-                        aria-label="Загрузить фото штрихкода"
-                      />
-                      <v-img
-                        v-if="barcodePreview"
-                        :src="barcodePreview"
-                        max-width="100"
-                        class="mb-4 rounded"
-                        cover
-                      />
-                    </v-card-text>
-                  </v-card>
-                  <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                    <v-card-title class="text-h6 d-flex align-center">
-                      <v-icon icon="ri-star-line" class="mr-2" />
-                      Загрузите скриншот отзыва
-                    </v-card-title>
-                    <v-card-text>
-                      <p class="text-body-2 mb-4">
-                        Загрузите скриншот, где видно, что вы оставили отзыв
-                      </p>
-                      <v-file-input
-                        label="Выберите скриншот отзыва"
-                        accept=".jpeg,.png,.jpg,.gif"
-                        v-model="reviewFile"
-                        variant="outlined"
-                        density="compact"
-                        show-size
-                        prepend-icon="ri-upload-cloud-line"
-                        @update:model-value="generatePreview(reviewFile, reviewPreview)"
-                        class="mb-4"
-                        aria-label="Загрузить скриншот отзыва"
-                      />
-                      <v-img
-                        v-if="reviewPreview"
-                        :src="reviewPreview"
-                        max-width="100"
-                        class="mb-4 rounded"
-                        cover
-                      />
-                    </v-card-text>
-                    <v-card-actions>
-                      <v-btn
-                        color="primary"
-                        :disabled="!barcodeFile || !reviewFile"
-                        @click="uploadConfirmationFiles"
-                        class="px-4"
-                        rounded
-                      >
-                        Отправить
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </div>
-
-                <!-- Cashback Received Status Form -->
-                <div v-if="activeChat.status === 'cashback_received' && activeChat.has_review_by_buyer == false" class="mt-4">
-                  <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                    <v-card-title class="text-h6 d-flex align-center">
-                      <v-icon icon="ri-star-line" class="mr-2" />
-                      Оставьте отзыв
-                    </v-card-title>
-                    <v-card-text>
-                      <p class="text-body-2 mb-4">
-                        Пожалуйста, оставьте отзыв о заказе
-                      </p>
-                      <v-rating
-                        v-model="reviewRating"
-                        length="5"
-                        size="32"
-                        color="yellow darken-3"
-                        background-color="grey lighten-2"
-                        class="mb-4"
-                        aria-label="Выберите рейтинг"
-                      />
-                      <v-textarea
-                        v-model="reviewText"
-                        label="Ваш отзыв"
-                        variant="outlined"
-                        density="compact"
-                        class="mb-4"
-                        aria-label="Оставить отзыв о заказе"
-                      />
-                    </v-card-text>
-                    <v-card-actions>
-                      <v-btn
-                        type="submit"
-                        color="primary"
-                        :disabled="!reviewText && reviewRating != null"
-                        @click="submitReview"
-                        class="px-4"
-                        rounded
-                      >
-                        Отправить отзыв
-                      </v-btn>
-                    </v-card-actions>
-                  </v-card>
                 </div>
                 <!-- Message Input -->
                 <v-form
                   v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == true ||
                         activeChat.status === 'on_confirmation' && activeChat.is_review_photo_sent == true ||
-                        activeChat.status === 'cashback_received' && activeChat.has_review_by_buyer == true ||
+                        activeChat.status === 'cashback_received' ||
                         activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == true ||
-                        recieptSent"
+                        recieptSent ||
+                        orderSend"
                   @submit.prevent="sendMessage"
                   class="mt-10"
                 >
@@ -840,10 +856,6 @@ const isLeftSidebarOpen = ref(true)
 </template>
 
 <style scoped lang="scss">
-.chats-container {
-  padding: 24px;
-}
-
 .content-wrapper {
   max-width: 1200px;
   margin: 0 auto;
@@ -882,7 +894,7 @@ const isLeftSidebarOpen = ref(true)
 }
 
 .chat-log {
-  max-height: 300px;
+  max-height: 50vh;
   overflow-y: auto;
 }
 
