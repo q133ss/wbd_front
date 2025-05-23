@@ -126,7 +126,6 @@ const selectChat = async (chat) => {
   try {
     const response = await api.chat.getMessages(chat.id)
     messages.value = response.data?.data || response.data || []
-    console.log('Fetched messages:', JSON.stringify(messages.value, null, 2)) // Debug: Inspect message structure
     setupPusher(chat.id)
     updateStatusTimer()
     scrollToBottom()
@@ -274,18 +273,16 @@ const uploadConfirmationFiles = async () => {
 // Submit review for cashback_received status
 const reviewRating = ref(null)
 const submitReview = async () => {
-  if (!reviewText.value.trim() || reviewRating == null) return
+  if (!reviewText.value.trim() || reviewRating.value == null) return
 
   try {
-    // TODO reviewText.value.trim()
-    // reviewRating
-    // Отправляем отзыв!!!!
-    await api.chat.sendMessage(activeChat.value.id, reviewText.value)
+    await api.reviews.storeReview(activeChat.value.id, reviewText.value, reviewRating.value)
     reviewText.value = ''
     snackbar.notify({
       text: 'Отзыв отправлен',
       color: 'success'
     })
+    selectChat(activeChat.value)
     scrollToBottom()
   } catch (error) {
     console.error('Error submitting review:', error)
@@ -560,6 +557,18 @@ const isLeftSidebarOpen = ref(true)
                         maxWidth: '70%'
                       }"
                     >
+                      <template v-if="message.system_type === 'review'">
+                        <v-rating
+                          v-model="message.color"
+                          length="5"
+                          size="32"
+                          readonly
+                          color="yellow darken-3"
+                          background-color="grey lighten-2"
+                          class="mb-4"
+                          aria-label="Выберите рейтинг"
+                        />
+                      </template>
                       <span v-if="message.text" class="d-block mb-2">{{ message.text }}</span>
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
