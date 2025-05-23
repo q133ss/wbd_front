@@ -809,4 +809,10 @@ const submitReview = async () => {
 .chats-container{
   overflow-y: hidden!important;
 }
+
+@media screen and (max-width: 960px){
+  .chats-container{
+    overflow-x: scroll!important;
+  }
+}
 </style>

@@ -123,6 +123,15 @@ const selectStatus = async (status) => {
 const selectChat = async (chat) => {
   activeChat.value = chat
   messages.value = []
+
+  if (window.innerWidth < 960) {
+    await nextTick()
+    const container = document.querySelector('.chats-container')
+    if (container) {
+      container.scrollTop = container.scrollHeight
+    }
+  }
+
   try {
     const response = await api.chat.getMessages(chat.id)
     messages.value = response.data?.data || response.data || []
@@ -949,6 +958,12 @@ const isLeftSidebarOpen = ref(true)
 .text-error {
   color: #d32f2f;
   font-size: 0.875rem;
+}
+
+@media screen and (max-width: 960px){
+  .chats-container{
+    overflow-y: scroll!important;
+  }
 }
 </style>
 
