@@ -162,6 +162,20 @@ const setupPusher = (chatId) => {
     }
     console.log(normalizedMessage)
     messages.value.push(normalizedMessage)
+
+    if(normalizedMessage.type == 'system'){
+      alert('System, обновляем!')
+
+      api.buyback.getBuybackById(chatId).then(res => {
+        const chat = res
+        if (chat) {
+          selectChat(chat)
+          alert('Готово!')
+        } else {
+          console.warn(`Чат с id=${chatId} не найден.`)
+        }
+      })
+    }
     nextTick(() => scrollToBottom())
   })
 }

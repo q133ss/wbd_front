@@ -74,6 +74,23 @@ onMounted(async () => {
         console.warn(`Чат с id=${chatId} не найден.`)
       }
     }
+
+    // Подписка на канал уведомлений
+    if (pusher) {
+      channel?.unsubscribe()
+      pusher.disconnect()
+    }
+    pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+      cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+      encrypted: true
+    })
+    const notificationChannelName = `notification-${currentUser.value.id}`
+
+    const notificationChannel = pusher.subscribe(notificationChannelName)
+
+    notificationChannel.bind('MessageSent', async (notification) => {
+      await fetchChats()
+    })
   } catch (error) {
     console.error('Error loading data:', error)
     snackbar.notify({
@@ -118,7 +135,6 @@ const selectChat = async (chat) => {
   try {
     const response = await api.chat.getMessages(chat.id)
     messages.value = response.data || []
-    console.log('Active chat data:', activeChat.value)
     setupPusher(chat.id)
     updateStatusTimer()
     scrollToBottom()
@@ -135,15 +151,7 @@ const selectChat = async (chat) => {
 }
 
 // Pusher setup
-const setupPusher = (chatId) => {
-  if (pusher) {
-    channel?.unsubscribe()
-    pusher.disconnect()
-  }
-  pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
-    cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-    encrypted: true
-  })
+const setupPusher = async (chatId) => {
   channel = pusher.subscribe(`chat-${chatId}`)
   channel.bind('MessageSent', (data) => {
     messages.value.push(data)
