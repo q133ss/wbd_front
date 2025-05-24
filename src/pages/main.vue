@@ -37,6 +37,7 @@ watch([
 // Index page functions
 // Состояния
 const products = ref([])
+const total = ref(0)
 const paginationInfo = ref({
   current_page: 1,
   last_page: 1
@@ -94,6 +95,7 @@ const fetchProducts = async (page = 1) => {
 
     if (page === 1) {
       products.value = response.data
+      total.value = response.total
     } else {
       products.value.push(...response.data)
     }
@@ -170,30 +172,24 @@ onUnmounted(() => {
           </div>
 
           <VContainer class="products-container">
-            <h2 class="pb-2">Товары с кэшбеком:</h2>
+            <div class="d-flex align-end gap-3 pb-2">
+              <h2 class="main-page-title">Товары с кэшбеком:</h2>
+              <span class="text-subtitle-1">{{total}} товаров</span>
+            </div>
             <VRow>
-              <VCol cols="12" md="2">
+              <VCol cols="4" md="2">
                 <VBtn block @click="dialogPrice = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
                   Цена, ₽
-                  <template v-slot:append>
-                    <v-icon>ri-cash-line</v-icon>
-                  </template>
                 </VBtn>
               </VCol>
-              <VCol cols="12" md="2">
+              <VCol cols="4" md="2">
                 <VBtn block @click="dialogCashback = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
                   Кешбек, %
-                  <template v-slot:append>
-                    <v-icon>ri-arrow-go-back-line</v-icon>
-                  </template>
                 </VBtn>
               </VCol>
-              <VCol cols="12" md="2">
+              <VCol cols="4" md="2">
                 <VBtn block @click="dialogSort = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
                   Сортировка
-                  <template v-slot:append>
-                    <v-icon>ri-filter-line</v-icon>
-                  </template>
                 </VBtn>
               </VCol>
             </VRow>
@@ -322,6 +318,10 @@ onUnmounted(() => {
   object-fit: cover;
 }
 
+.main-page-title{
+  font-size: 1.2em;
+}
+
 .filters-container {
   margin-top: 40px;
   padding: 20px;
@@ -329,7 +329,9 @@ onUnmounted(() => {
 }
 
 .filter-btn{
-  font-weight: 600;
+  font-weight: 500;
+  box-shadow: none!important;
+  border: 1px solid #D0D5DD;
 }
 
 .products-container {
@@ -367,5 +369,9 @@ onUnmounted(() => {
     display: block;
     padding: 0 16px 0 16px;
   }
+}
+
+.banner-mobile{
+  border-radius: 7%;
 }
 </style>
