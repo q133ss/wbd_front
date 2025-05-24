@@ -329,11 +329,13 @@ const handleFilterStatus = () => {
         <v-menu>
           <template v-slot:activator="{ props }">
             <v-btn
-              color="primary"
+              color="secondary"
+              variant="outlined"
               :disabled="!hasSelection"
               v-bind="props"
             >
               Действия
+              <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
             </v-btn>
           </template>
           <v-list>
@@ -350,10 +352,12 @@ const handleFilterStatus = () => {
         <v-menu close-on-content-click="false">
           <template v-slot:activator="{ props }">
             <v-btn
-              color="primary"
+              variant="outlined"
+              color="secondary"
               v-bind="props"
             >
               Все товары
+              <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
             </v-btn>
           </template>
           <v-list>
@@ -468,7 +472,16 @@ const handleFilterStatus = () => {
         </tr>
         <tr v-if="!products?.length">
           <td colspan="8" class="text-center">
-            <v-alert icon="$warning" type="primary" class="ma-4">Товары не найдены</v-alert>
+            <v-btn
+              color="primary"
+              class="mt-3 mb-3"
+              @click="showAddModal = true"
+            >
+              <v-icon>ri-add-line</v-icon>
+              Добавить
+            </v-btn>
+            <br>
+            <span class="text-subtitle-1 mt-2">Загрузите первый товар, что бы начать продвижение</span>
           </td>
         </tr>
       </template>
@@ -583,11 +596,13 @@ const handleFilterStatus = () => {
               />
             </v-col>
 
-            <div class="w-100 text-center">
+            <div class="w-100 text-center d-flex">
               <v-img
                 v-if="productData.images && productData.images.length"
                 :src="productData.images[0]"
                 class="mb-2"
+                width="225"
+                height="300"
               ></v-img>
             </div>
           </v-row>

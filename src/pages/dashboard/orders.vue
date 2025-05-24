@@ -499,7 +499,7 @@ const isLeftSidebarOpen = ref(true)
                 @click="selectChat(chat)"
               >
                 <v-list-item-title>
-                  {{ chat.ad.name }}
+                  {{ chat.user.name }} ({{ statusMessages[chat.status] || chat.status }})
                   <v-badge
                     v-if="chat.messages.some(m => !m.is_read && m.whoSend === 'seller')"
                     content="!"
@@ -508,7 +508,7 @@ const isLeftSidebarOpen = ref(true)
                   />
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  {{ chat.user.name }} ({{ statusMessages[chat.status] || chat.status }})
+                  {{ chat.ad.product.name }}
                 </v-list-item-subtitle>
               </v-list-item>
             </v-list>

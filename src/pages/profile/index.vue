@@ -33,11 +33,23 @@ const statistics = ref(null)
 const statisticsResponse = await api.profile.getProfileStatistics()
 statistics.value = statisticsResponse
 
-
 // Телеграм бот qr
 const telegramLinkCookie = useCookie('telegramLink')
 const qrCodeLink = ref(null)
 const qrCodeSrc = ref('')
+
+const openBot = async () => {
+  if (telegramLinkCookie.value) {
+    window.open(telegramLinkCookie.value, '_blank')
+  } else {
+    const response = await api.profile.getTelegramLink()
+    if (response?.link) {
+      qrCodeLink.value = response.link
+      telegramLinkCookie.value = response.link
+      window.open(response.link, '_blank')
+    }
+  }
+}
 
 if (telegramLinkCookie.value) {
   qrCodeLink.value = telegramLinkCookie.value
@@ -236,6 +248,8 @@ const formatDate = (date) => {
                 alt="Telegram QR Code"
                 width="150"
                 height="150"
+                class="cursor-pointer"
+                @click="openBot"
               />
             </div>
             <p class="text-center mt-4">Отсканируйте QR-код для подключения к Telegram-боту</p>

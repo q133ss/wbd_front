@@ -286,11 +286,13 @@ const openImage = (url) => {
         <v-menu>
           <template v-slot:activator="{ props }">
             <v-btn
-              color="primary"
+              variant="outlined"
+              color="secondary"
               :disabled="!hasSelection"
               v-bind="props"
             >
               Действия
+              <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
             </v-btn>
           </template>
           <v-list>
@@ -307,10 +309,12 @@ const openImage = (url) => {
         <v-menu close-on-content-click="false">
           <template v-slot:activator="{ props }">
             <v-btn
-              color="primary"
+              variant="outlined"
+              color="secondary"
               v-bind="props"
             >
               Все объявления
+              <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
             </v-btn>
           </template>
           <v-list>
@@ -432,7 +436,7 @@ const openImage = (url) => {
         </tr>
         <tr v-if="!ads.length">
           <td colspan="8" class="text-center">
-            <v-alert icon="$warning" type="primary" class="ma-4">Объявления не найдены</v-alert>
+            <v-btn @click="openProductModal"><v-icon>ri-add-line</v-icon>Создать объявление</v-btn>
           </td>
         </tr>
       </template>

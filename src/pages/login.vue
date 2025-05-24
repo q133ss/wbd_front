@@ -63,7 +63,7 @@ const login = async () => {
     useCookie('userData').value = user
 
     await nextTick(() => {
-      router.replace(route.query.to ? String(route.query.to) : '/profile')
+      window.location.href = route.query.to ? String(route.query.to) : '/profile'
     })
   } catch (error) {
     if (error.response?.status === 422) {
@@ -208,7 +208,7 @@ const reloadPage = (role) => {
                 </span>
                 <RouterLink
                   class="text-primary ms-1 d-inline-block text-body-1"
-                  :to="{ name: 'register' }"
+                  :to="role === 'seller' ? '/register?role=seller' : '/register'"
                 >
                   Создать аккаунт
                 </RouterLink>

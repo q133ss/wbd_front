@@ -216,7 +216,6 @@ const submitAd = async () => {
               <v-img
                 v-if="getFirstImage(product?.images)"
                 :src="getFirstImage(product?.images)"
-                max-height="150"
                 contain
               />
               <v-sheet v-else class="text-center pa-4">
@@ -238,8 +237,7 @@ const submitAd = async () => {
           <v-form @submit.prevent="submitAd">
             <v-text-field
               v-model="adData.name"
-              label="Название объявления"
-              hint="Это название видно только вам"
+              label="Название объявления (видете только вы)"
               persistent-hint
               class="mb-4"
               required
@@ -253,7 +251,7 @@ const submitAd = async () => {
                 max="100"
                 step="5"
                 thumb-label="always"
-                class="mb-2"
+                class="mb-2 ml-0"
               />
               <p class="text-body-1">
                 Цена для пользователя: {{ userPrice }} ₽
@@ -335,14 +333,14 @@ const submitAd = async () => {
               </v-col>
             </v-row>
 
+            <hr class="total-hr">
             <!-- Cost Breakdown -->
-            <div class="cost-breakdown pa-4 mb-4">
-              <h3 class="text-h6 mb-4">Детализация стоимости</h3>
-              <p>Итого: {{ totalCost }} ₽</p>
-              <p>Количество выкупов: {{ adData.redemption_count }}</p>
-              <p>Кэшбек для покупателя: {{ cashbackPerRedemption }} ₽ за выкуп</p>
-              <p v-if="additionalRedemptions > 0">
-                Дополнительные выкупы: {{ additionalRedemptions }} × 95 ₽
+            <div class="cost-breakdown">
+              <h3 class="mb-3">Итого: <span class="total-cost">{{ totalCost }} ₽</span></h3>
+              <p class="text-subtitle-1 mb-0 pb-0">Количество выкупов: <span class="text-black">{{ adData.redemption_count }}</span></p>
+              <p class="text-subtitle-1 mb-0 pb-0">Кэшбек для покупателя: <span class="text-black">{{ cashbackPerRedemption }} ₽ за выкуп</span></p>
+              <p class="text-subtitle-1" v-if="additionalRedemptions > 0">
+                Дополнительные выкупы: <span class="text-black">{{ additionalRedemptions }} × 95 ₽</span>
               </p>
             </div>
 
@@ -403,7 +401,6 @@ const submitAd = async () => {
 .ad-form,
 .cost-breakdown {
   border-radius: 8px;
-  padding: 16px;
   margin-bottom: 24px;
 }
 
@@ -435,5 +432,18 @@ const submitAd = async () => {
     width: 24px;
     height: 24px;
   }
+}
+
+.total-cost{
+  color: rgb(var(--v-theme-primary));
+}
+
+.text-black{
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.total-hr{
+  color: rgb(201, 202, 209);
+  margin-bottom: 32px;
 }
 </style>

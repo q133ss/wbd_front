@@ -48,7 +48,13 @@ const completeRegistration = async () => {
     })
 
     useCookie('userData').value = response.user
-    router.replace('/profile')
+
+    if(response.user?.role?.slug != 'seller'){
+      window.location.href = '/profile'
+    }else{
+      window.location.href = '/dashboard/products'
+    }
+
   }catch (error) {
     console.log(error)
     handleError(error, 'Произошла ошибка')

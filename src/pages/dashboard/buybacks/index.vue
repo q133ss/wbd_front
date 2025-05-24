@@ -459,7 +459,7 @@ const submitReview = async () => {
                 @click="selectChat(chat)"
               >
                 <v-list-item-title>
-                  {{ chat.ad.name }}
+                  {{ chat?.user?.name }} ({{ statusMessages[chat.status] || chat.status }})
                   <v-badge
                     v-if="chat.messages.some(m => !m.is_read && m.whoSend === 'buyer')"
                     content="!"
@@ -468,7 +468,7 @@ const submitReview = async () => {
                   />
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  {{ chat.user.name }} ({{ statusMessages[chat.status] || chat.status }})
+                  {{ chat?.ad?.product?.name }}
                 </v-list-item-subtitle>
               </v-list-item>
             </v-list>
@@ -553,7 +553,7 @@ const submitReview = async () => {
                         />
                         <br>
                       </template>
-                      <span v-if="message.text">{{ message.text }}</span>
+                      <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
 
                       <template v-if="message.system_type === 'review' && message.type == 'image'">
                         {{message.sender_id}}
