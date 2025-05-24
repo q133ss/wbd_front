@@ -4,6 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useSnackbarStore } from '@/stores/snackbar'
 import api from '@/api/index'
 
+definePage({
+  meta: {
+    authRequired: true,
+  },
+})
+
 const snackbar = useSnackbarStore()
 const route = useRoute()
 const router = useRouter()

@@ -5,7 +5,15 @@ import { useSnackbarStore } from '@/stores/snackbar'
 
 const snackbar = useSnackbarStore()
 const userData = useCookie('userData')
+const role = userData?.value?.role?.slug || 'buyer' // Default to 'buyer' if role is not set
 const isDialogVisible = ref(false)
+
+
+definePage({
+  meta: {
+    authRequired: true,
+  },
+})
 
 // Form data
 const formData = ref({

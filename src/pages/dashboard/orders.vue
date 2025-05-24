@@ -7,7 +7,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Pusher from 'pusher-js'
 import api from '@/api/Index'
 
-definePage({ meta: { layoutWrapperClasses: 'layout-content-height-fixed' } })
+definePage({ meta: { layoutWrapperClasses: 'layout-content-height-fixed', authRequired: true } })
 
 const snackbar = useSnackbarStore()
 const { smAndDown } = useDisplay()

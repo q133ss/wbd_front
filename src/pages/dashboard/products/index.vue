@@ -3,6 +3,12 @@ import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { computed, nextTick, ref } from 'vue'
 
+definePage({
+  meta: {
+    authRequired: true,
+  },
+})
+
 const snackbar = useSnackbarStore()
 const products = ref([])
 const selectedRows = ref([])

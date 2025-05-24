@@ -109,6 +109,12 @@ import { ref, onMounted, computed } from 'vue'
 import api from '@/api'
 import { useSnackbarStore } from "@/stores/snackbar.js"
 
+definePage({
+  meta: {
+    authRequired: true,
+  },
+})
+
 const snackbar = useSnackbarStore()
 
 const stats = ref({

@@ -1,6 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 
+definePage({
+  meta: {
+    authRequired: true,
+  },
+})
+
 // FAQ data (replace with your actual FAQs)
 const faqs = ref([
   {

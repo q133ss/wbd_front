@@ -7,6 +7,7 @@ import api from '@/api/index.js'
 definePage({
   meta: {
     layout: 'default',
+    authRequired: true
   },
 })
 

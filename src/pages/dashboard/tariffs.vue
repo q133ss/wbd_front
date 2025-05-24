@@ -3,6 +3,12 @@ import { ref, onMounted } from 'vue'
 import { useSnackbarStore } from '@/stores/snackbar'
 import api from '@/api/Index'
 
+definePage({
+  meta: {
+    authRequired: true,
+  },
+})
+
 const snackbar = useSnackbarStore()
 const tariffs = ref([])
 const loading = ref(true)

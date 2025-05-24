@@ -408,7 +408,7 @@ const resetLoginForm = () => {
             :key="item.id"
             :item="item"
             :grid-config="{
-              cols: '12',
+              cols: '6',
               sm: '6',
               md: '4',
               lg: '3',
@@ -577,7 +577,6 @@ h2.mb-4 {
 @media screen and (max-width: 500px){
   .breadcrumbs-container{
     font-size: 12px;
-    margin-top: 40px;
   }
 
   .breadcrumbs-container {
@@ -603,6 +602,16 @@ h2.mb-4 {
 .tabs-mobile-justify ::v-deep .v-slide-group__content {
   display: flex !important;
   justify-content: space-between !important;
+}
+
+@media screen and (max-width: 960px) {
+  .layout-page-content{
+    padding-top: 0 !important;
+  }
+
+  .v-container{
+    padding-top: 0 !important;
+  }
 }
 
 /* Сброс для больших экранов */
