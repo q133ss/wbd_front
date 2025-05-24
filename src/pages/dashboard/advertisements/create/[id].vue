@@ -212,22 +212,27 @@ const submitAd = async () => {
         <!-- Product Info -->
         <div class="product-info mb-6">
           <v-row>
-            <v-col cols="12" md="3">
+            <v-col cols="4" md="2">
               <v-img
                 v-if="getFirstImage(product?.images)"
                 :src="getFirstImage(product?.images)"
+                width="112"
+                height="150"
                 contain
+                class="product-img"
               />
               <v-sheet v-else class="text-center pa-4">
                 <v-icon size="large">mdi-image-off</v-icon>
                 <p class="text-caption">Изображение отсутствует</p>
               </v-sheet>
             </v-col>
-            <v-col cols="12" md="9">
-              <h2 class="text-h5">{{ product?.name }}</h2>
-              <p class="text-body-1">Цена: {{ product?.price }} ₽</p>
-              <p class="text-body-1">Бренд: {{ product?.brand }}</p>
-              <p class="text-body-1">Доступно: {{ product?.quantity_available }} шт.</p>
+            <v-col cols="8" md="10">
+              <h3 class="mb-3">{{ product?.name }}</h3>
+              <p class="text-subtitle-1 mb-0 pb-0">Цена: <span class="text-black"><span class="total-cost">{{ product?.price }} ₽</span></span></p>
+              <p class="text-subtitle-1 mb-0 pb-0">Бренд: <span class="text-black">{{ product?.brand }}</span></p>
+              <p class="text-subtitle-1">
+                Доступно: <span class="text-black">{{ product?.quantity_available }}</span>
+              </p>
             </v-col>
           </v-row>
         </div>
@@ -239,7 +244,7 @@ const submitAd = async () => {
               v-model="adData.name"
               label="Название объявления (видете только вы)"
               persistent-hint
-              class="mb-4"
+              class="ads-name"
               required
             />
 
@@ -253,8 +258,8 @@ const submitAd = async () => {
                 thumb-label="always"
                 class="mb-2 ml-0"
               />
-              <p class="text-body-1">
-                Цена для пользователя: {{ userPrice }} ₽
+              <p class="text-body-1 user-price-wrap">
+                Цена для покупателя: <span class="total-cost user-price">{{ userPrice }} ₽</span>
               </p>
             </div>
 
@@ -388,9 +393,6 @@ const submitAd = async () => {
 </template>
 
 <style scoped lang="scss">
-.create-ad-container {
-  padding: 24px;
-}
 
 .content-wrapper {
   max-width: 800px;
@@ -419,7 +421,7 @@ const submitAd = async () => {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background-color: #1976d2;
+  background-color: rgb(var(--v-theme-primary));
   border-radius: 4px;
   color: white;
   transition: background-color 0.3s;
@@ -445,5 +447,23 @@ const submitAd = async () => {
 .total-hr{
   color: rgb(201, 202, 209);
   margin-bottom: 32px;
+  opacity: 0.2;
+}
+
+.product-img{
+  border-radius: 15px;
+}
+
+.ads-name{
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+
+.user-price-wrap{
+  margin-bottom: 50px;
+}
+
+.user-price{
+  font-weight: 600;
 }
 </style>
