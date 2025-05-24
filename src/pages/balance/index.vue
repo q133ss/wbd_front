@@ -50,6 +50,7 @@ const products = ref([])
 const productPage = ref(1)
 const productLastPage = ref(1)
 const productSearch = ref('')
+const type = ref('all') // 'all', 'deposit', 'withdraw'
 
 // Fetch balance, initial products, and transactions
 onMounted(async () => {
@@ -104,18 +105,6 @@ const selectedProductName = computed(() => {
   const product = products.value.find(p => p.id === transactionFilters.value.product_id)
   return product ? product.name : 'Выберите товар'
 })
-
-// Declension function for "выкуп"
-const getBuybackDeclension = (count) => {
-  const num = Math.abs(count)
-  if (num % 10 === 1 && num % 100 !== 11) {
-    return 'выкуп'
-  } else if ([2, 3, 4].includes(num % 10) && ![12, 13, 14].includes(num % 100)) {
-    return 'выкупа'
-  } else {
-    return 'выкупов'
-  }
-}
 
 // Format transaction type
 const formatCurrencyType = (type) => {
@@ -274,10 +263,18 @@ const selectProduct = (productId) => {
 const goToTariffs = () => {
   router.push('/dashboard/tariffs')
 }
+
+const selectType = (selectType) => {
+  type.value = selectType
+  transactionFilters.value.type = type === '' ? '' : type
+  transactionPage.value = 1
+  applyFilters()
+}
 </script>
 
 <template>
   <div class="balance-container">
+
     <div class="content-wrapper">
       <h1 class="text-h4 mb-2">Баланс</h1>
       <p class="text-body-1 mb-6">Управляйте вашим балансом, просматривайте транзакции и пополняйте счет</p>
@@ -290,72 +287,63 @@ const goToTariffs = () => {
         <!-- Balance and Details -->
         <v-row class="mb-6">
           <v-col cols="12" md="8">
-            <div class="balance-box pa-6">
-              <h3 class="text-h6 mb-4">Баланс</h3>
-              <p class="text-h5 font-weight-bold primary--text balance-text">Доступный баланс: {{ accessBalance }} ₽</p>
-              <p class="text-h5 font-weight-bold primary--text balance-text">Замороженный баланс: {{ onConfirmation }} ₽</p>
+            <div class="balance-box pa-6" v-if="isSeller">
+              <p class="text-h5">Доступно: <br> <span class="font-weight-bold h-3 access-balance">{{ accessBalance }} ₽</span></p>
+              <p class="text-h5">Заморожено в объявлениях: <br> <span class="font-weight-bold on-confimation">{{ onConfirmation }} ₽</span></p>
               <v-btn
                 color="primary"
                 class="mt-4"
-                v-if="isSeller"
                 @click="showTopUpModal = true"
               >
                 Пополнить
               </v-btn>
-
+            </div>
+            <div class="balance-box pa-6" v-else>
+              <p class="text-h5">Доступно к выводу: <br> <span class="font-weight-bold h-3 access-balance">{{ accessBalance }} ₽</span></p>
+              <p class="text-h5">На подтверждении: <br> <span class="font-weight-bold on-confimation">{{ onConfirmation }} ₽</span></p>
               <v-btn
                 color="primary"
                 class="mt-4"
-                v-if="!isSeller"
                 @click="showWithdrawModal = true"
               >
-                Вывести
+                Заказать выплату
               </v-btn>
             </div>
+            <div class="buybacks-wrap" v-if="isSeller">
+              <div @click="goToTariffs" class="buybacks-box">
+                <span>Выкупы:</span> <span>{{ redemptionCount }} шт <span class="buybacks-plus-btn">+</span></span>
+              </div>
+
+              <div class="text-none buybacks-btn"
+                   @click="showPromoModal = true">
+                Ввести промокод
+              </div>
+            </div>
+
           </v-col>
           <v-col cols="12" md="4" v-if="isSeller">
-            <div class="details-box pa-4">
-              <h3 class="text-h6 mb-4">Детализация</h3>
-              <p class="text-body-1">Потрачено сегодня: {{ spentToday }} ₽</p>
-              <p class="text-body-1">Потрачено вчера: {{ spentYesterday }} ₽</p>
-              <p class="text-body-1">Потрачено за 7 дней: {{ spentLast7Days }} ₽</p>
+            <div class="details-box">
+              <h3 class="text-h6 mb-4">Потраченно</h3>
+              <p class="text-body-1">Сегодня: <span class="font-weight-bold ml-3">{{ spentToday }} ₽</span></p>
+              <p class="text-body-1">Вчера: <span class="font-weight-bold ml-3">{{ spentYesterday }} ₽</span></p>
+              <p class="text-body-1">За 7 дней: <span class="font-weight-bold ml-3">{{ spentLast7Days }} ₽</span></p>
             </div>
           </v-col>
         </v-row>
-
-        <!-- Redemptions and Promo Code -->
-        <div class="redemptions-box pa-6 mb-6" v-if="isSeller">
-          <v-row align="center">
-            <v-col cols="12" md="6">
-              <p class="text-h5 font-weight-bold primary--text">
-                Количество выкупов: {{ redemptionCount }} {{ getBuybackDeclension(redemptionCount) }}
-              </p>
-            </v-col>
-            <v-col cols="12" md="6" class="text-md-right">
-              <v-btn
-                color="primary"
-                class="mr-2"
-                @click="goToTariffs"
-              >
-                +
-              </v-btn>
-              <v-btn
-                color="secondary"
-                @click="showPromoModal = true"
-              >
-                Ввести промокод
-              </v-btn>
-            </v-col>
-          </v-row>
-        </div>
-
         <!-- Transaction Filters -->
         <div class="filters-box pa-4 mb-6">
           <h3 class="text-h6 mb-4">Фильтры транзакций</h3>
+
+          <div class="filter-group mb-2">
+            <v-btn variant="text" @click="selectType('')" :active="type == 'all'" :class="{ 'active-tab': type === 'all' }">Все транзакции</v-btn>
+            <v-btn variant="text" @click="selectType('deposit')" :active="type == 'deposit'" :class="{ 'active-tab': type === 'deposit' }">Пополнения</v-btn>
+            <v-btn variant="text" @click="selectType('withdraw')" :active="type == 'withdraw'" :class="{ 'active-tab': type === 'withdraw' }">Списания</v-btn>
+          </div>
           <v-row>
-            <v-col cols="12" md="6" v-if="isSeller">
+            <v-col cols="12" md="6">
               <v-btn
                 color="primary"
+                size="large"
                 block
                 @click="showProductModal = true; fetchProducts()"
               >
@@ -393,7 +381,7 @@ const goToTariffs = () => {
               <td>{{ transaction.id }}</td>
               <td>
                 {{ Math.floor(parseFloat(transaction.amount)) }}
-                {{ transaction.currency_type === 'cash' ? '₽' : getBuybackDeclension(transaction.amount) }}
+                {{ transaction.currency_type === 'cash' ?  '₽' : '' }}
               </td>
               <td>{{ formatCurrencyType(transaction.currency_type) }}</td>
               <td :class="{
@@ -553,65 +541,72 @@ const goToTariffs = () => {
 </template>
 
 <style scoped lang="scss">
-
-.balance-box,
-.details-box,
-.redemptions-box,
-.filters-box,
-.transactions-box {
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 24px;
+.balance-box{
+  display: flex;
+  gap: 30px;
+  border: 1px solid #D0D5DD;
+  border-radius: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+.access-balance{
+  font-size: 26px;
 }
 
-.balance-box,
-.redemptions-box {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 24px;
+.on-confimation{
+  font-size: 26px;
+  color: #9BA5BA;
 }
 
-:deep(.v-field) {
-  border-radius: 4px;
+.buybacks-wrap{
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
 }
 
-:deep(.v-btn) {
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-:deep(.v-table th) {
-  font-weight: bold;
-  color: #333;
-}
-
-:deep(.v-table td) {
-  padding: 8px;
-}
-
-.product-item {
+.buybacks-box{
+  display: flex;
+  gap: 20px;
+  border: 1px solid #D0D5DD;
+  border-radius: 15px;
+  padding: 10px;
   cursor: pointer;
-  transition: background-color 0.2s;
+}
 
-  &:hover {
-    background-color: #f5f5f5;
+.buybacks-btn{
+  cursor: pointer;
+  border: 1px solid #D0D5DD;
+  padding: 10px;
+  border-radius: 15px;
+}
+
+.buybacks-plus-btn{
+  color: #9BA5BA;
+  margin-left: 5px;
+}
+
+.details-box p{
+  margin-bottom: 0;
+}
+
+@media screen and (max-width: 960px) {
+  .balance-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0px;
   }
-}
+  .buybacks-wrap {
+    flex-direction: column;
+    gap: 10px;
+  }
 
-.primary--text {
-  color: #1976d2 !important;
-}
+  .details-box p{
+    display: flex;
+    justify-content: space-between;
+  }
 
-.success--text {
-  color: #4caf50 !important;
-}
-
-.error--text {
-  color: #f44336 !important;
-}
-
-@media screen and (max-width: 800px){
-  .balance-text{
-    font-size: 16px !important;
+  .filters-box{
+    padding: 0 !important;
   }
 }
 </style>
