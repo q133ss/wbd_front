@@ -101,40 +101,8 @@ const setupPusher = () => {
 
 // Handle notification click
 const handleNotificationClick = async (notification) => {
-  emit('click:notification', notification)
-  if (notification.buyback_id) {
-    try {
-      await router.push(`/dashboard/buybacks/${notification.buyback_id}`)
-    } catch (error) {
-      snackbar.notify({ text: 'Ошибка при переходе к выкупу', color: 'error' })
-    }
-  } else {
-    snackbar.notify({ text: 'Это уведомление не связано с выкупом', color: 'info' })
-  }
-  if (!notification.is_read) {
-    try {
-      // Try array format first
-      await api.notification.markAsRead([notification.id])
-      notification.is_read = true
-      emit('read', [notification.id])
-    } catch (error) {
-      let errorMessage = 'Ошибка при отметке уведомления как прочитанного'
-      if (error.response?.status === 404) {
-        errorMessage = 'API для отметки уведомлений не найдено'
-      } else if (error.response?.status === 422) {
-        errorMessage = 'Неверный формат данных для отметки уведомления'
-        // Try alternative payload format
-        try {
-          await api.notification.markAsRead({ ids: [notification.id] })
-          notification.is_read = true
-          emit('read', [notification.id])
-          return
-        } catch (altError) {
-          console.error('Alternative payload error:', altError)
-        }
-      }
-      snackbar.notify({ text: errorMessage, color: 'error' })
-    }
+  if(notification.buyback_id != null){
+    router.push('/dashboard/buybacks?chatId=' + notification.buyback_id)
   }
 }
 
@@ -250,10 +218,7 @@ onUnmounted(() => {
                     :color="notification.color && !user?.avatar ? notification.color : undefined"
                     :variant="user?.avatar ? undefined : 'tonal'"
                   >
-                    <span v-if="notification.text">{{
-                        avatarText ? avatarText(notification.text) : notification.text.charAt(0).toUpperCase()
-                      }}</span>
-                    <VImg v-if="user?.avatar" :src="user.avatar" />
+                    <VIcon>ri-notification-3-line</VIcon>
                   </VAvatar>
 
                   <div>
@@ -295,11 +260,11 @@ onUnmounted(() => {
 
         <VDivider />
 
-        <VCardText v-show="notifications.length" class="pa-4">
-          <VBtn block size="small" @click="markAllReadOrUnread">
-            {{ isAllMarkRead ? 'Отметить все как прочитанные' : 'Отметить все как непрочитанные' }}
-          </VBtn>
-        </VCardText>
+<!--        <VCardText v-show="notifications.length" class="pa-4">-->
+<!--          <VBtn block size="small" @click="markAllReadOrUnread">-->
+<!--            {{ isAllMarkRead ? 'Отметить все как прочитанные' : 'Отметить все как непрочитанные' }}-->
+<!--          </VBtn>-->
+<!--        </VCardText>-->
       </VCard>
     </VMenu>
   </IconBtn>

@@ -6,6 +6,11 @@ export default [
     to: 'index',
   },
   {
+    title: 'Категории',
+    icon: { icon: 'ri-list-check' },
+    to: 'categories',
+  },
+  {
     title: 'Профиль',
     icon: { icon: 'ri-user-line' },
     to: 'profile',

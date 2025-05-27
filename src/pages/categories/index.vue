@@ -1,6 +1,7 @@
 <script setup>
 import categoriesApi from '@/api/categories'
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 // Состояния
 const categories = ref([])
@@ -24,6 +25,27 @@ const fetchCategories = async () => {
     categories.value = []
   } finally {
     isLoading.value = false
+  }
+}
+
+const router = useRouter()
+const ageDialog = ref(false)
+const pendingCategoryId = ref(null)
+
+const handleCategoryClick = (category) => {
+  if (category.requires_age_confirmation) {
+    pendingCategoryId.value = category.category_id
+    ageDialog.value = true
+  } else {
+    router.push(`/categories/${category.category_id}`)
+  }
+}
+
+const confirmAge = () => {
+  ageDialog.value = false
+  if (pendingCategoryId.value) {
+    router.push(`/categories/${pendingCategoryId.value}`)
+    pendingCategoryId.value = null
   }
 }
 
@@ -51,8 +73,9 @@ onMounted(fetchCategories)
           lg="2"
         >
           <!-- eslint-disable-next-line vue/component-name-in-template-casing -->
-          <router-link
-            :to="`/categories/${category.category_id}`"
+          <div
+            style="cursor: pointer"
+            @click="handleCategoryClick(category)"
             class="text-decoration-none"
           >
           <div class="text-center img-wrap">
@@ -69,7 +92,7 @@ onMounted(fetchCategories)
                 {{ category.product_count }} товар(ов)
             </p>
           </div>
-          </router-link>
+          </div>
         </VCol>
 
         <!-- Если нет категорий -->
@@ -79,6 +102,18 @@ onMounted(fetchCategories)
       </VRow>
     </VContainer>
   </div>
+
+  <VDialog v-model="ageDialog" persistent max-width="400">
+    <VCard>
+      <VCardTitle>Подтверждение возраста</VCardTitle>
+      <VCardText>Вам есть 18 лет?</VCardText>
+      <VCardActions>
+        <VSpacer />
+        <VBtn text @click="ageDialog = false">Нет</VBtn>
+        <VBtn color="primary" text @click="confirmAge">Да</VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
 </template>
 
 <style lang="scss" scoped>

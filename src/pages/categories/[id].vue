@@ -1,8 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Footer from '@/views/front-pages/front-page-footer.vue'
-import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import productApi from '@/api/index'
 import categoriesApi from '@/api/categories'
 import ProductCard from "@/components/ProductCard.vue"
@@ -160,7 +158,6 @@ watch(() => route.params.id, (newId) => {
 
 <template>
   <div class="landing-page-wrapper">
-    <Navbar />
 
     <VContainer class="page-container">
       <VRow>
@@ -305,14 +302,11 @@ watch(() => route.params.id, (newId) => {
       </div>
 
     </VContainer>
-
-    <Footer />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .page-container {
-  margin-top: 80px;
   max-width: 1440px;
 }
 
