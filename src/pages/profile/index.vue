@@ -253,6 +253,9 @@ const formatDate = (date) => {
               />
             </div>
             <p class="text-center mt-4">Отсканируйте QR-код для подключения к Telegram-боту</p>
+            <div class="text-center">
+              <VBtn variant="outlined" @click="openBot" color="" append-icon="ri-telegram-2-fill">Подключить</VBtn>
+            </div>
           </VCardText>
         </VCard>
 

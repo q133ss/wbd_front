@@ -300,8 +300,8 @@ const selectType = (selectType) => {
               </v-btn>
             </div>
             <div class="balance-box pa-6" v-else>
-              <p class="text-h5">Доступно к выводу: <br> <span class="font-weight-bold h-3 access-balance">{{ accessBalance }} ₽</span></p>
-              <p class="text-h5">На подтверждении: <br> <span class="font-weight-bold on-confimation">{{ onConfirmation }} ₽</span></p>
+              <p class="text-body-1">Доступно к выводу: <br> <span class="font-weight-bold h-3 access-balance">{{ accessBalance }} ₽</span></p>
+              <p class="text-body-1">На подтверждении: <br> <span class="font-weight-bold on-confimation">{{ onConfirmation }} ₽</span></p>
               <v-btn
                 color="primary"
                 class="mt-4"

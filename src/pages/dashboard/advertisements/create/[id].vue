@@ -252,7 +252,7 @@ const submitAd = async () => {
               <v-slider
                 v-model="adData.cashback_percentage"
                 label="Процент кэшбека"
-                min="0"
+                min="10"
                 max="100"
                 step="5"
                 thumb-label="always"

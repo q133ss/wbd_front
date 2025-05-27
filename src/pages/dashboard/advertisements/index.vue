@@ -278,6 +278,7 @@ const openImage = (url) => {
         <v-btn
           color="primary"
           @click="openProductModal"
+          prepend-icon="ri-add-fill"
         >
           Создать объявление
         </v-btn>
@@ -436,7 +437,7 @@ const openImage = (url) => {
         </tr>
         <tr v-if="!ads.length">
           <td colspan="8" class="text-center">
-            <v-btn @click="openProductModal"><v-icon>ri-add-line</v-icon>Создать объявление</v-btn>
+            <v-btn class="mt-7 mb-7" prepend-icon="ri-add-fill" @click="openProductModal">Создать объявление</v-btn>
           </td>
         </tr>
       </template>

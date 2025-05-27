@@ -252,7 +252,8 @@ const submitAd = async () => {
               <v-slider
                 v-model="adData.cashback_percentage"
                 label="Процент кэшбека"
-                min="0"
+                min="10"
+                step="5"
                 max="100"
                 thumb-label="always"
                 class="mb-2"
@@ -410,14 +411,12 @@ const submitAd = async () => {
 .product-info,
 .ad-form,
 .cost-breakdown {
-  background-color: #fff;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
 }
 
 :deep(.v-field) {
-  background-color: #f5f5f5;
   border-radius: 4px;
 }
 
@@ -432,14 +431,8 @@ const submitAd = async () => {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background-color: #1976d2;
   border-radius: 4px;
-  color: white;
   transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #1565c0;
-  }
 
   svg {
     width: 24px;

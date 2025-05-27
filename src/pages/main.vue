@@ -5,6 +5,7 @@ import { switchToVerticalNavOnLtOverlayNavBreakpoint } from '@layouts/utils'
 import productApi from '@/api/index'
 import ProductCard from '@/components/ProductCard.vue'
 import { onMounted, ref } from 'vue'
+import Footer from "@/views/front-pages/front-page-footer.vue"
 
 const DefaultLayoutWithHorizontalNav = defineAsyncComponent(() => import('@/layouts/components/DefaultLayoutWithHorizontalNav.vue'))
 const DefaultLayoutWithVerticalNav = defineAsyncComponent(() => import('@/layouts/components/DefaultLayoutWithVerticalNav.vue'))
@@ -176,7 +177,7 @@ onUnmounted(() => {
               <h2 class="main-page-title">Товары с кэшбеком:</h2>
               <span class="text-subtitle-1">{{total}} товаров</span>
             </div>
-            <VRow>
+            <VRow class="filter-desktop">
               <VCol cols="4" md="2">
                 <VBtn block @click="dialogPrice = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
                   Цена, ₽
@@ -193,6 +194,24 @@ onUnmounted(() => {
                 </VBtn>
               </VCol>
             </VRow>
+
+            <div class="filter-mobile">
+              <div class="mobile-filter-btn-wrap">
+                <VBtn block @click="dialogPrice = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
+                  Цена, ₽
+                </VBtn>
+              </div>
+              <div class="mobile-filter-btn-wrap">
+                <VBtn block @click="dialogCashback = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
+                  Кешбек, %
+                </VBtn>
+              </div>
+              <div class="mobile-filter-btn-wrap">
+                <VBtn block @click="dialogSort = true" color="grey-lighten-3"  variant="elevated" class="filter-btn">
+                  Сортировка
+                </VBtn>
+              </div>
+            </div>
           </VContainer>
 
           <!-- Модалка: Цена -->
@@ -290,6 +309,7 @@ onUnmounted(() => {
             </VRow>
           </VContainer>
         </div>
+
       </Suspense>
     </RouterView>
   </Component>
@@ -373,5 +393,29 @@ onUnmounted(() => {
 
 .banner-mobile{
   border-radius: 7%;
+}
+
+.filter-mobile{
+  display: none;
+}
+
+.mobile-filter-btn-wrap{
+  width: 33%;
+}
+
+.mobile-filter-btn-wrap button{
+  font-weight: 600;
+  font-size: 14px;
+}
+
+@media screen and (max-width: 600px) {
+  .filter-desktop {
+    display: none;
+  }
+
+  .filter-mobile {
+    display: flex;
+    gap: 10px;
+  }
 }
 </style>

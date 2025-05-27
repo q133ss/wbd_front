@@ -321,6 +321,7 @@ const handleFilterStatus = () => {
         <v-btn
           color="primary"
           @click="showAddModal = true"
+          prepend-icon="ri-add-fill"
         >
           Добавить товар
         </v-btn>
@@ -471,17 +472,17 @@ const handleFilterStatus = () => {
           <td>{{ item.ads_count }}</td>
         </tr>
         <tr v-if="!products?.length">
-          <td colspan="8" class="text-center">
+          <td colspan="8" class="text-center pb-7">
             <v-btn
               color="primary"
-              class="mt-3 mb-3"
+              class="mt-7 mb-7"
               @click="showAddModal = true"
             >
               <v-icon>ri-add-line</v-icon>
               Добавить
             </v-btn>
             <br>
-            <span class="text-subtitle-1 mt-2">Загрузите первый товар, что бы начать продвижение</span>
+            <span class="text-subtitle-1">Загрузите первый товар, что бы начать продвижение</span>
           </td>
         </tr>
       </template>
