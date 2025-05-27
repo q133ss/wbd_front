@@ -64,6 +64,8 @@ const getBuybackDeclension = (count) => {
   }
 }
 
+const isMobile = ref(window.innerWidth < 960)
+
 // Fetch current user and statuses
 onMounted(async () => {
   try {
@@ -118,11 +120,12 @@ const selectStatus = async (status) => {
     await fetchChats()
   }
 }
-
 // Select chat
 const selectChat = async (chat) => {
   activeChat.value = chat
   messages.value = []
+
+  console.log(activeChat.value)
 
   if (window.innerWidth < 960) {
     await nextTick()
@@ -453,6 +456,19 @@ const goToProduct = (adsId) => {
 
 // Left sidebar state
 const isLeftSidebarOpen = ref(true)
+
+const shouldShowChatList = computed(() => {
+  return (isMobile.value && activeChat.value === null) || !isMobile.value
+})
+
+const shouldShowMessages = computed(() => {
+  return (isMobile.value && activeChat.value != null) || !isMobile.value
+})
+
+const backToChats = () => {
+  activeChat.value = null
+  messages.value = []
+}
 </script>
 
 <template>
@@ -460,7 +476,7 @@ const isLeftSidebarOpen = ref(true)
     <div class="content-wrapper">
       <v-row>
         <!-- Left Sidebar: Status Dropdown and Chats -->
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="4" v-if="shouldShowChatList">
           <v-card class="chat-list-sidebar pa-4" min-height="80vh">
             <h2 class="text-h6 mb-4">Чаты</h2>
             <v-select
@@ -516,7 +532,8 @@ const isLeftSidebarOpen = ref(true)
         </v-col>
 
         <!-- Main Content: Active Chat -->
-        <v-col cols="12" md="8" class="active-chat-block">
+        <v-col cols="12" md="8" class="active-chat-block" v-if="shouldShowMessages">
+          <VBtn v-if="shouldShowMessages && isMobile" @click="backToChats" variant="outlined" class="mb-3" prepend-icon="ri-arrow-left-line">Вернуться назад</VBtn>
           <v-card class="chat-content pa-6" min-height="calc(100vh - 20%)">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
@@ -981,10 +998,6 @@ const isLeftSidebarOpen = ref(true)
   .chat-list-sidebar{
     overflow-y: scroll;
     max-height: 80vh;
-  }
-
-  .active-chat-block{
-    display: none;
   }
 }
 </style>

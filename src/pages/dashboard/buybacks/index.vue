@@ -413,6 +413,21 @@ const submitReview = async () => {
     })
   }
 }
+
+const isMobile = ref(window.innerWidth < 960)
+
+const shouldShowChatList = computed(() => {
+  return (isMobile.value && activeChat.value === null) || !isMobile.value
+})
+
+const shouldShowMessages = computed(() => {
+  return (isMobile.value && activeChat.value != null) || !isMobile.value
+})
+
+const backToChats = () => {
+  activeChat.value = null
+  messages.value = []
+}
 </script>
 
 <template>
@@ -420,7 +435,7 @@ const submitReview = async () => {
     <div class="content-wrapper">
       <v-row>
         <!-- Left Sidebar: Status Dropdown and Chats -->
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="4" v-if="shouldShowChatList">
           <v-card class="chat-list-sidebar pa-4" min-height="80vh">
             <h2 class="text-h6 mb-4">Чаты</h2>
             <v-select
@@ -476,7 +491,8 @@ const submitReview = async () => {
         </v-col>
 
         <!-- Main Content: Active Chat -->
-        <v-col class="messages-block" cols="12" md="8">
+        <v-col class="messages-block" v-if="shouldShowMessages" cols="12" md="8">
+          <VBtn v-if="shouldShowMessages && isMobile" @click="backToChats" variant="outlined" class="mb-3" prepend-icon="ri-arrow-left-line">Вернуться назад</VBtn>
           <v-card class="chat-content pa-6" min-height="80vh">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
@@ -823,9 +839,6 @@ const submitReview = async () => {
 @media screen and (max-width: 960px){
   .chats-container{
     overflow-x: scroll!important;
-  }
-  .messages-block{
-    display: none;
   }
   .content-wrapper{
     overflow: hidden;
