@@ -471,8 +471,14 @@ const backToChats = () => {
                 v-for="chat in chatsByStatus[selectedStatus] || []"
                 :key="chat.id"
                 :class="{ 'bg-light-primary': activeChat?.id === chat.id }"
+                class="border-b-sm d-flex"
                 @click="selectChat(chat)"
               >
+                <template v-slot:prepend>
+                  <v-avatar size="50" class="mr-2">
+                    <v-img :src="chat?.ad?.product?.images[0] || 'https://via.placeholder.com/50'" />
+                  </v-avatar>
+                </template>
                 <v-list-item-title>
                   {{ chat?.user?.name }} ({{ statusMessages[chat.status] || chat.status }})
                   <v-badge
