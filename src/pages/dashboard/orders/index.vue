@@ -1,11 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import { useSnackbarStore } from '@/stores/snackbar'
+import { useSnackbarStore } from '@/stores/snackbar.js'
 import { useDisplay } from 'vuetify'
 import { useRoute, useRouter } from 'vue-router'
 import Pusher from 'pusher-js'
-import api from '@/api/Index'
+import api from '@/api/index.js'
 
 definePage({ meta: { layoutWrapperClasses: 'layout-content-height-fixed', authRequired: true } })
 
@@ -516,7 +516,7 @@ const isLeftSidebarOpen = ref(true)
         </v-col>
 
         <!-- Main Content: Active Chat -->
-        <v-col cols="12" md="8">
+        <v-col cols="12" md="8" class="active-chat-block">
           <v-card class="chat-content pa-6" min-height="calc(100vh - 20%)">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
@@ -877,7 +877,15 @@ const isLeftSidebarOpen = ref(true)
     </div>
   </div>
 </template>
+<style>
+.layout-page-content{
+  overflow: visible!important;
+}
 
+.footer{
+  display: none;
+}
+</style>
 <style scoped lang="scss">
 .content-wrapper {
   max-width: 1200px;
@@ -963,6 +971,20 @@ const isLeftSidebarOpen = ref(true)
 @media screen and (max-width: 960px){
   .chats-container{
     overflow-y: scroll!important;
+  }
+  .messages-block{
+    display: none;
+  }
+  .content-wrapper{
+    overflow: hidden;
+  }
+  .chat-list-sidebar{
+    overflow-y: scroll;
+    max-height: 80vh;
+  }
+
+  .active-chat-block{
+    display: none;
   }
 }
 </style>

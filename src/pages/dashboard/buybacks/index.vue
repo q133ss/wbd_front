@@ -476,7 +476,7 @@ const submitReview = async () => {
         </v-col>
 
         <!-- Main Content: Active Chat -->
-        <v-col cols="12" md="8">
+        <v-col class="messages-block" cols="12" md="8">
           <v-card class="chat-content pa-6" min-height="80vh">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
@@ -750,6 +750,16 @@ const submitReview = async () => {
   </VDialog>
 </template>
 
+<style>
+.layout-page-content{
+  overflow: visible!important;
+}
+
+.footer{
+  display: none;
+}
+</style>
+
 <style scoped lang="scss">
 .content-wrapper {
   max-width: 1200px;
@@ -813,6 +823,12 @@ const submitReview = async () => {
 @media screen and (max-width: 960px){
   .chats-container{
     overflow-x: scroll!important;
+  }
+  .messages-block{
+    display: none;
+  }
+  .content-wrapper{
+    overflow: hidden;
   }
 }
 </style>
