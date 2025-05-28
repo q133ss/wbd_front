@@ -284,36 +284,41 @@ const uploadPendingFile = async () => {
 // Upload files for on_confirmation status
 const recieptSent = ref(false)
 const uploadConfirmationFiles = async () => {
-  if (!barcodeFile.value || !reviewFile.value) return
+  if (!barcodeFile.value || !reviewFile.value) return;
 
   try {
+    // Отправляем оба файла с file_type = 'review'
     await api.chat.sendPhoto(
       activeChat.value.id,
-      [barcodeFile.value, reviewFile.value], // ⬅ объединяем файлы
+      [barcodeFile.value, reviewFile.value],
       'review'
-    )
+    );
+
+    // Запрашиваем актуальный список сообщений
+    const response = await api.chat.getMessages(activeChat.value.id);
+    messages.value = response.data?.data || response.data || [];
 
     // Сброс состояний
-    barcodeFile.value = null
-    reviewFile.value = null
-    barcodePreview.value = null
-    reviewPreview.value = null
+    barcodeFile.value = null;
+    reviewFile.value = null;
+    barcodePreview.value = null;
+    reviewPreview.value = null;
     snackbar.notify({
       text: 'Файлы отправлены',
       color: 'success'
-    })
+    });
 
-    scrollToBottom()
+    scrollToBottom();
   } catch (error) {
-    console.error('Error uploading confirmation files:', error)
+    console.error('Error uploading confirmation files:', error);
     snackbar.notify({
       text: error.response?._data?.message || 'Ошибка отправки файлов',
       color: 'error'
-    })
+    });
   } finally {
-    recieptSent.value = true
+    recieptSent.value = true;
   }
-}
+};
 
 
 // Submit review for cashback_received status
@@ -614,29 +619,32 @@ const backToChats = () => {
                   >
                     <div
                       :style="{
-                        backgroundColor: message.sender_id === currentUser?.id ? message.color : '#f5f5f5',
+                        backgroundColor: message.sender_id === currentUser?.id ? message.color || '#1976d2' : '#f5f5f5',
                         color: message.sender_id === currentUser?.id ? 'white' : 'black',
                         borderRadius: '12px',
                         padding: '8px 12px',
                         maxWidth: '70%'
                       }"
                     >
-                      <template v-if="message.system_type === 'review' && message.type == 'image'">
+                      <template v-if="message.type === 'image'">
+                        <span v-if="message.system_type === 'send_photo'">Скриншот</span>
+                        <span v-if="message.system_type === 'review'">Скриншот</span>
                         <v-img
                           v-if="message?.file"
-                          :key="`image-${message.id}`"
                           :src="message.file?.src"
                           :lazy-src="'https://via.placeholder.com/50'"
                           max-width="200"
                           width="200px"
                           height="200px"
-                          class="cursor-pointer rounded"
+                          class="mt-2 cursor-pointer rounded"
                           @click="openImage(message.file.src)"
                           @error="console.error('Failed to load image:', message.file.src)"
                         />
+                        <span v-else class="text-error">
+                          Изображение не загружено (нет URL)
+                        </span>
                       </template>
-
-                      <template v-if="message.system_type === 'review' && message.type == 'system'">
+                      <template v-else-if="message.system_type === 'review' && message.type === 'system'">
                         <v-rating
                           v-model="message.color"
                           length="5"
@@ -647,25 +655,9 @@ const backToChats = () => {
                           class="mb-4"
                           aria-label="Рейтинг"
                         />
+                        <span>Покупатель оставил отзыв</span>
                       </template>
                       <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
-                      <template v-if="message.type === 'image'">
-                        <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
-                        <span v-if="message.system_type == 'review' && message.type == 'system'">Покупатель оставил отзыв</span>
-                        <v-img
-                          v-if="message?.file"
-                          :key="`image-${message.id}`"
-                          :src="message.file?.src"
-                          :lazy-src="'https://via.placeholder.com/50'"
-                          max-width="200"
-                          class="mt-2 cursor-pointer rounded"
-                          @click="openImage(message.file.src)"
-                          @error="console.error('Failed to load image:', message.file.src)"
-                        />
-                        <span v-else class="text-error">
-                          Изображение не загружено (нет URL)
-                        </span>
-                      </template>
                     </div>
                     <span class="text-caption text-disabled mt-1">
                       {{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}
