@@ -76,10 +76,10 @@ onMounted(async () => {
     }
 
     // Подписка на канал уведомлений
-    if (pusher) {
-      channel?.unsubscribe()
-      pusher.disconnect()
-    }
+    // if (pusher) {
+    //   channel?.unsubscribe()
+    //   pusher.disconnect()
+    // }
     pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
       cluster: import.meta.env.VITE_PUSHER_CLUSTER,
       encrypted: true
@@ -578,9 +578,6 @@ const backToChats = () => {
                       <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
 
                       <template v-if="message.system_type === 'review' && message.type == 'image'">
-                        {{message.sender_id}}
-                        {{currentUser.id}}
-                        {{message.sender_id == currentUser.id ? 'Вы подтвердили скриншот' : 'Продавец подтвердил скриншот'}}
                         <v-img
                           v-if="message?.file"
                           :key="`image-${message.id}`"
@@ -597,9 +594,9 @@ const backToChats = () => {
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
                         <span v-if="message.system_type == 'review'  && message.type == 'system'">{{message.sender_id == currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв'}}</span>
                         <v-img
-                          v-if="message?.file"
+                          v-if="message?.file || message?.files?.[0]?.src"
                           :key="`image-${message.id}`"
-                          :src="message?.file?.src"
+                          :src="message?.file?.src || message?.files?.[0]?.src"
                           :lazy-src="'https://via.placeholder.com/50'"
                           max-width="200"
                           class="mt-2 cursor-pointer rounded"

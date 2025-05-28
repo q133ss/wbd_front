@@ -190,6 +190,24 @@ const setupPusher = (chatId) => {
     }
     nextTick(() => scrollToBottom())
   })
+
+  // Подписка на канал уведомлений
+
+  const notificationChannelName = `notification-${currentUser.value.id}`
+
+  const notificationChannel = pusher.subscribe(notificationChannelName)
+
+  notificationChannel.bind('MessageSent', async (notification) => {
+
+    const res = await api.buyback.getBuybackById(chatId)
+    const chat = res
+
+    if (chat) {
+      selectChat(chat)
+    } else {
+      console.warn(`Чат с id=${chatId} не найден.`)
+    }
+  })
 }
 
 // Cleanup Pusher
@@ -604,14 +622,15 @@ const backToChats = () => {
                       }"
                     >
                       <template v-if="message.system_type === 'review' && message.type == 'image'">
-                        Продавец подтвердил ваш скриншот
                         <v-img
                           v-if="message?.file"
                           :key="`image-${message.id}`"
                           :src="message.file?.src"
                           :lazy-src="'https://via.placeholder.com/50'"
                           max-width="200"
-                          class="mt-2 cursor-pointer rounded"
+                          width="200px"
+                          height="200px"
+                          class="cursor-pointer rounded"
                           @click="openImage(message.file.src)"
                           @error="console.error('Failed to load image:', message.file.src)"
                         />
@@ -629,7 +648,7 @@ const backToChats = () => {
                           aria-label="Рейтинг"
                         />
                       </template>
-                      <span v-if="message.text" class="d-block mb-2">{{ message.text }}</span>
+                      <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
                         <span v-if="message.system_type == 'review' && message.type == 'system'">Покупатель оставил отзыв</span>
