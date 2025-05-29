@@ -154,6 +154,7 @@ const selectChat = async (chat) => {
 const setupPusher = async (chatId) => {
   channel = pusher.subscribe(`chat-${chatId}`)
   channel.bind('MessageSent', (data) => {
+    console.log('New message received:', data)
     messages.value.push(data)
     nextTick(() => scrollToBottom())
   })
@@ -300,7 +301,6 @@ const updateStatusTimer = () => {
     } else {
       timer.value = `${minutes} м ${seconds} с`
     }
-    console.log('Timer updated:', timer.value)
   }
 
   update()
@@ -498,7 +498,7 @@ const backToChats = () => {
 
         <!-- Main Content: Active Chat -->
         <v-col class="messages-block" v-if="shouldShowMessages" cols="12" md="8">
-          <VBtn v-if="shouldShowMessages && isMobile" @click="backToChats" variant="outlined" class="mb-3" prepend-icon="ri-arrow-left-line">Вернуться назад</VBtn>
+          <VBtn size="small" v-if="shouldShowMessages && isMobile" @click="backToChats" variant="outlined" class="mb-3" prepend-icon="ri-arrow-left-line">Вернуться назад</VBtn>
           <v-card class="chat-content pa-6" min-height="80vh">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
@@ -577,19 +577,6 @@ const backToChats = () => {
                       </template>
                       <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
 
-                      <template v-if="message.system_type === 'review' && message.type == 'image'">
-                        <v-img
-                          v-if="message?.file"
-                          :key="`image-${message.id}`"
-                          :src="message.file?.src"
-                          :lazy-src="'https://via.placeholder.com/50'"
-                          max-width="200"
-                          class="mt-2 cursor-pointer rounded"
-                          @click="openImage(message.file.src)"
-                          @error="console.error('Failed to load image:', message.file.src)"
-                        />
-                      </template>
-
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
                         <span v-if="message.system_type == 'review'  && message.type == 'system'">{{message.sender_id == currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв'}}</span>
@@ -606,7 +593,10 @@ const backToChats = () => {
                         <span v-else class="text-error">
                           Изображение не загружено (нет URL)
                         </span>
-                        <v-row no-gutters class="mt-2" v-if="message.file?.status == null">
+                        <span v-if="message.file?.status == null && activeChat.status == 'cashback_received'">
+                          Скриншот
+                        </span>
+                        <v-row no-gutters class="mt-2" v-if="message.file?.status == null && activeChat.status != 'cashback_received'">
                           <v-col><v-btn color="success" @click="approveFile(message.buyback_id, message.files?.[0]?.id || message.file?.id)">Принять</v-btn></v-col>
                           <v-col><v-btn color="error" @click="openRejectModal(message.buyback_id, message.files?.[0]?.id || message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
                         </v-row>
@@ -774,6 +764,15 @@ const backToChats = () => {
   overflow: visible!important;
 }
 
+@media screen and (max-width: 960px){
+  .layout-page-content{
+    margin-top: -30px;
+  }
+  html{
+    overflow: hidden!important;
+  }
+}
+
 .footer{
   display: none;
 }
@@ -845,6 +844,21 @@ const backToChats = () => {
   }
   .content-wrapper{
     overflow: hidden;
+  }
+  .chat-content{
+    padding-top: 10px !important;
+  }
+  .active-chat-block{
+    overflow-y: hidden!important;
+  }
+  .chat-list-sidebar{
+    min-height: 91vh!important;
+  }
+  .chat-content{
+    min-height: 85vh!important;
+  }
+  .chat-log{
+    min-height: 60vh!important;
   }
 }
 </style>

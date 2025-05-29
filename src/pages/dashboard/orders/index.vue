@@ -125,8 +125,6 @@ const selectChat = async (chat) => {
   activeChat.value = chat
   messages.value = []
 
-  console.log(activeChat.value)
-
   if (window.innerWidth < 960) {
     await nextTick()
     const container = document.querySelector('.chats-container')
@@ -153,6 +151,9 @@ const selectChat = async (chat) => {
   }
 }
 
+const showBarcode = ref(false)
+const showOrderForm = ref(false)
+
 // Pusher setup
 const setupPusher = (chatId) => {
   if (pusher) {
@@ -165,24 +166,19 @@ const setupPusher = (chatId) => {
   })
   channel = pusher.subscribe(`chat-${chatId}`)
   channel.bind('MessageSent', (data) => {
-    console.log('Pusher MessageSent:', JSON.stringify(data, null, 2)) // Debug: Inspect incoming message
     // Normalize Pusher data to match server response
     const normalizedMessage = {
       ...data,
       file: data.files[0] || null,
       type: data.type || 'text'
     }
-    console.log(normalizedMessage)
     messages.value.push(normalizedMessage)
 
     if(normalizedMessage.type == 'system'){
-      alert('System, обновляем!')
-
       api.buyback.getBuybackById(chatId).then(res => {
         const chat = res
         if (chat) {
           selectChat(chat)
-          alert('Готово!')
         } else {
           console.warn(`Чат с id=${chatId} не найден.`)
         }
@@ -204,6 +200,15 @@ const setupPusher = (chatId) => {
 
     if (chat) {
       selectChat(chat)
+      if(chat.status === 'awaiting_receipt' && !chat.is_review_photo_sent) {
+        showBarcode.value = true
+      }
+
+      console.log(chat.status, chat.is_order_photo_sent)
+
+      if(chat.status === 'pending' && !chat.is_order_photo_sent) {
+        showOrderForm.value = true
+      }
     } else {
       console.warn(`Чат с id=${chatId} не найден.`)
     }
@@ -292,29 +297,32 @@ const uploadConfirmationFiles = async () => {
       activeChat.value.id,
       [barcodeFile.value, reviewFile.value],
       'review'
-    );
+    )
 
     // Запрашиваем актуальный список сообщений
-    const response = await api.chat.getMessages(activeChat.value.id);
-    messages.value = response.data?.data || response.data || [];
+
+    selectChat(activeChat.value)
 
     // Сброс состояний
-    barcodeFile.value = null;
-    reviewFile.value = null;
-    barcodePreview.value = null;
-    reviewPreview.value = null;
+    barcodeFile.value = null
+    reviewFile.value = null
+    barcodePreview.value = null
+    reviewPreview.value = null
+    recieptSent.value = true
+    showBarcode.value = false
+
     snackbar.notify({
       text: 'Файлы отправлены',
       color: 'success'
-    });
+    })
 
-    scrollToBottom();
+    // TODO scrollToBottom();
   } catch (error) {
-    console.error('Error uploading confirmation files:', error);
+    console.error('Error uploading confirmation files:', error)
     snackbar.notify({
       text: error.response?._data?.message || 'Ошибка отправки файлов',
       color: 'error'
-    });
+    })
   } finally {
     recieptSent.value = true;
   }
@@ -443,7 +451,6 @@ const updateStatusTimer = () => {
     } else {
       timer.value = `${minutes} м ${seconds} с`
     }
-    console.log('Timer updated:', timer.value)
   }
 
   update()
@@ -497,7 +504,7 @@ const backToChats = () => {
 <template>
   <div class="chats-container overflow-hidden">
     <div class="content-wrapper">
-      <v-row>
+      <v-row class="chat-row">
         <!-- Left Sidebar: Status Dropdown and Chats -->
         <v-col cols="12" md="4" v-if="shouldShowChatList">
           <v-card class="chat-list-sidebar pa-4" min-height="80vh">
@@ -562,7 +569,7 @@ const backToChats = () => {
 
         <!-- Main Content: Active Chat -->
         <v-col cols="12" md="8" class="active-chat-block" v-if="shouldShowMessages">
-          <VBtn v-if="shouldShowMessages && isMobile" @click="backToChats" variant="outlined" class="mb-3" prepend-icon="ri-arrow-left-line">Вернуться назад</VBtn>
+          <VBtn size="small" v-if="shouldShowMessages && isMobile" @click="backToChats" variant="outlined" class="mb-3" prepend-icon="ri-arrow-left-line">Вернуться назад</VBtn>
           <v-card class="chat-content pa-6" min-height="calc(100vh - 20%)">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
@@ -626,9 +633,10 @@ const backToChats = () => {
                         maxWidth: '70%'
                       }"
                     >
+
+<!--                      ИЗОБРАЖЕНИЕ                 -->
                       <template v-if="message.type === 'image'">
-                        <span v-if="message.system_type === 'send_photo'">Скриншот</span>
-                        <span v-if="message.system_type === 'review'">Скриншот</span>
+                        <span v-if="message.system_type === 'send_photo' || message.system_type === 'review'">Скриншот</span>
                         <v-img
                           v-if="message?.file"
                           :src="message.file?.src"
@@ -644,6 +652,8 @@ const backToChats = () => {
                           Изображение не загружено (нет URL)
                         </span>
                       </template>
+<!--                      ОТЗЫВЫ          -->
+                      <span v-if="message.text && message.system_type != 'review'" v-html="message.text.replace(/\n/g, '<br>')"></span>
                       <template v-else-if="message.system_type === 'review' && message.type === 'system'">
                         <v-rating
                           v-model="message.color"
@@ -655,16 +665,16 @@ const backToChats = () => {
                           class="mb-4"
                           aria-label="Рейтинг"
                         />
-                        <span>Покупатель оставил отзыв</span>
+                        <br>
+                        <span>{{message.text}}</span>
                       </template>
-                      <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
                     </div>
                     <span class="text-caption text-disabled mt-1">
                       {{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}
                     </span>
                   </li>
 
-                  <!-- Cashback Received Status Form -->
+                  <!-- ФОРМА ОСТАВИТЬ ОТЗЫВ! -->
                   <div v-if="activeChat.status === 'cashback_received' && activeChat.has_review_by_buyer == false && !sendReview" class="mt-4">
                     <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                       <v-card-title class="text-h6 d-flex align-center">
@@ -708,8 +718,8 @@ const backToChats = () => {
                     </v-card>
                   </div>
 
-                  <!-- Pending Status Form -->
-                  <div v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == false && !orderSend" class="mt-4">
+                  <!-- ФОРМА ЗАГРУЗКИ СКРИНШОТА -->
+                  <div v-if="(activeChat.status === 'pending' && activeChat.is_order_photo_sent == false && !orderSend) || showOrderForm" class="mt-4">
                     <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                       <v-card-title class="text-h6 d-flex align-center">
                         <v-icon icon="ri-image-line" class="mr-2" />
@@ -763,8 +773,8 @@ const backToChats = () => {
                     </v-card>
                   </div>
 
-                  <!-- On Confirmation Status Form -->
-                  <div v-if="activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == false && !recieptSent" class="mt-4">
+                  <!-- ФОРМА ШТРИХКОДА -->
+                  <div v-if="(activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == false && !recieptSent) || showBarcode" class="mt-4">
                     <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                       <v-card-title class="text-h6 d-flex align-center">
                         <v-icon icon="ri-barcode-line" class="mr-2" />
@@ -916,6 +926,19 @@ const backToChats = () => {
   overflow: visible!important;
 }
 
+@media screen and (max-width: 960px){
+  .layout-page-content{
+    margin-top: -30px;
+  }
+  html{
+    overflow: hidden!important;
+  }
+}
+
+.layout-wrapper{
+  overflow: hidden;
+}
+
 .footer{
   display: none;
 }
@@ -1015,6 +1038,21 @@ const backToChats = () => {
   .chat-list-sidebar{
     overflow-y: scroll;
     max-height: 80vh;
+  }
+  .chat-content{
+    padding-top: 10px !important;
+  }
+  .chat-row{
+    overflow-y: hidden!important;
+  }
+  .chat-list-sidebar{
+    min-height: 91vh!important;
+  }
+  .chat-content{
+    min-height: 85vh!important;
+  }
+  .chat-log{
+    min-height: 55vh!important;
   }
 }
 </style>
