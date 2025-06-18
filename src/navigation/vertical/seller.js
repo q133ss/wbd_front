@@ -1,4 +1,5 @@
 import api from '@/api/Index'
+import Pusher from 'pusher-js'
 import { ref } from 'vue'
 
 const buybacks = ref(0)
@@ -14,6 +15,24 @@ const buybacksCount = async () => {
 }
 
 buybacksCount()
+
+// Уведомления
+
+const currentUser = ref(null)
+currentUser.value = await api.user.profile()
+
+// Инициализация Pusher
+const pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+  cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+  encrypted: true
+})
+const notificationChannelName = `notification-${currentUser.value.id}`
+const notificationChannel = pusher.subscribe(notificationChannelName)
+
+// Обработчики событий
+notificationChannel.bind('MessageSent', async (notification) => {
+  await buybacksCount()
+})
 
 export default [
   { heading: 'Продвижение' },

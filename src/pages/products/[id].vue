@@ -294,7 +294,7 @@ const resetLoginForm = () => {
 
       <!-- Информация о товаре -->
       <VCol cols="12" md="8" lg="6">
-        <h1 class="product-name">{{ product?.name }}</h1>
+        <h1 class="product-name">{{ product?.product?.name }}</h1>
         <div class="d-flex align-center mb-2">
           <VRating
             :model-value="1"

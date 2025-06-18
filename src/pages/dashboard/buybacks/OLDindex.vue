@@ -1,11 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import { useSnackbarStore } from '@/stores/snackbar.js'
+import { useSnackbarStore } from '@/stores/snackbar'
 import { useDisplay } from 'vuetify'
 import { useRoute, useRouter } from 'vue-router'
 import Pusher from 'pusher-js'
-import api from '@/api/index.js'
+import api from '@/api/Index'
 
 definePage({ meta: { layoutWrapperClasses: 'layout-content-height-fixed', authRequired: true } })
 
@@ -31,15 +31,6 @@ const chatLogPS = ref()
 const messageInput = ref('')
 const fileInput = ref(null)
 
-// Client form refs
-const pendingFile = ref(null)
-const barcodeFile = ref(null)
-const reviewFile = ref(null)
-const reviewText = ref('')
-const pendingPreview = ref(null)
-const barcodePreview = ref(null)
-const reviewPreview = ref(null)
-
 // Image modal
 const imageModal = ref(false)
 const selectedImage = ref('')
@@ -64,8 +55,6 @@ const getBuybackDeclension = (count) => {
   }
 }
 
-const isMobile = ref(window.innerWidth < 960)
-
 // Fetch current user and statuses
 onMounted(async () => {
   try {
@@ -74,17 +63,34 @@ onMounted(async () => {
     statuses.value = response || []
     await fetchChats()
 
+    // Получение чата по ID
     const chatId = route.query.chatId
-    if(chatId) {
+    if(chatId){
       const res = await api.buyback.getBuybackById(chatId)
       const chat = res
-
       if (chat) {
         selectChat(chat)
       } else {
         console.warn(`Чат с id=${chatId} не найден.`)
       }
     }
+
+    // Подписка на канал уведомлений
+    // if (pusher) {
+    //   channel?.unsubscribe()
+    //   pusher.disconnect()
+    // }
+    pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+      cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+      encrypted: true
+    })
+    const notificationChannelName = `notification-${currentUser.value.id}`
+
+    const notificationChannel = pusher.subscribe(notificationChannelName)
+
+    notificationChannel.bind('MessageSent', async (notification) => {
+      await fetchChats()
+    })
   } catch (error) {
     console.error('Error loading data:', error)
     snackbar.notify({
@@ -120,22 +126,15 @@ const selectStatus = async (status) => {
     await fetchChats()
   }
 }
+
 // Select chat
 const selectChat = async (chat) => {
+  console.log(chat)
   activeChat.value = chat
   messages.value = []
-
-  if (window.innerWidth < 960) {
-    await nextTick()
-    const container = document.querySelector('.chats-container')
-    if (container) {
-      container.scrollTop = container.scrollHeight
-    }
-  }
-
   try {
     const response = await api.chat.getMessages(chat.id)
-    messages.value = response.data?.data || response.data || []
+    messages.value = response.data || []
     setupPusher(chat.id)
     updateStatusTimer()
     scrollToBottom()
@@ -151,68 +150,13 @@ const selectChat = async (chat) => {
   }
 }
 
-const showBarcode = ref(false)
-const showOrderForm = ref(false)
-
 // Pusher setup
-const setupPusher = (chatId) => {
-  if (pusher) {
-    channel?.unsubscribe()
-    pusher.disconnect()
-  }
-  pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
-    cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-    encrypted: true
-  })
+const setupPusher = async (chatId) => {
   channel = pusher.subscribe(`chat-${chatId}`)
   channel.bind('MessageSent', (data) => {
-    // Normalize Pusher data to match server response
-    const normalizedMessage = {
-      ...data,
-      file: data.files[0] || null,
-      type: data.type || 'text'
-    }
-    messages.value.push(normalizedMessage)
-
-    if(normalizedMessage.type == 'system'){
-      api.buyback.getBuybackById(chatId).then(res => {
-        const chat = res
-        if (chat) {
-          selectChat(chat)
-        } else {
-          console.warn(`Чат с id=${chatId} не найден.`)
-        }
-      })
-    }
+    console.log('New message received:', data)
+    messages.value.push(data)
     nextTick(() => scrollToBottom())
-  })
-
-  // Подписка на канал уведомлений
-
-  const notificationChannelName = `notification-${currentUser.value.id}`
-
-  const notificationChannel = pusher.subscribe(notificationChannelName)
-
-  notificationChannel.bind('MessageSent', async (notification) => {
-
-    const res = await api.buyback.getBuybackById(chatId)
-    const chat = res
-
-    if (chat) {
-      selectChat(chat)
-      if(chat.status === 'awaiting_receipt' && !chat.is_review_photo_sent) {
-        showBarcode.value = true
-      }
-
-      console.log(chat.status, chat.is_order_photo_sent)
-
-      if(chat.status === 'pending' && !chat.is_order_photo_sent) {
-        showOrderForm.value = true
-        location.reload()
-      }
-    } else {
-      console.warn(`Чат с id=${chatId} не найден.`)
-    }
   })
 }
 
@@ -240,15 +184,12 @@ const scrollToBottom = () => {
 }
 
 // Send message (with file support)
+// To send a file: Click the attachment icon, select file(s) (.jpeg, .png, .jpg, .gif), and click the send icon or press Enter.
 const sendMessage = async () => {
   if (!messageInput.value.trim() && !fileInput.value?.files?.length) return
 
   try {
-    const formData = new FormData()
-    if (fileInput.value?.files?.length) {
-      formData.append('file', fileInput.value.files[0])
-    }
-    await api.chat.sendMessage(activeChat.value.id, messageInput.value, formData)
+    await api.chat.sendMessage(activeChat.value.id, messageInput.value)
     messageInput.value = ''
     if (fileInput.value) {
       fileInput.value.value = ''
@@ -263,142 +204,50 @@ const sendMessage = async () => {
   }
 }
 
-// Upload file for pending status
-const orderSend = ref(false)
-const uploadPendingFile = async () => {
-  if (!pendingFile.value) return
-
+// Approve file
+const approveFile = async (chatIdValue, fileIdValue) => {
   try {
-    await api.chat.sendPhoto(activeChat.value.id, [pendingFile.value], 'send_photo')
-    pendingFile.value = null
-    pendingPreview.value = null
-    snackbar.notify({
-      text: 'Скриншот заказа отправлен',
-      color: 'success'
-    })
-    orderSend.value = true;
-    scrollToBottom()
-  } catch (error) {
-    console.error('Error uploading pending file:', error)
-    snackbar.notify({
-      text: error.response?._data?.message || 'Ошибка отправки скриншота',
-      color: 'error'
-    })
-  }
-}
-
-// Upload files for on_confirmation status
-const recieptSent = ref(false)
-const uploadConfirmationFiles = async () => {
-  if (!barcodeFile.value || !reviewFile.value) return;
-
-  try {
-    // Отправляем оба файла с file_type = 'review'
-    await api.chat.sendPhoto(
-      activeChat.value.id,
-      [barcodeFile.value, reviewFile.value],
-      'review'
-    )
-
-    // Запрашиваем актуальный список сообщений
-
-    selectChat(activeChat.value)
-
-    // Сброс состояний
-    barcodeFile.value = null
-    reviewFile.value = null
-    barcodePreview.value = null
-    reviewPreview.value = null
-    recieptSent.value = true
-    showBarcode.value = false
-
-    snackbar.notify({
-      text: 'Файлы отправлены',
-      color: 'success'
-    })
-
-    // TODO scrollToBottom();
-  } catch (error) {
-    console.error('Error uploading confirmation files:', error)
-    snackbar.notify({
-      text: error.response?._data?.message || 'Ошибка отправки файлов',
-      color: 'error'
-    })
-  } finally {
-    recieptSent.value = true;
-  }
-};
-
-
-// Submit review for cashback_received status
-const reviewRating = ref(null)
-const sendReview = ref(false)
-const submitReview = async () => {
-  if (!reviewText.value.trim() || reviewRating.value == null) return
-
-  try {
-    await api.reviews.storeReview(activeChat.value.id, reviewText.value, reviewRating.value)
-    reviewText.value = ''
-    snackbar.notify({
-      text: 'Отзыв отправлен',
-      color: 'success'
-    })
-    sendReview.value = true
-    scrollToBottom()
-  } catch (error) {
-    console.error('Error submitting review:', error)
-    snackbar.notify({
-      text: error.response?._data?.message || 'Ошибка отправки отзыва',
-      color: 'error'
-    })
-  }
-}
-
-// Cancel order for pending status
-const cancelOrder = async () => {
-  try {
-    await api.buyback.cancelOrder(activeChat.value.id)
-    activeChat.value.status = 'cancelled'
-    updateStatusTimer()
-    snackbar.notify({
-      text: 'Заказ отменен',
-      color: 'success'
-    })
-  } catch (error) {
-    console.error('Error canceling order:', error)
-    snackbar.notify({
-      text: error.response?._data?.message || 'Ошибка отмены заказа',
-      color: 'error'
-    })
-  }
-}
-
-// Status messages for client
-const statusMessages = {
-  cancelled: 'Заказ отменен',
-  order_expired: 'Срок для размещения заказа истек',
-  pending: 'Ожидание размещения заказа',
-  awaiting_receipt: 'Ожидание получения товара',
-  on_confirmation: 'Ожидание подтверждения продавцом',
-  cashback_received: 'Кэшбек зачислен на ваш баланс в размере {price}',
-  completed: 'Заказ завершен',
-  archive: 'В архиве'
-}
-
-// Generate file preview
-const generatePreview = (file, previewRef) => {
-  if (file && file.type.startsWith('image/')) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      previewRef.value = e.target.result
+    const response = await api.buyback.approvePhoto(chatIdValue, fileIdValue)
+    if (response.buyback) {
+      activeChat.value.status = response.buyback.status
+      updateStatusTimer()
     }
-    reader.readAsDataURL(file)
-  } else {
-    previewRef.value = null
+    if (response.message) {
+      messages.value.push(response.message)
+      scrollToBottom()
+    }
+
+    const res = await api.buyback.getBuybackById(chatIdValue)
+    const chat = res
+    if (chat) {
+      selectChat(chat)
+    }
+
+    snackbar.notify({
+      text: 'Файл подтвержден',
+      color: 'success'
+    })
+  } catch (error) {
+    console.error('Error approving file:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка подтверждения файла',
+      color: 'error'
+    })
   }
 }
 
-// Status timer
+// Status message and timer
+const statusMessages = {
+  cancelled: 'Отменен',
+  order_expired: 'Покупатель не успел сделать заказ в установленный срок',
+  pending: 'Ожидание заказа',
+  awaiting_receipt: 'Ожидание получения',
+  on_confirmation: 'На подтверждении',
+  cashback_received: 'Кэшбек был зачислен на баланс покупателя',
+  completed: 'Завершено',
+  archive: 'Архив'
+}
+
 const updateStatusTimer = () => {
   if (timerInterval.value) {
     clearInterval(timerInterval.value)
@@ -469,7 +318,7 @@ const statusMessage = computed(() => {
   return message
 })
 
-// Open image modal
+// Open image modal (for message files only)
 const openImage = (url) => {
   selectedImage.value = url || 'https://via.placeholder.com/48'
   imageModal.value = true
@@ -488,6 +337,85 @@ const goToProduct = (adsId) => {
 // Left sidebar state
 const isLeftSidebarOpen = ref(true)
 
+const chatId = ref('')
+const fileId = ref('')
+const comment = ref('')
+
+const isRejectVisible = ref(false)
+const openRejectModal = (chatIdValue, fileIdValue) => {
+  isRejectVisible.value = true
+  chatId.value = chatIdValue
+  fileId.value = fileIdValue
+}
+
+const resetForm = () => {
+  chatId.value = ''
+  fileId.value = ''
+  comment.value = ''
+  isRejectVisible.value = false
+}
+
+// Reject file
+const rejectFile = async () => {
+  try {
+    const response = await api.buyback.rejectPhoto(chatId.value, fileId.value, comment.value)
+    if (response.buyback) {
+      activeChat.value.status = response.buyback.status
+      updateStatusTimer()
+    }
+    if (response.message) {
+      messages.value.push(response.message)
+      scrollToBottom()
+    }
+    isRejectVisible.value = false
+
+    const res = await api.buyback.getBuybackById(chatId.value)
+    const chat = res
+    if (chat) {
+      selectChat(chat)
+    }
+
+    snackbar.notify({
+      text: 'Файл отклонен',
+      color: 'success'
+    })
+  } catch (error) {
+    console.error('Error rejecting file:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отклонения файла',
+      color: 'error'
+    })
+  }
+}
+
+// Submit review for cashback_received status
+const reviewText = ref('')
+const reviewRating = ref(null)
+const reviewSend = ref(false)
+const submitReview = async () => {
+  console.log(!reviewText.value.trim() , reviewRating.value == null)
+  if (!reviewText.value.trim() || reviewRating.value == null) return
+  try {
+    await api.reviews.storeReview(activeChat.value.id, reviewText.value, reviewRating.value)
+    reviewText.value = ''
+    snackbar.notify({
+      text: 'Отзыв отправлен',
+      color: 'success'
+    })
+    selectChat(activeChat.value)
+    reviewSend.value = true
+    scrollToBottom()
+  } catch (error) {
+    console.error('Error submitting review:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка отправки отзыва',
+      color: 'error'
+    })
+  }
+}
+
+const isMobile = ref(window.innerWidth < 960)
+
 const shouldShowChatList = computed(() => {
   return (isMobile.value && activeChat.value === null) || !isMobile.value
 })
@@ -503,9 +431,9 @@ const backToChats = () => {
 </script>
 
 <template>
-  <div class="chats-container overflow-hidden">
+  <div class="chats-container">
     <div class="content-wrapper">
-      <v-row class="chat-row">
+      <v-row>
         <!-- Left Sidebar: Status Dropdown and Chats -->
         <v-col cols="12" md="4" v-if="shouldShowChatList">
           <v-card class="chat-list-sidebar pa-4" min-height="80vh">
@@ -552,16 +480,16 @@ const backToChats = () => {
                   </v-avatar>
                 </template>
                 <v-list-item-title>
-                  {{ chat.user.name }} ({{ statusMessages[chat.status] || chat.status }})
+                  {{ chat?.user?.name }} ({{ statusMessages[chat.status] || chat.status }})
                   <v-badge
-                    v-if="chat.messages.some(m => !m.is_read && m.whoSend === 'seller')"
+                    v-if="chat.messages.some(m => !m.is_read && m.whoSend === 'buyer')"
                     content="!"
                     color="error"
                     inline
                   />
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  {{ chat.ad.product.name }}
+                  {{ chat?.ad?.product?.name }}
                 </v-list-item-subtitle>
               </v-list-item>
             </v-list>
@@ -569,9 +497,9 @@ const backToChats = () => {
         </v-col>
 
         <!-- Main Content: Active Chat -->
-        <v-col cols="12" md="8" class="active-chat-block" v-if="shouldShowMessages">
+        <v-col class="messages-block" v-if="shouldShowMessages" cols="12" md="8">
           <VBtn size="small" v-if="shouldShowMessages && isMobile" @click="backToChats" variant="outlined" class="mb-3" prepend-icon="ri-arrow-left-line">Вернуться назад</VBtn>
-          <v-card class="chat-content pa-6" min-height="calc(100vh - 20%)">
+          <v-card class="chat-content pa-6" min-height="80vh">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
               <div class="chat-header mb-4">
@@ -584,7 +512,7 @@ const backToChats = () => {
                     />
                     <span v-else>{{ activeChat.user.name[0] }}</span>
                   </v-avatar>
-                  <v-avatar size="48" class="cursor-pointer" @click="goToProduct(activeChat.ad.id)" style="position: relative; left: -20px;">
+                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToProduct(activeChat.ad.id)" style="position: relative; left: -20px;">
                     <v-img
                       :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'"
                       :alt="activeChat.ad.name"
@@ -627,35 +555,14 @@ const backToChats = () => {
                   >
                     <div
                       :style="{
-                        backgroundColor: message.sender_id === currentUser?.id ? message.color || '#1976d2' : '#f5f5f5',
+                        backgroundColor: message.sender_id === currentUser?.id ? message.color : '#f5f5f5',
                         color: message.sender_id === currentUser?.id ? 'white' : 'black',
                         borderRadius: '12px',
                         padding: '8px 12px',
                         maxWidth: '70%'
                       }"
                     >
-
-<!--                      ИЗОБРАЖЕНИЕ                 -->
-                      <template v-if="message.type === 'image'">
-                        <span v-if="message.system_type === 'send_photo' || message.system_type === 'review'">Скриншот</span>
-                        <v-img
-                          v-if="message?.file"
-                          :src="message.file?.src"
-                          :lazy-src="'https://via.placeholder.com/50'"
-                          max-width="200"
-                          width="200px"
-                          height="200px"
-                          class="mt-2 cursor-pointer rounded"
-                          @click="openImage(message.file.src)"
-                          @error="console.error('Failed to load image:', message.file.src)"
-                        />
-                        <span v-else class="text-error">
-                          Изображение не загружено (нет URL)
-                        </span>
-                      </template>
-<!--                      ОТЗЫВЫ          -->
-                      <span v-if="message.text && message.system_type != 'review'" v-html="message.text.replace(/\n/g, '<br>')"></span>
-                      <template v-else-if="message.system_type === 'review' && message.type === 'system'">
+                      <template v-if="message.system_type === 'review' && message.type == 'system'">
                         <v-rating
                           v-model="message.color"
                           length="5"
@@ -667,24 +574,71 @@ const backToChats = () => {
                           aria-label="Рейтинг"
                         />
                         <br>
-                        <span>{{message.text}}</span>
                       </template>
+                      <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
+
+                      <template v-if="message.type === 'image'">
+                        <span v-if="message.system_type == 'send_photo'">Заказ сделан</span>
+                        <span v-if="message.system_type == 'review'  && message.type == 'system'">{{message.sender_id == currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв'}}</span>
+                        <v-img
+                          v-if="message?.file || message?.files?.[0]?.src"
+                          :key="`image-${message.id}`"
+                          :src="message?.file?.src || message?.files?.[0]?.src"
+                          :lazy-src="'https://via.placeholder.com/50'"
+                          max-width="200"
+                          class="mt-2 cursor-pointer rounded"
+                          @click="openImage(message?.file?.src)"
+                          @error="console.error('Failed to load image:', message?.file?.src)"
+                        />
+                        <span v-else class="text-error">
+                          Изображение не загружено (нет URL)
+                        </span>
+                        <span v-if="message.file?.status == null && activeChat.status == 'cashback_received'">
+                          Скриншот
+                        </span>
+                        <v-row no-gutters class="mt-2" v-if="message.file?.status == null && activeChat.status != 'cashback_received'">
+                          <v-col><v-btn color="success" @click="approveFile(message.buyback_id, message.files?.[0]?.id || message.file?.id)">Принять</v-btn></v-col>
+                          <v-col><v-btn color="error" @click="openRejectModal(message.buyback_id, message.files?.[0]?.id || message.file?.id)" class="ml-2">Отклонить</v-btn></v-col>
+                        </v-row>
+                        <span v-else-if="message.file?.status != null">
+                          {{message.file?.status == true ? 'Файл подтвержден' : 'Файл отклонен'}}
+                        </span>
+                      </template>
+                      <div
+                        v-if="message.file && message.whoSend === 'buyer' && activeChat.status === 'on_confirmation'"
+                        class="mt-2"
+                      >
+                        <v-btn
+                          color="success"
+                          size="small"
+                          class="mr-2"
+                          @click="approveFile(message.buyback_id, message.file?.id)"
+                        >
+                          Подтвердить
+                        </v-btn>
+                        <v-btn
+                          color="error"
+                          size="small"
+                          @click="rejectFile()"
+                        >
+                          Отклонить
+                        </v-btn>
+                      </div>
                     </div>
                     <span class="text-caption text-disabled mt-1">
                       {{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}
                     </span>
                   </li>
 
-                  <!-- ФОРМА ОСТАВИТЬ ОТЗЫВ! -->
-                  <div v-if="activeChat.status === 'cashback_received' && activeChat.has_review_by_buyer == false && !sendReview" class="mt-4">
-                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                  <div v-if="activeChat.status === 'cashback_received' && activeChat.has_review_by_seller == false && !reviewSend" class="mt-4">
+                    <v-card class="pa-4" elevation="2" rounded="lg">
                       <v-card-title class="text-h6 d-flex align-center">
                         <v-icon icon="ri-star-line" class="mr-2" />
                         Оставьте отзыв
                       </v-card-title>
                       <v-card-text>
                         <p class="text-body-2 mb-4">
-                          Пожалуйста, оставьте отзыв о заказе
+                          Пожалуйста, оставьте отзыв о покупателе
                         </p>
                         <v-rating
                           v-model="reviewRating"
@@ -701,7 +655,7 @@ const backToChats = () => {
                           variant="outlined"
                           density="compact"
                           class="mb-4"
-                          aria-label="Оставить отзыв о заказе"
+                          aria-label="Оставить отзыв о покупателе"
                         />
                       </v-card-text>
                       <v-card-actions>
@@ -719,151 +673,12 @@ const backToChats = () => {
                     </v-card>
                   </div>
 
-                  <!-- ФОРМА ЗАГРУЗКИ СКРИНШОТА -->
-                  <div v-if="(activeChat.status === 'pending' && activeChat.is_order_photo_sent == false && !orderSend) || showOrderForm" class="mt-4">
-                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                      <v-card-title class="text-h6 d-flex align-center">
-                        <v-icon icon="ri-image-line" class="mr-2" />
-                        Загрузите скриншот заказа
-                      </v-card-title>
-                      <v-card-text>
-                        <p class="text-body-2 mb-4">
-                          Загрузите скриншот заказа из кабинета Wildberries чтобы продолжить или отмените заказ
-                        </p>
-                        <v-file-input
-                          label="Выберите скриншот"
-                          accept=".jpeg,.png,.jpg,.gif"
-                          v-model="pendingFile"
-                          variant="outlined"
-                          density="compact"
-                          show-size
-                          prepend-icon="ri-upload-cloud-line"
-                          @update:model-value="generatePreview(pendingFile, pendingPreview)"
-                          class="mb-4"
-                          aria-label="Загрузить скриншот заказа"
-                        />
-                        <v-img
-                          v-if="pendingPreview"
-                          :src="pendingPreview"
-                          max-width="100"
-                          class="mb-4 rounded"
-                          cover
-                        />
-                      </v-card-text>
-                      <v-card-actions>
-                        <v-btn
-                          type="submit"
-                          color="primary"
-                          :disabled="!pendingFile"
-                          @click="uploadPendingFile"
-                          class="px-4"
-                          rounded
-                        >
-                          Отправить
-                        </v-btn>
-                        <v-btn
-                          color="error"
-                          @click="cancelOrder"
-                          variant="outlined"
-                          class="px-4"
-                          rounded
-                        >
-                          Отменить заказ
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </div>
-
-                  <!-- ФОРМА ШТРИХКОДА -->
-                  <div v-if="(activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == false && !recieptSent) || showBarcode" class="mt-4">
-                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                      <v-card-title class="text-h6 d-flex align-center">
-                        <v-icon icon="ri-barcode-line" class="mr-2" />
-                        Загрузите фото штрихкода
-                      </v-card-title>
-                      <v-card-text>
-                        <p class="text-body-2 mb-4">
-                          Загрузите фото, на котором видно, как вы порезали штрихкод, чтобы не было возможности сдать товар обратно
-                        </p>
-                        <v-file-input
-                          label="Выберите фото штрихкода"
-                          accept=".jpeg,.png,.jpg,.gif"
-                          v-model="barcodeFile"
-                          variant="outlined"
-                          density="compact"
-                          show-size
-                          prepend-icon="ri-upload-cloud-line"
-                          @update:model-value="generatePreview(barcodeFile, barcodePreview)"
-                          class="mb-4"
-                          aria-label="Загрузить фото штрихкода"
-                        />
-                        <v-img
-                          v-if="barcodePreview"
-                          :src="barcodePreview"
-                          max-width="100"
-                          class="mb-4 rounded"
-                          cover
-                        />
-                      </v-card-text>
-                    </v-card>
-                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                      <v-card-title class="text-h6 d-flex align-center">
-                        <v-icon icon="ri-star-line" class="mr-2" />
-                        Загрузите скриншот отзыва
-                      </v-card-title>
-                      <v-card-text>
-                        <p class="text-body-2 mb-4">
-                          Загрузите скриншот, где видно, что вы оставили отзыв
-                        </p>
-                        <v-file-input
-                          label="Выберите скриншот отзыва"
-                          accept=".jpeg,.png,.jpg,.gif"
-                          v-model="reviewFile"
-                          variant="outlined"
-                          density="compact"
-                          show-size
-                          prepend-icon="ri-upload-cloud-line"
-                          @update:model-value="generatePreview(reviewFile, reviewPreview)"
-                          class="mb-4"
-                          aria-label="Загрузить скриншот отзыва"
-                        />
-                        <v-img
-                          v-if="reviewPreview"
-                          :src="reviewPreview"
-                          max-width="100"
-                          class="mb-4 rounded"
-                          cover
-                        />
-                      </v-card-text>
-                      <v-card-actions>
-                        <v-btn
-                          color="primary"
-                          :disabled="!barcodeFile || !reviewFile"
-                          @click="uploadConfirmationFiles"
-                          class="px-4"
-                          rounded
-                        >
-                          Отправить
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </div>
-
                 </PerfectScrollbar>
                 <div v-else class="flex-grow-1 d-flex align-center justify-center">
                   <p class="text-disabled">Нет сообщений</p>
                 </div>
                 <!-- Message Input -->
-                <v-form
-                  v-if="activeChat.status === 'pending' && activeChat.is_order_photo_sent == true ||
-                        activeChat.status === 'on_confirmation' && activeChat.is_review_photo_sent == true ||
-                        activeChat.status === 'cashback_received' ||
-                        activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent == true ||
-                        recieptSent ||
-                        orderSend"
-                  @submit.prevent="sendMessage"
-                  class="mt-10"
-                >
+                <v-form @submit.prevent="sendMessage" class="mt-4">
                   <v-text-field
                     v-model="messageInput"
                     placeholder="Введите сообщение..."
@@ -909,7 +724,7 @@ const backToChats = () => {
         </v-col>
       </v-row>
 
-      <!-- Image Modal -->
+      <!-- Image Modal (for message files only) -->
       <v-dialog v-model="imageModal" max-width="800">
         <v-card>
           <v-img :src="selectedImage" contain max-height="600" />
@@ -921,7 +736,29 @@ const backToChats = () => {
       </v-dialog>
     </div>
   </div>
+
+  <!--  Модальное окно для отклонения -->
+
+  <VDialog
+    v-model="isRejectVisible"
+    width="500"
+  >
+    <!-- Dialog Content -->
+    <VCard title="Отклонить фото">
+      <DialogCloseBtn
+        variant="text"
+        size="default"
+        @click="resetForm()"
+      />
+
+      <VCardText>
+        <v-textarea v-model="comment" placeholder="Укажите причину"></v-textarea>
+        <v-btn color="danger" @click="rejectFile()">Отклонить</v-btn>
+      </VCardText>
+    </VCard>
+  </VDialog>
 </template>
+
 <style>
 .layout-page-content{
   overflow: visible!important;
@@ -936,14 +773,11 @@ const backToChats = () => {
   }
 }
 
-.layout-wrapper{
-  overflow: hidden;
-}
-
 .footer{
   display: none;
 }
 </style>
+
 <style scoped lang="scss">
 .content-wrapper {
   max-width: 1200px;
@@ -990,60 +824,31 @@ const backToChats = () => {
 :deep(.v-btn) {
   text-transform: none;
   letter-spacing: normal;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-}
-
-:deep(.v-card) {
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-  }
-}
-
-:deep(.v-file-input) {
-  .v-input__prepend {
-    .v-icon {
-      color: #1976d2;
-    }
-  }
 }
 
 .bg-light-primary {
   background-color: rgba(25, 118, 210, 0.1);
 }
 
-.rounded {
-  border-radius: 8px;
+.bg-primary {
+  background-color: #1976d2 !important;
 }
 
-.text-error {
-  color: #d32f2f;
-  font-size: 0.875rem;
+.chats-container{
+  overflow-y: hidden!important;
 }
 
 @media screen and (max-width: 960px){
   .chats-container{
-    overflow-y: scroll!important;
-  }
-  .messages-block{
-    display: none;
+    overflow-x: scroll!important;
   }
   .content-wrapper{
     overflow: hidden;
   }
-  .chat-list-sidebar{
-    overflow-y: scroll;
-    max-height: 80vh;
-  }
   .chat-content{
     padding-top: 10px !important;
   }
-  .chat-row{
+  .active-chat-block{
     overflow-y: hidden!important;
   }
   .chat-list-sidebar{
@@ -1053,8 +858,7 @@ const backToChats = () => {
     min-height: 85vh!important;
   }
   .chat-log{
-    min-height: 55vh!important;
+    min-height: 60vh!important;
   }
 }
 </style>
-
