@@ -225,8 +225,6 @@ const reloadPage = (role) => {
             </VRow>
           </VForm>
         </VCardText>
-        <div v-if="role != 'seller'" class="text-center"><router-link to="/register?role=seller" @click.prevent="reloadPage('seller')">Регистрация для продавцов</router-link></div>
-        <div v-else class="text-center"><router-link to="/register" @click.prevent="reloadPage('buyer')">Регистрация для покупателей</router-link></div>
       </VCard>
     </VCol>
   </VRow>

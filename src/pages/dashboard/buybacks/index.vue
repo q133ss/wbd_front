@@ -467,8 +467,8 @@ onUnmounted(() => {
                     <v-img :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'" :alt="activeChat.ad.name" />
                   </v-avatar>
                   <div>
-                    <h3 class="text-h6">{{ activeChat.user.name }}</h3>
-                    <p class="text-body-2">{{ activeChat.ad.name }}</p>
+                    <h3 class="text-h6">{{ activeChat.ad.product.name }}</h3>
+                    <p class="text-body-2">{{ activeChat.user.name }}</p>
                   </div>
                 </div>
                 <v-alert

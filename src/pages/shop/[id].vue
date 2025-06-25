@@ -1,5 +1,4 @@
 <template>
-  <Navbar />
   <VContainer class="page-container">
     <div v-if="seller" class="seller-page">
       <!-- Баннер -->
@@ -259,7 +258,6 @@
       </VCol>
     </div>
   </VContainer>
-  <Footer />
 </template>
 
 <script setup>
@@ -267,8 +265,6 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { VContainer, VCol, VProgressCircular } from 'vuetify/components'
 import api from '@/api'
-import Footer from '@/views/front-pages/front-page-footer.vue'
-import Navbar from '@/views/front-pages/front-page-navbar.vue'
 import ProductCard from '@/components/ProductCard.vue'
 
 const route = useRoute()
@@ -284,7 +280,7 @@ onMounted(async () => {
     seller.value = response
   } catch (error) {
     if (error.status == 404) {
-      router.push('/not-found'); // Перенаправляем на 404 страницу
+      //router.push('/not-found'); // Перенаправляем на 404 страницу
       return;
     }
     console.error('Ошибка при загрузке данных продавца:', error)
@@ -332,9 +328,6 @@ const normalizeProduct = (product) => {
 </script>
 
 <style scoped lang="scss">
-.page-container {
-  padding-top: 80px;
-}
 
 .seller-page {
   padding: 0; // Reset padding to avoid doubling with VContainer

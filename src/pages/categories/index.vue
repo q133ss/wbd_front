@@ -83,9 +83,8 @@ onMounted(fetchCategories)
               :src="category.img?.src || '/assets/images/no_image.svg'"
               alt=""
               cover
-              position="right"
-              height="335px"
-              class="rounded mb-3"
+              position="center"
+              class="category-img mb-3"
             />
             <h2 class="text-caption category-name">{{ category.category_name }}</h2>
             <p class="text-caption text-disabled product-count">
@@ -124,17 +123,32 @@ onMounted(fetchCategories)
   z-index: 999;
   height: 40px;
   color: #000000;
+  text-align: left;
+  font-size: 15px!important;
+  margin-left: 16px;
 }
 
 .product-count{
   position: relative;
-  top: -80px;
+  top: -90px;
+  padding: 5px;
   z-index: 999;
   color: #000000!important;
+  background: #ffffffa1;
+  box-shadow: none!important;
+  border-radius: 20px;
+  font-size: 13px!important;
+  width: 60%;
+  margin-left: 15px;
 }
 
 .img-wrap{
+  //height: 285px;
+  width: 200px;
   height: 235px;
-  background-color: #f5f5f4;
+}
+
+.category-img{
+  border-radius: 20px;
 }
 </style>

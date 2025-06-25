@@ -215,12 +215,14 @@ const submitAd = async () => {
         <!-- Product Info -->
         <div class="product-info mb-6">
           <v-row>
-            <v-col cols="12" md="3">
+            <v-col cols="4" md="2">
               <v-img
                 v-if="getFirstImage(ad.product.images)"
                 :src="getFirstImage(ad.product.images)"
-                max-height="150"
+                width="112"
+                height="150"
                 contain
+                class="product-img"
               />
               <v-sheet v-else class="text-center pa-4">
                 <v-icon size="large">mdi-image-off</v-icon>
@@ -229,9 +231,9 @@ const submitAd = async () => {
             </v-col>
             <v-col cols="12" md="9">
               <h2 class="text-h5">{{ ad.product.name }}</h2>
-              <p class="text-body-1">Цена: {{ ad.product.price }} ₽</p>
-              <p class="text-body-1">Бренд: {{ ad.product.brand }}</p>
-              <p class="text-body-1">Доступно: {{ ad.product.quantity_available }} шт.</p>
+              <p class="text-subtitle-1 mb-0 pb-0">Цена: <span class="text-black"><span class="total-cost">{{ ad.product.price }} ₽</span></span> </p>
+              <p class="text-subtitle-1 mb-0 pb-0">Бренд: <span class="text-black">{{ ad.product.brand }} </span></p>
+              <p class="text-subtitle-1">Доступно: <span class="text-black">{{ ad.product.quantity_available }} </span> шт.</p>
             </v-col>
           </v-row>
         </div>
@@ -288,7 +290,8 @@ const submitAd = async () => {
                   Вставить шаблон
                 </v-btn>
                 <v-btn
-                  color="secondary"
+                  color="primary"
+                  variant="outlined"
                   class="mb-2"
                   block
                   @click="openEditTemplateModal(field.key)"
@@ -304,6 +307,7 @@ const submitAd = async () => {
               <v-col cols="12" md="6">
                 <div class="d-flex align-center">
                   <button
+                    type="button"
                     class="increment-btn mr-2"
                     @click="decrementRedemptions"
                   >
@@ -321,6 +325,7 @@ const submitAd = async () => {
                     style="max-width: 150px"
                   />
                   <button
+                    type="button"
                     class="increment-btn ml-2"
                     @click="incrementRedemptions"
                   >
@@ -330,28 +335,20 @@ const submitAd = async () => {
                     </svg>
                   </button>
                 </div>
-              </v-col>
-              <v-col cols="12" md="6">
-                <p class="text-body-1 mb-2">
-                  Доступно выкупов: {{ availableRedemptions }}
+                <p class="text-body-1 mt-2">
+                  Доступно выкупов: {{ balance.redemption_count }}
                 </p>
-                <v-btn
-                  color="primary"
-                  @click="setMaxRedemptions"
-                >
-                  Добавить все
-                </v-btn>
               </v-col>
             </v-row>
 
+            <hr class="total-hr">
             <!-- Cost Breakdown -->
-            <div class="cost-breakdown pa-4 mb-4">
-              <h3 class="text-h6 mb-4">Детализация стоимости</h3>
-              <p>Итого: {{ totalCost }} ₽</p>
-              <p>Количество выкупов: {{ adData.redemption_count }}</p>
-              <p>Кэшбек для покупателя: {{ cashbackPerRedemption }} ₽ за выкуп</p>
-              <p v-if="additionalRedemptions > 0">
-                Дополнительные выкупы: {{ additionalRedemptions }} × 95 ₽
+            <div class="cost-breakdown">
+              <h3 class="mb-3">Итого: <span class="total-cost">{{ totalCost }} ₽</span></h3>
+              <p class="text-subtitle-1 mb-0 pb-0">Количество выкупов: <span class="text-black">{{ adData.redemption_count }}</span></p>
+              <p class="text-subtitle-1 mb-0 pb-0">Кэшбек для покупателя: <span class="text-black">{{ cashbackPerRedemption }} ₽ за выкуп</span></p>
+              <p class="text-subtitle-1" v-if="additionalRedemptions > 0">
+                Дополнительные выкупы: <span class="text-black">{{ additionalRedemptions }} × 95 ₽</span>
               </p>
             </div>
 
@@ -398,10 +395,8 @@ const submitAd = async () => {
   </div>
 </template>
 
+
 <style scoped lang="scss">
-.edit-ad-container {
-  padding: 24px;
-}
 
 .content-wrapper {
   max-width: 800px;
@@ -412,7 +407,6 @@ const submitAd = async () => {
 .ad-form,
 .cost-breakdown {
   border-radius: 8px;
-  padding: 16px;
   margin-bottom: 24px;
 }
 
@@ -431,12 +425,49 @@ const submitAd = async () => {
   justify-content: center;
   width: 40px;
   height: 40px;
+  background-color: rgb(var(--v-theme-primary));
   border-radius: 4px;
+  color: white;
   transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #1565c0;
+  }
 
   svg {
     width: 24px;
     height: 24px;
   }
+}
+
+.total-cost{
+  color: rgb(var(--v-theme-primary));
+}
+
+.text-black{
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.total-hr{
+  color: rgb(201, 202, 209);
+  margin-bottom: 32px;
+  opacity: 0.2;
+}
+
+.product-img{
+  border-radius: 15px;
+}
+
+.ads-name{
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+
+.user-price-wrap{
+  margin-bottom: 50px;
+}
+
+.user-price{
+  font-weight: 600;
 }
 </style>

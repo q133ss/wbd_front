@@ -253,8 +253,8 @@ const resetLoginForm = () => {
       <VBreadcrumbsItem v-if="product?.product?.category" :to="`/categories/${product?.product?.category?.id}`">
         {{ product?.product?.category.name }}
       </VBreadcrumbsItem>
-      <span>/</span>
-      <VBreadcrumbsItem>{{ product?.name }}</VBreadcrumbsItem>
+      <span v-if="product?.product?.category">/</span>
+      <VBreadcrumbsItem>{{ product?.product?.name }}</VBreadcrumbsItem>
     </VBreadcrumbs>
 
     <!-- Основной контент -->
@@ -324,12 +324,13 @@ const resetLoginForm = () => {
           </VChip>
         </div>
         <div class="buybacks_data pt-3 pb-3 mt-5">
-          <div>Кол-во выкупов: {{ product?.redemption_count }}</div>
-          <div>Осталось товаров с кэшбеком: {{ product?.quantity_available }}</div>
+          <div>Кол-во выкупов: (СКОЛЬКО РАЗ КУПИЛИ НА ПЛАТФОРМЕ!!!!) {{ product?.redemption_count }}</div>
+          <div>Осталось товаров с кэшбеком: {{ product?.redemption_count }}</div>
         </div>
         <VBtn
           block
-          color="secondary"
+          color="primary"
+          variant="outlined"
           class="mr-2"
           :disabled="isInFavorites"
           @click="addToFavorites(product.id)"
@@ -344,7 +345,6 @@ const resetLoginForm = () => {
           <VRating
             :model-value="1"
             length="1"
-            readonly
             density="compact"
             size="x-small"
             class="shop-rating"

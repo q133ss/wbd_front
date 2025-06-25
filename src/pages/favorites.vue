@@ -1,14 +1,5 @@
 <script setup>
-import Navbar from "@/views/front-pages/front-page-navbar.vue"
-import Footer from "@/views/front-pages/front-page-footer.vue"
 import favoriteApi from '@/api/index'
-
-definePage({
-  meta: {
-    layout: 'blank',
-    authRequired: true
-  },
-})
 
 const products = ref([])
 
@@ -32,7 +23,6 @@ const getProductWord = (count) => {
 
 <template>
   <VContainer class="favorite-container">
-    <Navbar />
 
     <h1 class="text-2xl font-bold mb-2">Избранное</h1>
     <p class="text-gray-600 mb-4">{{ products.length }} {{ getProductWord(products.length) }}</p>
@@ -46,13 +36,9 @@ const getProductWord = (count) => {
     </VRow>
 
   </VContainer>
-
-  <Footer />
 </template>
 
 
 <style scoped lang="scss">
-.favorite-container{
-  margin-top: 80px;
-}
+
 </style>

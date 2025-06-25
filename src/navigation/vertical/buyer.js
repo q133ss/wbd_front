@@ -21,6 +21,11 @@ export default [
     to: 'dashboard-orders',
   },
   {
+    title: 'Избранное',
+    icon: { icon: 'ri-heart-line' },
+    to: 'favorites',
+  },
+  {
     title: 'Баланс',
     icon: { icon: 'ri-wallet-line' },
     to: 'balance',

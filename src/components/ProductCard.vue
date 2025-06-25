@@ -104,5 +104,6 @@ const props = defineProps({
   bottom: 40px;
   left: 10px;
   text-align: center;
+  background: rgb(38,43,67)!important;
 }
 </style>

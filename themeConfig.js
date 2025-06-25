@@ -48,7 +48,7 @@ export const { themeConfig, layoutConfig } = defineThemeConfig({
   },
   footer: { type: FooterType.Static },
   verticalNav: {
-    isVerticalNavCollapsed: false,
+    isVerticalNavCollapsed: true,
     defaultNavItemIconProps: { icon: 'ri-circle-fill' },
     isVerticalNavSemiDark: false,
   },

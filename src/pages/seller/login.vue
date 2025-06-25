@@ -47,7 +47,7 @@ const roleMap = {
 }
 
 const role = route.query.role || 'user'
-const role_id = roleMap[role] || 2
+const role_id = 3
 
 const login = async () => {
   try {
@@ -214,22 +214,22 @@ const reloadPage = (role) => {
                 </RouterLink>
               </VCol>
 
-<!--              <VCol-->
-<!--                cols="12"-->
-<!--                class="d-flex align-center"-->
-<!--              >-->
-<!--                <VDivider />-->
-<!--                <span class="mx-4 text-high-emphasis">или</span>-->
-<!--                <VDivider />-->
-<!--              </VCol>-->
+              <!--              <VCol-->
+              <!--                cols="12"-->
+              <!--                class="d-flex align-center"-->
+              <!--              >-->
+              <!--                <VDivider />-->
+              <!--                <span class="mx-4 text-high-emphasis">или</span>-->
+              <!--                <VDivider />-->
+              <!--              </VCol>-->
 
-<!--              &lt;!&ndash; auth providers &ndash;&gt;-->
-<!--              <VCol-->
-<!--                cols="12"-->
-<!--                class="text-center"-->
-<!--              >-->
-<!--                <AuthProvider />-->
-<!--              </VCol>-->
+              <!--              &lt;!&ndash; auth providers &ndash;&gt;-->
+              <!--              <VCol-->
+              <!--                cols="12"-->
+              <!--                class="text-center"-->
+              <!--              >-->
+              <!--                <AuthProvider />-->
+              <!--              </VCol>-->
             </VRow>
           </VForm>
         </VCardText>

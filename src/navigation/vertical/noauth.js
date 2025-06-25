@@ -28,6 +28,7 @@ export default [
   {
     title: 'Вход для продавцов',
     icon: { icon: 'ri-shopping-cart-2-line' },
-    to: 'login',
+    target: "_blank",
+    to: 'seller',
   }
 ]

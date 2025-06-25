@@ -238,6 +238,7 @@ watch(() => route.params.id, (newId) => {
                   label="Кешбек"
                   :min="0"
                   :max="100"
+                  step="1"
                   thumb-label="always"
                 />
               </VCardText>

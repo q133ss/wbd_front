@@ -1,8 +1,10 @@
 import api from '@/api/Index'
 import Pusher from 'pusher-js'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const buybacks = ref(0)
+const currentUser = ref(null)
+let pusher = null
 
 const buybacksCount = async () => {
   try {
@@ -14,24 +16,30 @@ const buybacksCount = async () => {
   }
 }
 
-buybacksCount()
+const initPusher = async () => {
+  try {
+    currentUser.value = await api.user.profile()
 
-// Уведомления
+    pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+      cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+      encrypted: true
+    })
 
-const currentUser = ref(null)
-currentUser.value = await api.user.profile()
+    const notificationChannelName = `notification-${currentUser.value.id}`
+    const notificationChannel = pusher.subscribe(notificationChannelName)
 
-// Инициализация Pusher
-const pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
-  cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-  encrypted: true
-})
-const notificationChannelName = `notification-${currentUser.value.id}`
-const notificationChannel = pusher.subscribe(notificationChannelName)
+    notificationChannel.bind('MessageSent', async () => {
+      await buybacksCount()
+    })
+  } catch (error) {
+    console.error('Ошибка инициализации Pusher:', error)
+  }
+}
 
-// Обработчики событий
-notificationChannel.bind('MessageSent', async (notification) => {
+// Инициализация при монтировании
+onMounted(async () => {
   await buybacksCount()
+  await initPusher()
 })
 
 export default [
@@ -53,7 +61,6 @@ export default [
     badgeContent: buybacks,
     badgeClass: 'bg-primary',
   },
-
   { heading: 'Мой аккаунт' },
   {
     title: 'Профиль',

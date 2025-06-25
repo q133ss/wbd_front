@@ -17,7 +17,7 @@ const router = useRouter()
 const product = ref(null)
 const adData = ref({
   name: '',
-  cashback_percentage: 0,
+  cashback_percentage: 10,
   redemption_count: 1,
   order_conditions: '',
   redemption_instructions: '',
@@ -288,7 +288,8 @@ const submitAd = async () => {
                   Вставить шаблон
                 </v-btn>
                 <v-btn
-                  color="secondary"
+                  color="primary"
+                  variant="outlined"
                   class="mb-2"
                   block
                   @click="openEditTemplateModal(field.key)"
