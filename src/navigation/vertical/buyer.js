@@ -26,11 +26,6 @@ export default [
     to: 'favorites',
   },
   {
-    title: 'Баланс',
-    icon: { icon: 'ri-wallet-line' },
-    to: 'balance',
-  },
-  {
     title: 'Партнерам',
     icon: { icon: 'ri-gift-line' },
     to: 'dashboard-partners',

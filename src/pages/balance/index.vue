@@ -271,13 +271,59 @@ const selectType = (selectType) => {
   transactionPage.value = 1
   applyFilters()
 }
+
+const tariffs = ref([])
+
+// Declension function for "выкуп"
+const getBuybackDeclension = (count) => {
+  const num = Math.abs(count)
+  if (num % 10 === 1 && num % 100 !== 11) {
+    return 'выкуп'
+  } else if ([2, 3, 4].includes(num % 10) && ![12, 13, 14].includes(num % 100)) {
+    return 'выкупа'
+  } else {
+    return 'выкупов'
+  }
+}
+
+// Fetch tariffs
+onMounted(async () => {
+  try {
+    const response = await api.tariff.getTariffList()
+    tariffs.value = response || []
+  } catch (error) {
+    snackbar.notify({
+      text: 'Ошибка загрузки тарифов',
+      color: 'error'
+    })
+  } finally {
+    loading.value = false
+  }
+})
+
+// Buy tariff
+const buyTariff = async (tariff) => {
+  try {
+    await api.balance.topUpBuybacks(tariff.buybacks_count)
+    snackbar.notify({
+      text: `Тариф "${tariff.name}" успешно приобретен`,
+      color: 'success'
+    })
+  } catch (error) {
+    const errorMessage = error.response?._data?.message || 'Ошибка при покупке тарифа'
+    snackbar.notify({
+      text: errorMessage,
+      color: 'error'
+    })
+  }
+}
 </script>
 
 <template>
   <div class="balance-container">
 
     <div class="content-wrapper">
-      <h1 class="text-h4 mb-2">Баланс</h1>
+      <h1 class="text-h4 mb-2">Баланс выкупов</h1>
       <p class="text-body-1 mb-6">Управляйте вашим балансом, просматривайте транзакции и пополняйте счет</p>
 
       <div v-if="loading" class="text-center">
@@ -287,35 +333,12 @@ const selectType = (selectType) => {
       <div v-else>
         <!-- Balance and Details -->
         <v-row class="mb-6">
-          <v-col cols="12" md="8">
-            <div class="balance-box pa-6" v-if="isSeller">
-              <p class="text-h5">Доступно: <br> <span class="font-weight-bold h-3 access-balance">{{ accessBalance }} ₽</span></p>
-              <p class="text-h5">Заморожено в объявлениях: <br> <span class="font-weight-bold on-confimation">{{ onConfirmation }} ₽</span></p>
-              <v-btn
-                color="primary"
-                class="mt-4"
-                @click="showTopUpModal = true"
-              >
-                Пополнить
-              </v-btn>
-            </div>
-            <div class="balance-box pa-6" v-else>
-              <p class="text-body-1">Доступно к выводу: <br> <span class="font-weight-bold h-3 access-balance">{{ accessBalance }} ₽</span></p>
-              <p class="text-body-1">На подтверждении: <br> <span class="font-weight-bold on-confimation">{{ onConfirmation }} ₽</span></p>
-              <v-btn
-                color="primary"
-                class="mt-4"
-                @click="showWithdrawModal = true"
-              >
-                Заказать выплату
-              </v-btn>
+          <v-col cols="12" md="3">
+            <div class="balance-box pa-6 pb-3" v-if="isSeller">
+              <p class="text-h5">Ваш баланс выкупов: <span class="font-weight-bold h-3 access-balance d-block mt-3">{{ redemptionCount }}</span></p>
             </div>
             <div class="buybacks-wrap" v-if="isSeller">
-              <div @click="goToTariffs" class="buybacks-box">
-                <span>Выкупы:</span> <span>{{ redemptionCount }} шт <span class="buybacks-plus-btn">+</span></span>
-              </div>
-
-              <div class="text-none buybacks-btn"
+              <div class="text-none buybacks-btn promo-btn"
                    @click="showPromoModal = true">
                 Ввести промокод
               </div>
@@ -325,15 +348,85 @@ const selectType = (selectType) => {
           <v-col cols="12" md="4" v-if="isSeller">
             <div class="details-box">
               <h3 class="text-h6 mb-4">Потраченно</h3>
-              <p class="text-body-1">Сегодня: <span class="font-weight-bold ml-3">{{ spentToday }} ₽</span></p>
-              <p class="text-body-1">Вчера: <span class="font-weight-bold ml-3">{{ spentYesterday }} ₽</span></p>
-              <p class="text-body-1">За 7 дней: <span class="font-weight-bold ml-3">{{ spentLast7Days }} ₽</span></p>
+              <div class="d-flex flex-column">
+                <div class="d-flex">
+                  <span class="text-body-1 w-25">Сегодня:</span>
+                  <span class="font-weight-bold">1 выкуп</span>
+                </div>
+                <div class="d-flex">
+                  <span class="text-body-1 w-25">Вчера:</span>
+                  <span class="font-weight-bold">2 выкупа</span>
+                </div>
+                <div class="d-flex">
+                  <span class="text-body-1 w-25">За 7 дней:</span>
+                  <span class="font-weight-bold">8 выкупов</span>
+                </div>
+              </div>
             </div>
           </v-col>
         </v-row>
+
+
+        <!--        Тарифы-->
+        <div class="tariffs-container">
+          <div class="content-wrapper">
+            <h1 class="text-h4 mb-2">Тарифы</h1>
+            <p class="text-body-1 mb-8">Выберите подходящий тариф для продвижения ваших товаров с кэшбеком</p>
+
+            <div v-if="loading" class="text-center">
+              <v-progress-circular indeterminate color="primary" />
+            </div>
+
+            <v-row v-else>
+              <v-col
+                v-for="tariff in tariffs"
+                :key="tariff.id"
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+              >
+                <v-card class="tariff-card pa-6" min-height="400">
+                  <div class="card-content">
+                    <div class="d-flex justify-between">
+                      <h2 class="text-h5 mb-4 font-weight-bold tariff-name">{{ tariff.name }}</h2>
+                      <div class="tariff-badge">Бессрочно</div>
+                    </div>
+                    <p class="text-h6 font-weight-bold mb-2">{{ tariff.price }} ₽</p>
+                    <p class="text-body-1 mb-4">
+                      {{ tariff.buybacks_count }} {{ getBuybackDeclension(tariff.buybacks_count) }}
+                    </p>
+                    <v-divider class="mb-4" />
+                    <div class="min-100">
+                      <div
+                        v-for="(advantage, index) in tariff.advantages"
+                        :key="index"
+                        class="text-body-2 adv-item"
+                      >
+                        {{ advantage }}
+                      </div>
+                    </div>
+                    <p class="text-body-1 mt-12 text-center opacity-50">
+                      Стоимость выкупа: {{ tariff.redemption_price }} ₽
+                    </p>
+                  </div>
+                  <v-btn
+                    color="primary"
+
+                    @click="buyTariff(tariff)"
+                  >
+                    Купить
+                  </v-btn>
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
+        </div>
+        <!--        / Тарифы -->
+
         <!-- Transaction Filters -->
-        <div class="filters-box pa-4 mb-6">
-          <h3 class="text-h6 mb-4">Фильтры транзакций</h3>
+        <div class="filters-box mt-10 mb-6">
+          <h1 class="text-h4 mb-4">Фильтры транзакций</h1>
 
           <div class="filter-group mb-2">
             <v-btn variant="text" @click="selectType('')" :active="type == 'all'" :class="{ 'active-tab': type === 'all' }">Все транзакции</v-btn>
@@ -364,7 +457,7 @@ const selectType = (selectType) => {
 
         <!-- Transactions Table -->
         <div class="transactions-box pa-4">
-          <h3 class="text-h6 mb-4">Транзакции</h3>
+          <h3 class="text-h6 mb-4">Детализация</h3>
           <v-table>
             <thead>
             <tr>
@@ -609,5 +702,88 @@ const selectType = (selectType) => {
   .filters-box{
     padding: 0 !important;
   }
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin-left: 0;
+}
+
+.tariff-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.advantages-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  text-decoration: none;
+
+  li {
+    margin-bottom: 8px;
+  }
+}
+
+.adv-item {
+  display: flex; // Добавляем flex для выравнивания
+  align-items: flex-start; // Выравниваем по верхнему краю
+  margin-bottom: 8px;
+  padding-left: 30px; // Отступ для иконки
+  position: relative; // Для позиционирования псевдоэлемента
+  font-size: 14px!important;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px; // Подправляем вертикальное выравнивание
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='18' height='18' rx='9' fill='%23D1FADF'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12.8215 5.5425L7.45152 10.725L6.02652 9.2025C5.76402 8.955 5.35152 8.94 5.05152 9.15C4.75902 9.3675 4.67652 9.75 4.85652 10.0575L6.54402 12.8025C6.70902 13.0575 6.99402 13.215 7.31652 13.215C7.62402 13.215 7.91652 13.0575 8.08152 12.8025C8.35152 12.45 13.504 6.3075 13.504 6.3075C14.179 5.6175 13.3615 5.01 12.8215 5.535V5.5425Z' fill='%2312B76A'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    flex-shrink: 0; // Запрещаем сжатие
+    margin-right: 6px; // Отступ между иконкой и текстом
+  }
+}
+
+:deep(.v-btn) {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.promo-btn{
+  background: rgb(var(--v-theme-primary));
+  color: #ffffff;
+}
+
+.justify-between{
+  justify-content: space-between;
+  align-items: start;
+}
+
+.tariff-name{
+  font-size: 20px!important;
+}
+
+.tariff-badge{
+  color: #175CD3;
+  background-color: #EFF8FF;
+  padding: 5px 10px;
+  font-size: 13px;
+  border-radius: 35px;
+}
+
+.min-100{
+  min-height: 100px;
 }
 </style>

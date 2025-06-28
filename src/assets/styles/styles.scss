@@ -4,3 +4,15 @@
   backdrop-filter: none!important;
   box-shadow: none!important;
 }
+
+@media (min-width: 1280px) {
+  .footer .v-container {
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .layout-page-content {
+    padding: 0!important;
+  }
+}

@@ -417,5 +417,10 @@ onUnmounted(() => {
     display: flex;
     gap: 10px;
   }
+
+  .mobile-filter-btn-wrap button{
+    font-weight: 500;
+    color: rgba(var(--v-theme-on-background), 0.55);
+  }
 }
 </style>

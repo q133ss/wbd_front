@@ -81,45 +81,11 @@ const isCurrentRoute = to => {
           </RouterLink>
 
           <RouterLink
-            :to="isLoggedIn ? '/dashboard/orders' : '/login'"
+            to="/seller/login"
             class="text-h5 font-weight-medium nav-link px-0"
-          >
-            <VIcon>ri-truck-line</VIcon>
-            Мои заказы
-          </RouterLink>
-
-          <RouterLink
-            to="/categories"
-            class="text-h5 font-weight-medium nav-link px-0"
-          >
-            <VIcon>ri-list-unordered</VIcon>
-            Категории
-          </RouterLink>
-
-          <RouterLink
-            :to="isLoggedIn ? '/dashboard/orders' : '/login'"
-            class="text-h5 font-weight-medium nav-link px-0"
-          >
-            <VIcon>ri-heart-line</VIcon>
-            Избранное
-          </RouterLink>
-
-          <RouterLink
-            v-if="!isLoggedIn"
-            to="/login"
-            class="text-h5 font-weight-medium nav-link px-0"
-          >
-            <VIcon>ri-login-box-line</VIcon>
-            Вход
-          </RouterLink>
-
-          <RouterLink
-            v-if="!isLoggedIn"
-            to="/login?role=seller"
-            class="text-h5 font-weight-medium nav-link px-0 seller-login"
           >
             <VIcon>ri-shopping-bag-2-line</VIcon>
-            Вход для продавцов
+            Вход
           </RouterLink>
         </div>
       </div>
@@ -244,7 +210,7 @@ const isCurrentRoute = to => {
           :prepend-icon="isLoggedIn ? 'ri-user-line' : 'ri-login-box-line'"
           variant="elevated"
           color="primary"
-          :href="isLoggedIn ? '/profile' : '/login'"
+          :href="isLoggedIn ? '/profile' : '/seller/login'"
           rel="noopener noreferrer"
         >
           {{ isLoggedIn ? 'Профиль' : 'Войти' }}

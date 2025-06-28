@@ -77,7 +77,7 @@ import { themeConfig } from '@themeConfig'
                 <li class="mb-4">
                   <RouterLink
                     class="text-body-1 footer-text text-no-wrap"
-                    to="/buyer/login"
+                    to="/login"
                   >
                     <div class="d-flex align-center">
                       <div>
@@ -103,7 +103,7 @@ import { themeConfig } from '@themeConfig'
               <ul>
                 <li class="mb-4 text-body-1" style="list-style: none;">
                   <RouterLink
-                    to="/login?role=seller"
+                    to="/seller/login"
                     class="footer-text text-no-wrap"
                   >
                     Вход
@@ -112,7 +112,8 @@ import { themeConfig } from '@themeConfig'
 
                 <li class="mb-4 text-body-1" style="list-style: none;">
                   <RouterLink
-                    to="/seller/support"
+                    target="_blank"
+                    to="t.me/wbd_help"
                     class="footer-text text-no-wrap"
                   >
                     Поддержка
@@ -154,13 +155,6 @@ import { themeConfig } from '@themeConfig'
                       size="16"
                     />
                     г. Москва, вн. тер. г. муниципальный округ Лефортово, ул. Авиамоторная,д. 50 стр. 2, помещ. 29/2
-                  </li>
-                  <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
-                    <VIcon
-                      icon="ri-bank-card-2-line"
-                      size="16"
-                    />
-                    приём оплаты выполняется через сервис <a href="https://payanyway.ru/" target="_blank">PayAnyWay</a>
                   </li>
                 </ul>
               </div>

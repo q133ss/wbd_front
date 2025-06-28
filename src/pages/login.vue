@@ -63,7 +63,7 @@ const login = async () => {
     useCookie('userData').value = user
 
     await nextTick(() => {
-      window.location.href = route.query.to ? String(route.query.to) : '/profile'
+      window.location.href = route.query.to ? String(route.query.to) : '/'
     })
   } catch (error) {
     if (error.response?.status === 422) {

@@ -4,7 +4,7 @@
       <!-- Баннер -->
       <VCard>
         <VImg
-          src="/src/assets/images/pages/user-profile-header-bg.png"
+          src="/images/user-profile-header-bg.png"
           min-height="125"
           max-height="250"
           cover
@@ -88,9 +88,9 @@
                 </div>
               </div>
 
-              <VBtn prepend-icon="ri-user-follow-line">
-                Страница на wildberries
-              </VBtn>
+<!--              <VBtn prepend-icon="ri-user-follow-line">-->
+<!--                Страница на wildberries-->
+<!--              </VBtn>-->
             </div>
           </div>
         </VCardText>
@@ -211,7 +211,7 @@
       </VRow>
 
       <!-- Товары -->
-      <div class="products row">
+      <div class="products row mt-5">
         <VRow>
           <ProductCard v-for="product in seller.shop.products" :key="product.id" :item="normalizeProduct(product)" />
         </VRow>
