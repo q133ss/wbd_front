@@ -31,17 +31,16 @@ export default {
     return response
   },
 
-  async topUpBuybacks(amount) {
+  async topUpBuybacks(id) {
     const token = useCookie('accessToken').value
     if (!token) return null
 
-    const response = await $api('/balance/buybacks', {
+    const response = await $api(`/balance/buybacks/${id}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ amount })
+      }
     })
 
     return response

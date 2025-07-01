@@ -280,8 +280,8 @@ onMounted(async () => {
     seller.value = response
   } catch (error) {
     if (error.status == 404) {
+      alert('Магазин не найден')
       //router.push('/not-found'); // Перенаправляем на 404 страницу
-      return;
     }
     console.error('Ошибка при загрузке данных продавца:', error)
   }

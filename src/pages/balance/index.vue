@@ -197,6 +197,15 @@ const withdraw = async () => {
   }
 }
 
+const declension = (number, titles) => {
+  const cases = [2, 0, 1, 1, 1, 2]
+  return titles[
+    number % 100 > 4 && number % 100 < 20
+      ? 2
+      : cases[number % 10 < 5 ? number % 10 : 5]
+    ]
+}
+
 const applyPromoCode = async () => {
   if (!promoCode.value) {
     snackbar.notify({
@@ -304,11 +313,15 @@ onMounted(async () => {
 // Buy tariff
 const buyTariff = async (tariff) => {
   try {
-    await api.balance.topUpBuybacks(tariff.buybacks_count)
-    snackbar.notify({
-      text: `Тариф "${tariff.name}" успешно приобретен`,
-      color: 'success'
-    })
+    const response = await api.balance.topUpBuybacks(tariff.id)
+    console.log(response)
+    const url = response.invoice.Url
+    location.href=url
+
+    // snackbar.notify({
+    //   text: `Тариф "${tariff.name}" успешно приобретен`,
+    //   color: 'success'
+    // })
   } catch (error) {
     const errorMessage = error.response?._data?.message || 'Ошибка при покупке тарифа'
     snackbar.notify({
@@ -351,15 +364,15 @@ const buyTariff = async (tariff) => {
               <div class="d-flex flex-column">
                 <div class="d-flex">
                   <span class="text-body-1 w-25">Сегодня:</span>
-                  <span class="font-weight-bold">1 выкуп</span>
+                  <span class="font-weight-bold">{{ spentToday }} {{ declension(spentToday, ['выкуп', 'выкупа', 'выкупов']) }}</span>
                 </div>
                 <div class="d-flex">
                   <span class="text-body-1 w-25">Вчера:</span>
-                  <span class="font-weight-bold">2 выкупа</span>
+                  <span class="font-weight-bold">{{spentYesterday}} {{ declension(spentYesterday, ['выкуп', 'выкупа', 'выкупов']) }}</span>
                 </div>
                 <div class="d-flex">
                   <span class="text-body-1 w-25">За 7 дней:</span>
-                  <span class="font-weight-bold">8 выкупов</span>
+                  <span class="font-weight-bold">{{spentLast7Days}} {{ declension(spentLast7Days, ['выкуп', 'выкупа', 'выкупов']) }}</span>
                 </div>
               </div>
             </div>
