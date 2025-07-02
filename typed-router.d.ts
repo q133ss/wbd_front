@@ -145,6 +145,8 @@ declare module 'vue-router/auto-routes' {
     'pages-pricing': RouteRecordInfo<'pages-pricing', '/pages/pricing', Record<never, never>, Record<never, never>>,
     'pages-typography': RouteRecordInfo<'pages-typography', '/pages/typography', Record<never, never>, Record<never, never>>,
     'pages-user-profile-tab': RouteRecordInfo<'pages-user-profile-tab', '/pages/user-profile/:tab', { tab: ParamValue<true> }, { tab: ParamValue<false> }>,
+    'payment-fail': RouteRecordInfo<'payment-fail', '/payment/fail', Record<never, never>, Record<never, never>>,
+    'payment-success': RouteRecordInfo<'payment-success', '/payment/success', Record<never, never>, Record<never, never>>,
     'privacy': RouteRecordInfo<'privacy', '/privacy', Record<never, never>, Record<never, never>>,
     'products-id': RouteRecordInfo<'products-id', '/products/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'profile': RouteRecordInfo<'profile', '/profile', Record<never, never>, Record<never, never>>,

@@ -116,39 +116,127 @@ onMounted(fetchCategories)
 </template>
 
 <style lang="scss" scoped>
+// Мобилка
+@media screen and (max-width: 650px) {
+  .category-name{
+    position: relative;
+    top: -200px;
+    z-index: 999;
+    height: 40px;
+    color: #000000;
+    text-align: left;
+    font-size: 15px!important;
+    margin-left: 16px;
+  }
 
-.category-name{
-  position: relative;
-  top: -100%;
-  z-index: 999;
-  height: 40px;
-  color: #000000;
-  text-align: left;
-  font-size: 15px!important;
-  margin-left: 16px;
+  .product-count{
+    position: relative;
+    top: -90px;
+    padding: 5px;
+    z-index: 999;
+    color: #000000!important;
+    background: #ffffffa1;
+    box-shadow: none!important;
+    border-radius: 20px;
+    font-size: 13px!important;
+    width: 60%;
+    margin-left: 15px;
+  }
+
+  .img-wrap{
+    //height: 285px;
+    width: 170px;
+    height: 235px;
+  }
+
+  .category-img{
+    border-radius: 20px;
+  }
 }
 
-.product-count{
-  position: relative;
-  top: -90px;
-  padding: 5px;
-  z-index: 999;
-  color: #000000!important;
-  background: #ffffffa1;
-  box-shadow: none!important;
-  border-radius: 20px;
-  font-size: 13px!important;
-  width: 60%;
-  margin-left: 15px;
+@media screen and (max-width: 520px){
+  .img-wrap{
+    //height: 285px;
+    width: 150px;
+    height: 200px;
+  }
+
+  .category-name{
+    top: -170px;
+  }
 }
 
-.img-wrap{
-  //height: 285px;
-  width: 200px;
-  height: 235px;
+@media screen and (max-width: 470px){
+  .img-wrap{
+    //height: 285px;
+    width: 130px;
+    height: 200px;
+  }
+
+  .category-name{
+    top: -150px;
+  }
+
+  .product-count{
+    width: 80%;
+  }
 }
 
-.category-img{
-  border-radius: 20px;
+@media screen and (max-width: 410px){
+  .img-wrap{
+    //height: 285px;
+    width: 100px;
+    height: 110px;
+  }
+
+  .category-name{
+    top: -120px;
+    font-size: 12px !important;
+  }
+
+  .product-count{
+    width: 85%;
+    top: -80px;
+    padding: 2px;
+    margin-left: 5px;
+  }
+}
+
+// Для десктопа
+@media screen and (min-width: 650px) {
+  .category-name{
+    position: relative;
+    top: -100%;
+    z-index: 999;
+    height: 40px;
+    color: #000000;
+    text-align: left;
+    font-size: 15px!important;
+    margin-left: 16px;
+  }
+
+  .product-count{
+    position: relative;
+    top: -90px;
+    padding: 5px;
+    z-index: 999;
+    color: #000000!important;
+    background: #ffffffa1;
+    box-shadow: none!important;
+    border-radius: 20px;
+    font-size: 13px!important;
+    width: 60%;
+    margin-left: 15px;
+  }
+
+  .img-wrap{
+    //height: 285px;
+    width: 200px;
+    height: 235px;
+  }
+
+  .category-img{
+    border-radius: 20px;
+  }
 }
 </style>

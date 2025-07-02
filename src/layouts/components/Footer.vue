@@ -33,7 +33,7 @@ import { themeConfig } from '@themeConfig'
               <br>
               <router-link to="/privacy">Политика конфидициальности</router-link>
               <br>
-              <router-link to="/sitemap.xml">Карта сайта</router-link>
+              <a href="https://wbd-back.ru/sitemap.xml" target="_blank" rel="noopener noreferrer">Карта сайта</a>
             </div>
           </VCol>
 
