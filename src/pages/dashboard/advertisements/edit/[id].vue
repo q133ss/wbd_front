@@ -230,7 +230,7 @@ const submitAd = async () => {
               </v-sheet>
             </v-col>
             <v-col cols="12" md="9">
-              <h2 class="text-h5">{{ ad.product.name }}</h2>
+              <h3 class="mb-3">{{ ad.product.name }}</h3>
               <p class="text-subtitle-1 mb-0 pb-0">Цена: <span class="text-black"><span class="total-cost">{{ ad.product.price }} ₽</span></span> </p>
               <p class="text-subtitle-1 mb-0 pb-0">Бренд: <span class="text-black">{{ ad.product.brand }} </span></p>
               <p class="text-subtitle-1">Доступно: <span class="text-black">{{ ad.product.quantity_available }} </span> шт.</p>
@@ -246,7 +246,7 @@ const submitAd = async () => {
               label="Название объявления"
               hint="Это название видно только вам"
               persistent-hint
-              class="mb-4"
+              class="ads-name"
               required
             />
 
@@ -258,7 +258,7 @@ const submitAd = async () => {
                 step="5"
                 max="100"
                 thumb-label="always"
-                class="mb-2"
+                class="mb-6"
               />
               <p class="text-body-1">
                 Цена для пользователя: {{ userPrice }} ₽
@@ -469,5 +469,9 @@ const submitAd = async () => {
 
 .user-price{
   font-weight: 600;
+}
+
+.m0-auto{
+  margin: 0 auto;
 }
 </style>

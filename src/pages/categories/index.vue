@@ -71,6 +71,7 @@ onMounted(fetchCategories)
           sm="4"
           md="3"
           lg="2"
+          class="category-col"
         >
           <!-- eslint-disable-next-line vue/component-name-in-template-casing -->
           <div
@@ -237,6 +238,18 @@ onMounted(fetchCategories)
 
   .category-img{
     border-radius: 20px;
+  }
+}
+
+@media (max-width: 1919px) {
+  .category-col {
+    min-width: 220px;
+  }
+}
+
+@media (max-width: 750px) {
+  .category-col {
+    min-width: auto;
   }
 }
 </style>

@@ -422,5 +422,9 @@ onUnmounted(() => {
     font-weight: 500;
     color: rgba(var(--v-theme-on-background), 0.55);
   }
+
+  .footer .v-container{
+    padding: 0!important;
+  }
 }
 </style>

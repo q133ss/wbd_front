@@ -364,15 +364,15 @@ const buyTariff = async (tariff) => {
               <div class="d-flex flex-column">
                 <div class="d-flex">
                   <span class="text-body-1 w-25">Сегодня:</span>
-                  <span class="font-weight-bold">{{ spentToday }} {{ declension(spentToday, ['выкуп', 'выкупа', 'выкупов']) }}</span>
+                  <span class="font-weight-bold">{{ parseInt(spentToday) }} {{ declension(spentToday, ['выкуп', 'выкупа', 'выкупов']) }}</span>
                 </div>
                 <div class="d-flex">
                   <span class="text-body-1 w-25">Вчера:</span>
-                  <span class="font-weight-bold">{{spentYesterday}} {{ declension(spentYesterday, ['выкуп', 'выкупа', 'выкупов']) }}</span>
+                  <span class="font-weight-bold">{{parseInt(spentYesterday)}} {{ declension(spentYesterday, ['выкуп', 'выкупа', 'выкупов']) }}</span>
                 </div>
                 <div class="d-flex">
                   <span class="text-body-1 w-25">За 7 дней:</span>
-                  <span class="font-weight-bold">{{spentLast7Days}} {{ declension(spentLast7Days, ['выкуп', 'выкупа', 'выкупов']) }}</span>
+                  <span class="font-weight-bold">{{parseInt(spentLast7Days)}} {{ declension(spentLast7Days, ['выкуп', 'выкупа', 'выкупов']) }}</span>
                 </div>
               </div>
             </div>

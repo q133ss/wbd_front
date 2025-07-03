@@ -8,7 +8,6 @@ const ability = useAbility()
 const userData = useCookie('userData')
 
 const logout = async () => {
-
   // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
 
@@ -16,7 +15,9 @@ const logout = async () => {
   userData.value = null
 
   // Redirect to login page
-  await router.push('/login')
+  // await router.push('/login')
+
+  router.push('/login').then(() => window.location.reload())
 
   // ℹ️ We had to remove abilities in then block because if we don't nav menu items mutation is visible while redirecting user to login page
 

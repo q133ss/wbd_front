@@ -451,7 +451,13 @@ const closeTgModal = () => {
           </td>
           <td>
             <div class="d-flex align-center">
-              <router-link :to="`/dashboard/advertisements/edit/${item.id}`">{{ item.name }}</router-link>
+              <router-link :to="`/dashboard/advertisements/edit/${item.id}`">
+                <VIcon
+                  size="16"
+                  icon="ri-pencil-fill"
+                  class="mr-2"
+                />
+                {{ item.name }}</router-link>
             </div>
           </td>
           <td>
@@ -477,7 +483,7 @@ const closeTgModal = () => {
             {{ truncateName(item.product.name) }}
           </td>
           <td>{{ parseInt(item.cashback_percentage) }}%</td>
-          <td>{{ item.redemption_count }}</td>
+          <td>{{item.completed_buybacks_count}} из {{ item.redemption_count }}</td>
           <td>{{ item.views_count }}</td>
           <td>{{ item.cr }}</td>
         </tr>

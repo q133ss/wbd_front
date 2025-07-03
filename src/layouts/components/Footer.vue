@@ -137,22 +137,25 @@ import { themeConfig } from '@themeConfig'
                 <ul>
                   <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
                     <VIcon
+                      color="#000"
                       icon="ri-mail-line"
-                      size="16"
+                      size="20"
                     />
                     contact@wbdiscount.pro
                   </li>
                   <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
                     <VIcon
+                      color="#000"
                       icon="ri-phone-line"
-                      size="16"
+                      size="20"
                     />
                     +7 (977) 687 58 92
                   </li>
                   <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
                     <VIcon
+                      color="#000"
                       icon="ri-map-pin-line"
-                      size="16"
+                      size="20"
                     />
                     г. Москва, вн. тер. г. муниципальный округ Лефортово, ул. Авиамоторная,д. 50 стр. 2, помещ. 29/2
                   </li>
@@ -287,9 +290,9 @@ import { themeConfig } from '@themeConfig'
   }
 }
 
-@media screen and (max-width: 600px) {
-  .layout-content-wrapper{
-    padding-bottom: 1000px !important;
-  }
-}
+//@media screen and (max-width: 600px) {
+//  .layout-content-wrapper{
+//    padding-bottom: 1000px !important;
+//  }
+//}
 </style>

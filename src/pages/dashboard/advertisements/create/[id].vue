@@ -89,13 +89,20 @@ const userPrice = computed(() => {
 })
 
 const totalCost = computed(() => {
-  const price = parseFloat(product.value.price)
-  const cashbackAmount = price * (adData.value.cashback_percentage / 100)
+  // Получаем необходимое количество байбеков из формы
   const neededRedemptions = adData.value.redemption_count
+
+  // Получаем доступное количество байбеков у пользователя
   const availableRedemptions = balance.value?.redemption_count || 0
+
+  // Вычисляем сколько нужно докупить (не может быть отрицательным)
   const additionalRedemptions = Math.max(0, neededRedemptions - availableRedemptions)
 
-  return Math.floor(cashbackAmount * neededRedemptions + additionalRedemptions * 95)
+  // Стоимость одного байбека фиксирована - 95 руб
+  const redemptionPrice = 95
+
+  // Общая стоимость = количество докупаемых байбеков * цена одного
+  return additionalRedemptions * redemptionPrice
 })
 
 const additionalRedemptions = computed(() => {
@@ -231,7 +238,7 @@ const submitAd = async () => {
               <p class="text-subtitle-1 mb-0 pb-0">Цена: <span class="text-black"><span class="total-cost">{{ product?.price }} ₽</span></span></p>
               <p class="text-subtitle-1 mb-0 pb-0">Бренд: <span class="text-black">{{ product?.brand }}</span></p>
               <p class="text-subtitle-1">
-                Доступно: <span class="text-black">{{ product?.quantity_available }}</span>
+                Артикул: <span class="text-black">{{ product?.wb_id }}</span>
               </p>
             </v-col>
           </v-row>
@@ -260,6 +267,8 @@ const submitAd = async () => {
               />
               <p class="text-body-1 user-price-wrap">
                 Цена для покупателя: <span class="total-cost user-price">{{ userPrice }} ₽</span>
+                <br>
+                Кэшбек для покупателя: <span class="total-cost user-price">{{ cashbackPerRedemption }} ₽ за выкуп</span>
               </p>
             </div>
 
