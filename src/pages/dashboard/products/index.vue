@@ -79,7 +79,7 @@ const toggleStatus = async (productId) => {
   } catch (error) {
     product.status = originalStatus // Откат при ошибке
     snackbar.notify({
-      text: 'Ошибка при изменении статуса',
+      text: error.response?._data.message ?? 'Ошибка при изменении статуса',
       color: 'error'
     })
   }
@@ -490,7 +490,7 @@ const handleFilterStatus = () => {
     </VTable>
 
     <!-- Пагинация -->
-    <div class="text-center mt-4" v-if="products?.length && !loading">
+    <div class="text-center mt-4" v-if="products?.length && !loading && totalItems > itemsPerPage">
       <div>{{ paginationText }}</div>
       <v-pagination
         v-model="currentPage"

@@ -98,7 +98,7 @@ const formatDate = (date) => {
 
       <!-- Статистика -->
       <VRow class="mt-2">
-        <VCol cols="12" lg="6" sm="6">
+        <VCol cols="12" lg="4" sm="4">
           <VCard class="position-relative">
             <VCardText>
               <div class="d-flex align-center flex-wrap">
@@ -119,7 +119,7 @@ const formatDate = (date) => {
             </VCardText>
           </VCard>
         </VCol>
-        <VCol cols="12" lg="6" sm="6">
+        <VCol cols="12" lg="4" sm="4">
           <VCard class="position-relative">
             <VCardText>
               <div class="d-flex align-center flex-wrap">
@@ -136,6 +136,27 @@ const formatDate = (date) => {
               </div>
               <h4 class="text-h6 mb-2">
                 Успешных выкупов
+              </h4>
+            </VCardText>
+          </VCard>
+        </VCol>
+        <VCol cols="12" lg="4" sm="4">
+          <VCard class="position-relative">
+            <VCardText>
+              <div class="d-flex align-center flex-wrap">
+                <h3
+                  class="text-h4 me-2"
+                  :class="{
+                    'text-success': buyer.average_response_time < 5,
+                    'text-warning': buyer.average_response_time  > 10 && buyer.average_response_time  < 30,
+                    'text-error': buyer.average_response_time   > 30,
+                  }"
+                >
+                  {{ buyer.average_response_time }} мин
+                </h3>
+              </div>
+              <h4 class="text-h6 mb-2">
+                Среднее время ответа
               </h4>
             </VCardText>
           </VCard>

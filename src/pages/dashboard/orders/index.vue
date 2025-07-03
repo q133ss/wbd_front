@@ -411,7 +411,7 @@ onUnmounted(() => {
             size="small"
             @click="backToChats"
             variant="outlined"
-            class="mb-3"
+            class="mb-3 back-btn"
             prepend-icon="ri-arrow-left-line"
           >
             Вернуться назад
@@ -772,6 +772,13 @@ onUnmounted(() => {
   }
   .chat-log {
     min-height: 60vh !important;
+  }
+}
+
+@media screen and (max-width: 600px){
+  .back-btn{
+    margin-top: 30px;
+    margin-left: 20px;
   }
 }
 </style>

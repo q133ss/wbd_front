@@ -142,7 +142,7 @@
                     'text-error': seller.cashback_paid < 1000
                   }"
               >
-                {{ seller.cashback_paid }}%
+                {{ seller.cashback_paid }} руб
               </h3>
             </div>
 
@@ -164,17 +164,17 @@
                 <h3
                   class="text-h4 me-2"
                   :class="{
-                    'text-success': seller.product_rating >= 4,
-                    'text-warning': seller.product_rating >= 2 && seller.product_rating < 3,
-                    'text-error': seller.product_rating < 2
+                    'text-success': seller.user_rating >= 4,
+                    'text-warning': seller.user_rating >= 2 && seller.user_rating < 3,
+                    'text-error': seller.user_rating < 2
                   }"
                 >
-                  {{ seller.product_rating }}
+                  {{ seller.user_rating }}
                 </h3>
               </div>
 
               <h4 class="text-h6 mb-2">
-                Рейтинг товаров
+                Рейтинг магазина
               </h4>
             </VCardText>
           </VCard>
@@ -192,17 +192,17 @@
                 <h3
                   class="text-h4 me-2"
                   :class="{
-                    'text-success': seller.total_reviews >= 15,
-                    'text-warning': seller.total_reviews >= 5 && seller.total_reviews < 15,
-                    'text-error': seller.total_reviews < 5
+                    'text-success': seller.average_response_time  < 5,
+                    'text-warning': seller.average_response_time  <= 5 && seller.average_response_time  > 15,
+                    'text-error': seller.average_response_time > 5
                   }"
                 >
-                  {{ seller.total_reviews }}
+                  {{ seller.average_response_time  }} мин.
                 </h3>
               </div>
 
               <h4 class="text-h6 mb-2">
-                Оценок товаров
+                Среднее время ответа
               </h4>
             </VCardText>
           </VCard>

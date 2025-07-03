@@ -64,8 +64,7 @@ export default {
     alfaCard,
     vtbCard,
     raiffeisenCard,
-    gazprombankCard,
-    active
+    gazprombankCard
   ) {
     const token = useCookie('accessToken').value
     if (!token) return null
@@ -79,16 +78,15 @@ export default {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          sbp: sbpPhone.replace(/\s/g, ''),
+          sbp: sbpPhone?.replace(/\s/g, ''),
           sbp_comment: sbpComment,
-          sber: sberCard.replace(/\s/g, ''),
-          tbank: tbankCard.replace(/\s/g, ''),
-          ozon: ozonCard.replace(/\s/g, ''),
-          alfa: alfaCard.replace(/\s/g, ''),
-          vtb: vtbCard.replace(/\s/g, ''),
-          raiffeisen: raiffeisenCard.replace(/\s/g, ''),
-          gazprombank: gazprombankCard.replace(/\s/g, ''),
-          active: active
+          sber: sberCard?.replace(/\s/g, ''),
+          tbank: tbankCard?.replace(/\s/g, ''),
+          ozon: ozonCard?.replace(/\s/g, ''),
+          alfa: alfaCard?.replace(/\s/g, ''),
+          vtb: vtbCard?.replace(/\s/g, ''),
+          raiffeisen: raiffeisenCard?.replace(/\s/g, ''),
+          gazprombank: gazprombankCard?.replace(/\s/g, '')
         })
       })
 

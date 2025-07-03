@@ -33,16 +33,21 @@ const handleError = (error, errMessage = 'Произошла неизвестн�
 
 const form = ref({
   name: '',
+  email: '',
   password: '',
   password_confirmation: ''
 })
 
 const router = useRouter()
 
+const userData = useCookie('userData')
+console.log(userData.value)
+
 const completeRegistration = async () => {
   try{
     const response = await api.auth.completeRegistration({
       name: form.value.name,
+      email: form.value.email,
       password: form.value.password,
       password_confirmation: form.value.password_confirmation
     })
@@ -125,6 +130,15 @@ const completeRegistration = async () => {
                   label="Имя"
                   placeholder="Алексей"
                   type="text"
+                />
+
+                <VTextField
+                  v-if="userData.role?.slug == 'seller'"
+                  class="mb-2"
+                  v-model="form.email"
+                  label="Email"
+                  placeholder="mail@email.ru"
+                  type="email"
                 />
 
                 <VTextField

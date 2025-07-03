@@ -39,18 +39,21 @@ const showShopConfirmModal = ref(false)
 const adData = ref(null)
 const shopData = ref(null)
 
+const userData = useCookie('userData')
+
 // Truncate name to 27 characters
 const truncateName = (name, lenght = 27) => {
   if (!name) return ''
   return name.length > lenght ? name.slice(0, lenght) + '...' : name
 }
 
+const showTelegramModal = ref(false)
 // Load advertisements
 const loadAds = async () => {
 
-  if(route.query.ad_id){
-    
-  }
+  // if(route.query.ad_id){
+  //   //
+  // }
 
   try {
     loading.value = true
@@ -72,6 +75,10 @@ const loadAds = async () => {
     const response = await api.ads.getAds(params)
     ads.value = response.data
     totalItems.value = response.total || 0
+
+    if(totalItems.value == 1 && userData.telegram_id == null){
+      showTelegramModal.value = true
+    }
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка при загрузке объявлений',
@@ -131,6 +138,11 @@ const loadProducts = async () => {
 
 // Open product selection modal
 const openProductModal = () => {
+  if (route.query.product_id != undefined) {
+    showProductModal.value = false
+    router.push(`/dashboard/advertisements/create/${route.query.product_id}`)
+    return
+  }
   showAddModal.value = false
   showProductModal.value = true
   productSearchQuery.value = ''
@@ -267,6 +279,40 @@ const selectedImage = ref('')
 const openImage = (url) => {
   selectedImage.value = url || 'https://via.placeholder.com/48'
   imageModal.value = true
+}
+
+
+const telegramLinkCookie = useCookie('telegramBotLink')
+const qrCodeLink = ref(null)
+const qrCodeSrc = ref('')
+
+const connectTelegram = async () => {
+  if (telegramLinkCookie.value) {
+    window.open(telegramLinkCookie.value, '_blank')
+  } else {
+    const response = await api.profile.getTelegramLink()
+    if (response?.link) {
+      qrCodeLink.value = response.link
+      telegramLinkCookie.value = response.link
+      window.open(response.link, '_blank')
+    }
+  }
+}
+
+if (telegramLinkCookie.value) {
+  qrCodeLink.value = telegramLinkCookie.value
+  qrCodeSrc.value = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrCodeLink.value)}&size=200x200`
+} else {
+  const response = await api.profile.getTelegramLink()
+  if (response?.link) {
+    qrCodeLink.value = response.link
+    telegramLinkCookie.value = response.link
+    qrCodeSrc.value = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(response.link)}&size=200x200`
+  }
+}
+
+const closeTgModal = () => {
+  showTelegramModal.value = false
 }
 </script>
 
@@ -445,7 +491,7 @@ const openImage = (url) => {
     </VTable>
 
     <!-- Пагинация -->
-    <div class="text-center mt-4" v-if="ads.length && !loading">
+    <div class="text-center mt-4" v-if="ads.length && !loading && totalItems > itemsPerPage">
       <div>{{ paginationText }}</div>
       <v-pagination
         v-model="currentPage"
@@ -626,6 +672,49 @@ const openImage = (url) => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <VDialog
+      v-model="showTelegramModal"
+      persistent
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="d-flex justify-space-between align-center">
+          <span>Подключите Telegram бота</span>
+        </VCardTitle>
+
+        <div class="d-flex justify-center">
+          <img
+            :src="qrCodeSrc"
+            alt="Telegram QR Code"
+            width="150"
+            height="150"
+            class="cursor-pointer"
+            @click="connectTelegram"
+          />
+        </div>
+        <p class="text-center mt-4">Подключите телеграм бота, чтобы получать уведомления о новых выкупах вашего товара
+          от покупателей и статусах этих выкупов.</p>
+        <p class="text-center">Отсканируйте QR-код для подключения к Telegram-боту</p>
+        <div class="text-center">
+          <VBtn variant="outlined" @click="connectTelegram" color="primary" append-icon="ri-telegram-2-fill">Подключить</VBtn>
+        </div>
+
+        <VCardText>
+
+        </VCardText>
+
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="secondary"
+            @click="closeTgModal"
+          >
+            Закрыть
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
   </v-container>
 </template>

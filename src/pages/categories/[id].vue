@@ -189,7 +189,7 @@ watch(() => route.params.id, (newId) => {
         </VCol>
 
         <!-- Блок товаров -->
-        <VCol cols="12" md="9">
+        <VCol cols="12" md="9" class="filters-block">
           <!-- Фильтры -->
           <VCard class="mb-4">
             <VCardText>
@@ -330,6 +330,12 @@ watch(() => route.params.id, (newId) => {
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .filters-block {
+    display: none;
   }
 }
 </style>

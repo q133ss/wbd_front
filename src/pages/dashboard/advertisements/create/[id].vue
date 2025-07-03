@@ -200,7 +200,7 @@ const submitAd = async () => {
 
 <template>
   <div class="create-ad-container">
-    <div class="content-wrapper">
+    <div class="content-wrapper m0-auto">
       <h1 class="text-h4 mb-2">Создание объявления</h1>
       <p class="text-body-1 mb-6">Создайте объявление для продвижения вашего товара с кэшбеком за отзыв</p>
 
@@ -398,6 +398,10 @@ const submitAd = async () => {
 .content-wrapper {
   max-width: 800px;
   margin-left: 0;
+}
+
+.m0-auto{
+  margin: 0 auto;
 }
 
 .product-info,

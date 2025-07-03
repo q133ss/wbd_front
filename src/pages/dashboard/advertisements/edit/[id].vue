@@ -203,7 +203,7 @@ const submitAd = async () => {
 
 <template>
   <div class="edit-ad-container">
-    <div class="content-wrapper">
+    <div class="content-wrapper m0-auto">
       <h1 class="text-h4 mb-2">Редактирование объявления</h1>
       <p class="text-body-1 mb-6">Отредактируйте объявление для продвижения вашего товара с кэшбеком за отзыв</p>
 

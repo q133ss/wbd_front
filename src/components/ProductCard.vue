@@ -42,6 +42,42 @@
           <span class="text-body-2 text-disabled text-decoration-line-through">
             {{ parseInt(item.product.price) }} ₽
           </span>
+
+          <VTooltip location="top">
+            <template #activator="{ props }">
+              <VBtn
+                v-bind="props"
+                variant="text"
+                color="primary"
+                icon
+                size="small"
+              >
+                <VIcon
+                  size="20"
+                  icon="ri-question-line"
+                />
+              </VBtn>
+            </template>
+
+            <!-- Содержимое подсказки -->
+            <div class="price-tooltip">
+              <div class="d-flex align-center mb-2">
+                <span class="font-weight-bold text-primary">{{ parseInt(item.price_with_cashback) }} ₽</span>
+                <span class="ml-2">- цена для вас с учетом кэшбека</span>
+              </div>
+
+              <div class="d-flex align-center mb-2">
+                <span class="font-weight-bold text-primary">{{ parseInt(item.product.price) - parseInt(item.price_with_cashback) }} ₽</span>
+                <span class="ml-2">- продавец вернет вам на карту</span>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="font-weight-bold text-primary">{{ parseInt(item.product.price) }} ₽</span>
+                <span class="ml-2">- цена на Wildberries</span>
+              </div>
+            </div>
+          </VTooltip>
+
         </div>
       </div>
 
@@ -57,6 +93,8 @@
 </template>
 
 <script setup>
+import { ref } from "vue"
+
 const props = defineProps({
   item: {
     type: Object,
@@ -73,6 +111,7 @@ const props = defineProps({
     })
   }
 });
+const isDialogVisible = ref(false)
 </script>
 
 <style scoped>
