@@ -40,102 +40,79 @@ const teamData = ref([
     isHover: false,
   },
 ])
+
+const statData = ref([
+  {
+    title: 'Загрузите товар по артикулу, укажите размер кэшбека, ключевые слова для поиска и критерии к отзыву',
+    value: 'Выложите объявление',
+    icon: 'ri-layout-line',
+    color: 'primary',
+    isHover: false,
+  },
+  {
+    title: 'Полная автоматизация. Вам остается только проверять фотографии которые отправляют покупатели',
+    value: 'Получайте заявки от покупателей',
+    icon: 'ri-time-line',
+    color: 'success',
+    isHover: false,
+  },
+  {
+    title: 'Отпраляйте кэшбек только тем покупателям, которые полностью выполнили все условия выкупа с отзывом',
+    value: 'Выплачивайте кэшбек',
+    icon: 'ri-user-smile-line',
+    color: 'warning',
+    isHover: false,
+  }
+])
 </script>
 
 <template>
+  <hr>
   <VContainer id="team">
-    <div class="our-team">
-      <div class="headers d-flex justify-center flex-column align-center">
-        <Component
-          :is="frontPageElement"
-          class="front-page-element"
-        />
-
-        <div class="d-flex gap-x-3 mb-6">
-          <img
-            :src="sectionTitleIcon"
-            alt="section title icon"
-            height="24"
-            width="25"
-          >
-          <div class="text-body-1 text-high-emphasis font-weight-medium">
-            OUR GREAT TEAM
-          </div>
-        </div>
-
-        <div class="mb-2">
-          <span
-            class="text-h4 d-inline-block font-weight-bold"
-            style="line-height: 2rem;"
-          >
-            Supported
-          </span> <span class="text-h5 d-inline-block">by Real People</span>
-        </div>
-
-        <p
-          class="text-body-1 font-weight-medium text-center"
-          style="letter-spacing: 0.15px !important;"
-        >
-          Who is behind these great-looking interfaces?
-        </p>
-      </div>
-
-      <VRow>
-        <VCol
-          v-for="(data, index) in teamData"
-          :key="index"
-          cols="12"
-          lg="3"
-          sm="6"
-        >
-          <VCard
-            flat
-            variant="outlined"
-            min-width="267"
-            class="position-relative overflow-visible mt-16"
-            :style="data.isHover ? { border: `1px solid ${data.borderColor}` } : {}"
-            @mouseenter="data.isHover = true"
-
-            @mouseleave="data.isHover = false"
-          >
-            <VImg
-              :src="data.image"
-              height="240px"
-              class="team-image"
-            />
-            <div :style="{ 'maxHeight': '185px', 'minHeight': '185px', 'backgroundColor': data.backgroundColor, 'border-top-left-radius': '0.625rem', 'border-top-right-radius': '0.625rem' }" />
-            <VCardText class="text-center">
-              <div class="mb-3">
-                <h5 class="text-h5">
-                  {{ data.name }}
-                </h5>
-                <div class="text-body-1">
-                  {{ data.position }}
-                </div>
-              </div>
-
-              <div class="d-flex gap-x-2 align-center justify-center">
-                <template
-                  v-for="{ icon, color } in [
-                    { icon: 'ri-facebook-circle-line', color: 'rgba(59, 89, 152, 1)', link: 'https://www.facebook.com/' },
-                    { icon: 'ri-twitter-line', color: 'rgba(0, 172, 238, 1)', link: 'https://twitter.com/' },
-                    { icon: 'ri-linkedin-box-line', color: 'rgba(0, 119, 181, 1)', link: 'https://linkedin.com' },
-                  ]"
-                  :key="color"
-                >
-                  <VIcon
-                    :icon="icon"
-                    size="22"
-                    :color="data.isHover ? color : ''"
-                    class="cursor-pointer"
-                  />
-                </template>
-              </div>
-            </VCardText>
-          </VCard>
-        </VCol>
-      </VRow>
+    <div class="text-center step-headers">
+      <h3 class="feature-heading">
+        Сделай 1-2-3 и получи результат
+      </h3>
     </div>
+
+
+    <div :style="{ 'background-color': 'rgb(var(--v-theme-surface))' }">
+      <VContainer>
+        <div class="py-12">
+          <VRow>
+            <VCol
+              v-for="(product, index) in statData"
+              :key="index"
+            >
+              <VCard flat>
+                <VCardText class="text-center">
+                  <VAvatar
+                    size="82"
+                    :color="product.color"
+                    :variant="product.isHover ? 'elevated' : 'tonal'"
+                    class="mb-6 cursor-pointer"
+                    @mouseenter="() => product.isHover = true"
+                    @mouseleave="product.isHover = false"
+                  >
+                    <VIcon
+                      :icon="product.icon"
+                      size="42"
+                    />
+                  </VAvatar>
+                  <div class="product-stat-text">
+                    {{ product.value}}
+                  </div>
+                  <div class="text-body-1 font-weight-medium product-stat-title mt-2">
+                    {{ product.title }}
+                  </div>
+                </VCardText>
+              </VCard>
+            </VCol>
+          </VRow>
+        </div>
+      </VContainer>
+    </div>
+
   </VContainer>
 </template>
 
@@ -159,5 +136,22 @@ const teamData = ref([
   position: absolute;
   inset-block-start: 0;
   inset-inline-end: 0;
+}
+
+.product-stat-text {
+  color: #33465A;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.product-stat-title{
+  font-size: 15px;
+  font-weight: 700;
+  color: #33465A;
+}
+
+.step-headers{
+  margin-top: 50px;
+  margin-bottom: 0;
 }
 </style>

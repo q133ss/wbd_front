@@ -12,36 +12,19 @@ const message = ref('')
   <VContainer id="contact-us">
     <!-- 👉 Headers  -->
     <div class="contact-us-section">
-      <div class="headers d-flex justify-center flex-column align-center pb-15">
-        <Component
-          :is="frontPageVectorImg"
-          class="front-page-vector"
-        />
-        <div class="d-flex gap-x-3 mb-6">
-          <img
-            :src="sectionTitleIcon"
-            alt="section title icon"
-            height="24"
-            width="25"
-          >
-          <div class="text-body-1 text-high-emphasis font-weight-medium">
-            CONTACT US
-          </div>
-        </div>
 
-        <div class="mb-2 text-center">
-          <span
-            class="text-h4 d-inline-block font-weight-bold"
-            style="line-height: 2rem;"
-          >
-            Let's work
-          </span> <span class="text-h5 d-inline-block">together</span>
-        </div>
-
-        <p class="text-body-1 font-weight-medium text-center mb-0">
-          Any question or remark? just write us a message
-        </p>
+      <div class="text-center feature-text-block">
+        <span class="feature-subheading">
+          Обратная связь
+        </span>
+        <h3 class="feature-heading">
+          Свяжитесь с нами
+        </h3>
+        <span class="feature-subheading">
+        Остались вопросы по работе сервиса или хотите предложить идею или сотрудничество?
+      </span>
       </div>
+
       <div class="mb-15">
         <VRow class="match-height">
           <VCol
@@ -57,11 +40,12 @@ const message = ref('')
             >
               <VCardText class="pa-8">
                 <h6 class="text-h6 mb-1">
-                  Let's contact with us
+                  Напишите нам
                 </h6>
 
                 <h4 class="text-h4">
-                  Share your ideas or requirement with our experts.
+                  Остались вопросы?
+                  Наша команда поддержки ответит вам!
                 </h4>
 
                 <VImg
@@ -70,7 +54,7 @@ const message = ref('')
                 />
 
                 <div class="text-body-1">
-                  Looking for more customization, more features, and more anything? Don't worry, We've provide you with an entire team of experienced professionals.
+                  Хотите предложить сотрудничество? Предложить идею? Узнать информацию о работе сервиса? Свяжитесь с нами и получите ответ в течение 24 часов
                 </div>
               </VCardText>
             </VCard>
@@ -83,7 +67,7 @@ const message = ref('')
             <VCard>
               <VCardText>
                 <div class="text-h5 mb-5">
-                  Share your ideas
+                  Форма обратной связи
                 </div>
                 <VForm @submit.prevent="() => {}">
                   <VRow>
@@ -93,8 +77,8 @@ const message = ref('')
                     >
                       <VTextField
                         v-model="name"
-                        placeholder="John Doe"
-                        label="Full Name"
+                        placeholder="Иван Иванов"
+                        label="Имя"
                       />
                     </VCol>
 
@@ -104,22 +88,22 @@ const message = ref('')
                     >
                       <VTextField
                         v-model="email"
-                        placeholder="johndoe@gmail.com"
-                        label="Email address"
+                        placeholder="mail@email.ru"
+                        label="Email"
                       />
                     </VCol>
 
                     <VCol cols="12">
                       <VTextarea
                         v-model="message"
-                        placeholder="Type Your message"
-                        label="Message"
+                        placeholder="Введите ваше сообщение"
+                        label="Сообщение"
                       />
                     </VCol>
 
                     <VCol>
                       <VBtn type="submit">
-                        Send Inquiry
+                        Отправить
                       </VBtn>
                     </VCol>
                   </VRow>

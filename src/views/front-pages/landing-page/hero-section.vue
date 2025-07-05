@@ -4,8 +4,8 @@ import { useTheme } from 'vuetify'
 import { useGenerateImageVariant } from '@/@core/composable/useGenerateImageVariant'
 import darkBg from '@images/front-pages/backgrounds/hero-bg-dark.png'
 import lightBg from '@images/front-pages/backgrounds/hero-bg.png'
-import heroDashboardImgDark from '@images/front-pages/landing-page/hero-dashboard-dark.png'
-import heroDashboardImgLight from '@images/front-pages/landing-page/hero-dashboard-light.png'
+import heroDashboardImgDark from '@images/front-pages/landing-page/banner.png'
+import heroDashboardImgLight from '@images/front-pages/landing-page/banner.png'
 import heroElementsImgDark from '@images/front-pages/landing-page/hero-elements-dark.png'
 import heroElementsImgLight from '@images/front-pages/landing-page/hero-elements-light.png'
 
@@ -47,24 +47,24 @@ const translateMouse = computed(() => speed => {
         <div class="text-center pt-6 pb-16">
           <div class="mb-4 landing-page-title">
             <div>
-              All in one sass application
+              Биржа живых отзывов и выкупов
             </div>
-            for your business
+            от реальных покупателей
           </div>
           <div class="text-body-1 font-weight-medium text-high-emphasis pb-8">
             <p class="mb-0">
-              No coding required to make customization
+              WBdiscount — это инструмент, который помогает вам быстро поднимать карточки в поиске,
             </p>
             <p class="mb-0">
-              The live customer has everything your marketing needs
+              увеличивать продажи и собирать качественные отзывы без риска и ручной рутины.
             </p>
           </div>
           <VBtn
-            :to="{ name: 'front-pages-landing-page', hash: `#pricing-plan` }"
+            to="/seller/login"
             size="large"
             :active="false"
           >
-            Get Early Access
+            Начать продвижение
           </VBtn>
         </div>
 

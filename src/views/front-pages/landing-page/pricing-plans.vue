@@ -1,205 +1,91 @@
 <script setup>
-import sectionTitleIcon from '@images/pages/section-title-icon.png'
-import frontPageVectorImg from '@images/svg/front-page-vector.svg'
-import ListArrowIcon from '@images/svg/list-arrow-icon.svg'
-import VectorIcon from '@images/svg/vector.svg'
+import { onMounted, ref } from "vue"
+import api from "@/api/index.js"
 
-const pricingPlans = [
-  {
-    title: 'Basic Plan',
-    price: 20,
-    features: [
-      'Timeline',
-      'Basic search',
-      'Live chat widget',
-      'Email marketing',
-      'Custom Forms',
-      'Traffic analytics',
-    ],
-    supportType: 'Basic',
-    supportMedium: 'Only Email',
-    respondTime: 'AVG. Time: 24h',
-    current: false,
-  },
-  {
-    title: 'Favourite Plan',
-    price: 51,
-    features: [
-      'Everything in basic',
-      'Timeline with database',
-      'Advanced search',
-      'Marketing automation',
-      'Advanced chatbot',
-      'Campaign management',
-    ],
-    supportType: 'Standard',
-    supportMedium: 'Email & Chat',
-    respondTime: 'AVG. Time: 6h',
-    current: true,
-  },
-  {
-    title: 'Standard Plan',
-    price: 99,
-    features: [
-      'Campaign management',
-      'Timeline with database',
-      'Fuzzy search',
-      'A/B testing sanbox',
-      'Custom permissions',
-      'Social media automation',
-    ],
-    supportType: 'Exclusive',
-    supportMedium: 'Email, Chat & Google Meet',
-    respondTime: 'Live Support',
-    current: false,
-  },
-]
+const tariffs = ref([])
+
+const getBuybackDeclension = (count) => {
+  const num = Math.abs(count)
+  if (num % 10 === 1 && num % 100 !== 11) {
+    return 'выкуп'
+  } else if ([2, 3, 4].includes(num % 10) && ![12, 13, 14].includes(num % 100)) {
+    return 'выкупа'
+  } else {
+    return 'выкупов'
+  }
+}
+
+onMounted(async () => {
+  try {
+    const response = await api.tariff.getLandingTariffList()
+    tariffs.value = response || []
+  } catch (error) {
+    snackbar.notify({
+      text: 'Ошибка загрузки тарифов',
+      color: 'error'
+    })
+  }
+})
 </script>
 
 <template>
+  <hr>
+  <div class="text-center feature-text-block">
+        <span class="feature-subheading">
+          Тарифные планы:
+        </span>
+    <h3 class="feature-heading">
+      Сколько это стоит?
+    </h3>
+    <span class="feature-subheading">
+      Приобретайте выкупы с выгодой до 20%
+    </span>
+  </div>
+
   <VContainer id="pricing-plan">
-    <div class="pricing-plans d-flex flex-column gap-12">
-      <!-- 👉 Headers  -->
-      <div class="headers d-flex justify-center flex-column align-center">
-        <Component
-          :is="frontPageVectorImg"
-          class="front-page-vector"
-        />
-
-        <div class="d-flex gap-x-3 mb-6">
-          <img
-            :src="sectionTitleIcon"
-            alt="section title icon"
-            height="24"
-            width="25"
-          >
-          <div class="text-body-1 text-high-emphasis font-weight-medium">
-            PRICING PLANS
-          </div>
-        </div>
-
-        <div class="mb-2 text-center">
-          <span
-            class="text-h4 d-inline-block font-weight-bold"
-            style="line-height: 2rem;"
-          >
-            Tailored pricing plans
-          </span> <span class="text-h5 d-inline-block">designed for you</span>
-        </div>
-
-        <p class="text-body-1 font-weight-medium text-center mb-0">
-          All plans include 40+ advanced tools and features to boost your product. <br>
-          Choose the best plan to fit your needs.
-        </p>
-      </div>
-
-      <div class="w-75 mx-auto">
-        <VSlider
-          id="pricing-plan-slider"
-          model-value="458+"
-          max="1249"
-          color="primary"
-          thumb-label="always"
-          class="mt-1"
-        />
-      </div>
-
-      <VRow>
-        <VCol
-          v-for="(plan, index) in pricingPlans"
-          :key="index"
-        >
-          <VCard
-            flat
-            border
-            :style="plan.current ? 'border:2px solid rgb(var(--v-theme-primary))' : ''"
-          >
-            <VCardText class="pa-lg-8 text-no-wrap">
-              <div class="d-flex flex-column gap-y-8">
-                <div class="d-flex flex-column  gap-y-3">
-                  <h4 class="text-h4 text-center">
-                    {{ plan.title }}
-                  </h4>
-
-                  <div class="d-flex align-center gap-x-3">
-                    <div class="d-flex">
-                      <h5
-                        class="text-h5"
-                        style="margin-block-start: 0.35rem;"
-                      >
-                        $
-                      </h5>
-                      <div class="plan-price-text">
-                        {{ plan.price }}
-                      </div>
-                    </div>
-                    <div>
-                      <div class="text-body-1 font-weight-medium text-high-emphasis">
-                        Per month
-                      </div>
-                      <div class="text-body-2">
-                        10% off for yearly subscription
-                      </div>
-                    </div>
-                  </div>
-
-                  <VectorIcon />
-                </div>
-
-                <div class="d-flex flex-column">
-                  <VList class="card-list">
-                    <VListItem
-                      v-for="(item, i) in plan.features"
-                      :key="i"
-                    >
-                      <template #prepend>
-                        <Component
-                          :is="ListArrowIcon"
-                          class="me-3"
-                        />
-                      </template>
-                      <h5 class="text-h5">
-                        {{ item }}
-                      </h5>
-                    </VListItem>
-                  </VList>
-
-                  <VDivider class="my-4" />
-
-                  <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-                    <div>
-                      <div class="text-body-1 font-weight-medium text-high-emphasis mb-1">
-                        {{ plan.supportType }} Support
-                      </div>
-                      <div class="text-body-2">
-                        {{ plan.supportMedium }}
-                      </div>
-                    </div>
-
-                    <VChip
-                      variant="tonal"
-                      color="primary"
-                      size="small"
-                      class="font-weight-medium"
-                    >
-                      {{ plan.respondTime }}
-                    </VChip>
-                  </div>
-                </div>
-
-                <VBtn
-                  block
-                  :variant="plan.current ? 'elevated' : 'outlined'"
-                  :to="{ name: 'front-pages-payment' }"
-                >
-                  Get Started
-                </VBtn>
+    <v-row>
+      <v-col
+        v-for="tariff in tariffs"
+        :key="tariff.id"
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+      >
+        <v-card class="tariff-card pa-6" min-height="400">
+          <div class="card-content">
+            <div class="d-flex justify-between">
+              <h2 class="text-h5 mb-4 font-weight-bold tariff-name">{{ tariff.name }}</h2>
+              <div class="tariff-badge">Бессрочно</div>
+            </div>
+            <p class="text-h6 font-weight-bold mb-2">{{ tariff.price }} ₽</p>
+            <p class="text-body-1 mb-4">
+              {{ tariff.buybacks_count }} {{ getBuybackDeclension(tariff.buybacks_count) }}
+            </p>
+            <v-divider class="mb-4" />
+            <div class="min-100">
+              <div
+                v-for="(advantage, index) in tariff.advantages"
+                :key="index"
+                class="text-body-2 adv-item"
+              >
+                {{ advantage }}
               </div>
-            </VCardText>
-          </VCard>
-        </VCol>
-      </VRow>
-    </div>
+            </div>
+            <p class="text-body-1 mt-12 text-center opacity-50">
+              Стоимость выкупа: {{ tariff.redemption_price }} ₽
+            </p>
+          </div>
+          <v-btn
+            width="100%"
+            color="primary"
+            to="/seller/login"
+          >
+            начать продвижение
+          </v-btn>
+        </v-card>
+      </v-col>
+    </v-row>
   </VContainer>
 </template>
 
@@ -226,5 +112,58 @@ const pricingPlans = [
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
+}
+
+.justify-between{
+  justify-content: space-between;
+  align-items: start;
+}
+
+.tariff-name{
+  font-size: 20px!important;
+}
+
+.tariff-badge{
+  color: #175CD3;
+  background-color: #EFF8FF;
+  padding: 5px 10px;
+  font-size: 13px;
+  border-radius: 35px;
+}
+
+.min-100{
+  min-height: 100px;
+}
+
+.advantages-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  text-decoration: none;
+
+  li {
+    margin-bottom: 8px;
+  }
+}
+
+.adv-item {
+  display: flex; // Добавляем flex для выравнивания
+  align-items: flex-start; // Выравниваем по верхнему краю
+  margin-bottom: 8px;
+  padding-left: 30px; // Отступ для иконки
+  position: relative; // Для позиционирования псевдоэлемента
+  font-size: 14px!important;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px; // Подправляем вертикальное выравнивание
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='18' height='18' rx='9' fill='%23D1FADF'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12.8215 5.5425L7.45152 10.725L6.02652 9.2025C5.76402 8.955 5.35152 8.94 5.05152 9.15C4.75902 9.3675 4.67652 9.75 4.85652 10.0575L6.54402 12.8025C6.70902 13.0575 6.99402 13.215 7.31652 13.215C7.62402 13.215 7.91652 13.0575 8.08152 12.8025C8.35152 12.45 13.504 6.3075 13.504 6.3075C14.179 5.6175 13.3615 5.01 12.8215 5.535V5.5425Z' fill='%2312B76A'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    flex-shrink: 0; // Запрещаем сжатие
+    margin-right: 6px; // Отступ между иконкой и текстом
+  }
 }
 </style>

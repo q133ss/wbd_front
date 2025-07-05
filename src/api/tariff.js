@@ -15,6 +15,14 @@ export default {
     return response
   },
 
+  async getLandingTariffList() {
+    const response = await $api('/landing/tariffs', {
+      method: 'GET'
+    })
+
+    return response
+  },
+
   async getTariffById(id) {
     const token = useCookie('accessToken').value
     if (!token) return null

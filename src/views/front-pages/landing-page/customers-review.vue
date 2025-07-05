@@ -27,71 +27,61 @@ const brandLogo5 = useGenerateImageVariant(logo5light, logo5dark)
 
 const reviewData = [
   {
-    desc: 'I\'ve never used a theme as versatile and flexible as Vuexy. It\'s my go to for building dashboard sites on almost any project.',
-    img: logo1,
+    desc: 'Пользуюсь WBD для продвижения нулевых карточек. В тг группах тратила на переписки часы, а тут то же самое за 15 минут.',
     rating: 5,
-    name: 'Eugenia Moore',
-    position: 'Founder of Hubspot',
+    name: 'Ирина',
+    position: 'Продавец на WB',
+  },
+  {
+    desc: 'Очень удобно. Закинул деньги и всё работает без моего участия. Главное не надо объяснять каждому покупателю, что делать.',
+    rating: 5,
+    name: 'Игорь',
+    position: 'Продавец на WB',
+  },
+  {
+    desc: 'Ни одного фейкового отзыва, всё подтверждается фото и видео. Конверсия карточки выросла на 30% после живых отзывов с фото!',
+    rating: 4,
+    name: 'Максим К.',
+    position: 'Продавец на WB',
+  },
+  {
+    desc: 'All the requirements for developers have been taken into consideration, so I\'m able to build any interface I want.',
+    rating: 5,
+    name: 'Sara Smith',
+    position: 'Founder of Continental',
+  },
+  {
+    desc: '«В тг группах часто сталкивался с мошенниками, пользуюсь вбдисконт потому что тут есть гарантии что мои права защищены»',
+    rating: 5,
+    name: 'Андрей',
+    position: 'Продавец на WB',
+  },
+  {
+    desc: 'Очень нравится, что продавцов и покупателей можно оценивать. Ты видишь, с кем работаешь. Давно искала такой прозрачный инструмент',
+    rating: 5,
+    name: 'Алена Б.',
+    position: 'Продавец на WB',
   },
   {
     desc: 'Materialize is awesome, and I particularly enjoy knowing that if I get stuck on something.',
-    img: logo2,
     rating: 5,
     name: 'Tommy haffman',
     position: 'Founder of Levis',
   },
   {
     desc: 'This template is superior in so many ways. The code, the design, the regular updates, the support.. It\'s the whole package. Excellent Work.',
-    img: logo3,
     rating: 4,
     name: 'Eugenia Moore',
     position: 'CTO of Airbnb',
   },
   {
     desc: 'All the requirements for developers have been taken into consideration, so I\'m able to build any interface I want.',
-    img: logo4,
     rating: 5,
     name: 'Sara Smith',
     position: 'Founder of Continental',
   },
   {
     desc: 'Materialize is awesome, and I particularly enjoy knowing that if I get stuck on something.',
-    img: logo2,
-    rating: 5,
-    name: 'Tommy haffman',
-    position: 'Founder of Levis',
-  },
-  {
-    desc: 'I\'ve never used a theme as versatile and flexible as Vuexy. It\'s my go to for building dashboard sites on almost any project.',
-    img: logo1,
-    rating: 5,
-    name: 'Eugenia Moore',
-    position: 'Founder of Hubspot',
-  },
-  {
-    desc: 'Materialize is awesome, and I particularly enjoy knowing that if I get stuck on something.',
-    img: logo2,
-    rating: 5,
-    name: 'Tommy haffman',
-    position: 'Founder of Levis',
-  },
-  {
-    desc: 'This template is superior in so many ways. The code, the design, the regular updates, the support.. It\'s the whole package. Excellent Work.',
-    img: logo3,
-    rating: 4,
-    name: 'Eugenia Moore',
-    position: 'CTO of Airbnb',
-  },
-  {
-    desc: 'All the requirements for developers have been taken into consideration, so I\'m able to build any interface I want.',
-    img: logo4,
-    rating: 5,
-    name: 'Sara Smith',
-    position: 'Founder of Continental',
-  },
-  {
-    desc: 'Materialize is awesome, and I particularly enjoy knowing that if I get stuck on something.',
-    img: logo2,
     rating: 5,
     name: 'Tommy haffman',
     position: 'Founder of Levis',
@@ -102,31 +92,16 @@ const reviewData = [
 <template>
   <div class="customer-reviews">
     <!-- 👉 Headers  -->
-    <div class="headers d-flex justify-center flex-column align-center mb-8">
-      <div class="d-flex gap-x-3 mb-6">
-        <img
-          :src="sectionTitleIcon"
-          alt="section title icon"
-          height="24"
-          width="25"
-        >
-        <div class="text-body-1 text-high-emphasis font-weight-medium">
-          REAL CUSTOMERS REVIEWS
-        </div>
-      </div>
-
-      <div class="mb-2 text-center">
-        <span
-          class="text-h4 d-inline-block font-weight-bold"
-          style="line-height: 2rem;"
-        >
-          Success stories
-        </span> <span class="text-h5 d-inline-block">from clients</span>
-      </div>
-
-      <p class="text-body-1 font-weight-medium text-center">
-        See what our customers have to say about their experience.
-      </p>
+    <div class="text-center feature-text-block">
+        <span class="feature-subheading">
+          Отзывы продавцов:
+        </span>
+      <h3 class="feature-heading">
+        Почему все больше продавцов выбирают WBDiscsount:
+      </h3>
+      <span class="feature-subheading">
+          Попробуйте и убедитесь сами!
+        </span>
     </div>
 
     <div class="swiper-reviews-carousel py-4 mb-6">
@@ -206,37 +181,6 @@ const reviewData = [
       </swiper-container>
     </div>
 
-    <!-- 👉 Brand-logo Swiper  -->
-    <div class="swiper-brands-carousel mt-4">
-      <swiper-container
-        slides-per-view="1"
-        loop="true"
-        events-prefix="swiper-"
-        :breakpoints="{
-          992: {
-            slidesPerView: 5,
-          },
-          768: {
-            centeredSlides: true,
-            slidesPerView: 3,
-          },
-          580: {
-            centeredSlides: true,
-            slidesPerView: 2,
-          },
-        }"
-      >
-        <swiper-slide
-          v-for="(img, index) in [brandLogo1, brandLogo2, brandLogo3, brandLogo4, brandLogo5, brandLogo1, brandLogo2, brandLogo3, brandLogo4, brandLogo5]"
-          :key="index"
-        >
-          <VImg
-            :src="img"
-            height="28"
-          />
-        </swiper-slide>
-      </swiper-container>
-    </div>
   </div>
 </template>
 
@@ -245,12 +189,12 @@ const reviewData = [
 
 swiper-container::part(bullet-active) {
   border-radius: 6px;
-  background-color: rgba(var(--v-theme-on-background), var(--v-disabled-opacity));
+  //background-color: rgba(var(--v-theme-on-background), var(--v-disabled-opacity));
   inline-size: 38px;
 }
 
 swiper-container::part(bullet) {
-  background-color: rgba(var(--v-theme-on-background));
+  //background-color: rgba(var(--v-theme-on-background));
 }
 
 swiper-container::part(pagination) {
@@ -284,6 +228,23 @@ swiper-container::part(pagination) {
   .swiper-pagination {
     inset-block: 0 0 !important;
   }
+}
+
+.feature-text-block{
+  margin-top: 150px;
+  margin-bottom: 100px;
+}
+
+.feature-subheading{
+  font-size: 20px;
+  font-weight: 700;
+  color: #33465A
+}
+
+.feature-heading{
+  font-weight: 900;
+  font-size: 30px;
+  color: #7958D2;
 }
 </style>
 

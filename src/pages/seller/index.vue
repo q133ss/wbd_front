@@ -17,6 +17,13 @@ definePage({
     authRequired: false
   },
 })
+
+import { useTheme } from 'vuetify'
+
+const theme = useTheme()
+
+// Принудительно включить светлую тему при монтировании
+theme.global.name.value = 'light'
 </script>
 
 <template>
@@ -30,6 +37,7 @@ definePage({
     <Features ref="refFeatures" />
   </div>
 
+  <hr>
   <!-- 👉 Customer Review -->
   <CustomersReview />
 
@@ -40,9 +48,6 @@ definePage({
 
   <!-- 👉 Pricing Plans -->
   <PricingPlans />
-
-  <!-- 👉 Product stats -->
-  <ProductStats />
 
   <!-- 👉 FAQ Section -->
   <FaqSection ref="refFaq" />

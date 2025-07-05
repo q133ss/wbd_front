@@ -1,5 +1,5 @@
 <script setup>
-import ctaDashboard from '@images/front-pages/landing-page/cta-dashboard.png'
+import ctaDashboard from '@images/front-pages/landing-page/cabinet.png'
 </script>
 
 <template>
@@ -8,13 +8,13 @@ import ctaDashboard from '@images/front-pages/landing-page/cta-dashboard.png'
       <div class="d-flex align-center justify-sm-space-between flex-column flex-md-row gap-y-6 gap-x-12">
         <div class="text-sm-start text-center py-md-14 py-2">
           <div class="banner-text pb-1">
-            Ready to Get Started?
+            Готовы начать?
           </div>
           <div class="text-body-1 font-weight-medium mb-8">
-            Start your project with a 14-day free trial
+            Присоединяйтесь и протестируйте сервис бесплатно
           </div>
-          <VBtn :to="{ name: 'front-pages-payment' }">
-            Get Started
+          <VBtn to="/seller/login">
+            Начать продвижение
             <VIcon
               end
               icon="ri-arrow-right-line"

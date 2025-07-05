@@ -203,7 +203,7 @@ const isCurrentRoute = to => {
       <VSpacer />
 
       <div class="d-flex gap-x-4 align-center">
-        <NavbarThemeSwitcher class="me-0 me-sm-2" />
+<!--        <NavbarThemeSwitcher class="me-0 me-sm-2" />-->
 
         <VBtn
           v-if="$vuetify.display.lgAndUp"

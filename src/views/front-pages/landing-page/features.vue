@@ -9,66 +9,100 @@ import TransitionUp from '@images/svg/transition-up.svg'
 
 const featuresData = [
   {
-    title: 'Quality Code',
-    desc: 'Code structure that all developers will easily understand and fall in love with.',
+    title: 'Только живые покупатели',
+    desc: 'География ПВЗ по всей России делает продвижение органичным для алгоритмов WB.',
     img: LaptopCharging,
   },
   {
-    title: 'Continuous Updates',
-    desc: 'Free updates for the next 12 months, including new demos and features.',
+    title: 'Живые фото и видео в отзывах',
+    desc: 'Повышайте конверсию карточки за счет живых отзывов с уникальными медиа отзывами.',
     img: TransitionUp,
   },
   {
-    title: 'Starter Kit',
-    desc: 'Start your project quickly without having to remove unnecessary features.',
+    title: 'Автоматизация выкупов',
+    desc: 'Настройте продвижение один раз и получайте выкупы и отзывы в полуавтоматическом режиме.',
     img: Edit,
   },
   {
-    title: 'API Ready',
-    desc: 'Just change the endpoint and see your own data loaded within seconds.',
+    title: 'Антифрод система',
+    desc: 'Умная система рейтинга, мониторинга, модерации спорных ситуаций.',
     img: SelectSolid,
   },
   {
-    title: 'Well Documented',
-    desc: 'An easy-to-follow doc with lots of references and code examples.',
+    title: 'Оплата за результат',
+    desc: 'Вы платите только за успешный выкуп, а не за размещение, как в Telegram.',
     img: Lifebelt,
   },
   {
-    title: 'Excellent Support',
-    desc: 'An easy-to-follow doc with lots of references and code examples.',
+    title: 'Оплата за результат',
+    desc: 'Вы платите только за успешный выкуп, а не за размещение, как в Telegram.',
     img: GoogleDocs,
   },
 ]
+
+const stats = {
+  customers: 1039,
+  customerIncrease: 30,
+  sales: 320,
+  salesIncrease: 23,
+  ads: 3902,
+  adsIncrease: 58,
+  cashback: '100 493',
+  cashbackIncrease: 5093,
+}
 </script>
 
 <template>
   <VContainer id="features">
     <div class="feature-cards">
-      <div class="headers d-flex justify-center flex-column align-center mb-6">
-        <div class="d-flex gap-x-3 mb-6">
-          <img
-            :src="sectionTitleIcon"
-            alt="section title icon"
-            height="24"
-            width="25"
-          >
-          <div class="text-body-1 text-high-emphasis font-weight-medium">
-            USEFUL FEATURES
+
+      <v-row>
+        <v-col cols="12" sm="6" md="6" lg="3" style="border-right: 1px solid #00000080">
+          <div class="text-center">
+            <h6 class="feature-title">Покупателей</h6>
+            <h2 class="text-primary fz-35">{{ stats.customers }}</h2>
+            <p class="feature-footer-text">
+              <span class="feature-count">
+                +{{ stats.customerIncrease }}
+              </span>
+              за 24 часа
+            </p>
           </div>
-        </div>
+        </v-col>
+        <v-col cols="12" sm="6" md="6" lg="3"  style="border-right: 1px solid #00000080">
+          <div class="text-center">
+            <h6 class="feature-title">Продавцов</h6>
+            <h2 class="text-primary fz-35">{{ stats.sales }}</h2>
+            <p class="feature-footer-text">
+              <span class="feature-count">+{{ stats.salesIncrease }}</span> за час</p>
+          </div>
+        </v-col>
+        <v-col cols="12" sm="6" md="6" lg="3"  style="border-right: 1px solid #00000080">
+          <div class="text-center">
+            <h6 class="feature-title">Объявлений</h6>
+            <h2 class="text-primary fz-35">{{ stats.ads }}</h2>
+            <p class="feature-footer-text"><span class="feature-count">+{{ stats.adsIncrease }}</span> за 24 часа</p>
+          </div>
+        </v-col>
+        <v-col cols="12" sm="6" md="6" lg="3" >
+          <div class="text-center">
+            <h6 class="feature-title">Выплачено кэшбэка</h6>
+            <h2 class="text-primary fz-35">{{ stats.cashback }} Р</h2>
+            <p class="feature-footer-text"><span class="feature-count">+{{ stats.cashbackIncrease }}</span> за 24 часа</p>
+          </div>
+        </v-col>
+      </v-row>
 
-        <div class="mb-2 text-center">
-          <span
-            class="text-h4 d-inline-block font-weight-bold"
-            style="line-height: 2rem;"
-          >
-            Everything you need
-          </span> <span class="text-h5 d-inline-block">to start your next project</span>
-        </div>
-
-        <p class="text-body-1 font-weight-medium text-center">
-          Not just a set of tools, the package includes ready-to-deploy conceptual application.
-        </p>
+      <div class="text-center feature-text-block">
+        <span class="feature-subheading">
+          Все лучшее в одном месте:
+        </span>
+        <h3 class="feature-heading">
+          Это как TG группы с кэшбеком за отзыв, только лучше:
+        </h3>
+        <span class="feature-subheading">
+          Автоматизации, антифрод, статистика, аналитика - все то, чего вам не хватало при работе с телеграм группами
+        </span>
       </div>
 
       <VRow>
@@ -139,5 +173,45 @@ const featuresData = [
       }
     }
   }
+}
+
+.feature-title{
+  font-size: 16px;
+  font-weight: 600;
+  color: #000000CC;
+}
+
+.fz-35{
+  font-size: 35px;
+  font-weight: 700;
+}
+
+.feature-footer-text{
+  font-size: 10px;
+  font-weight: 400;
+  color: #00000099;
+}
+
+.feature-count{
+  font-size: 16px;
+  font-weight: 400;
+  color: #7958D280;
+}
+
+.feature-text-block{
+  margin-top: 150px;
+  margin-bottom: 100px;
+}
+
+.feature-subheading{
+  font-size: 20px;
+  font-weight: 700;
+  color: #33465A
+}
+
+.feature-heading{
+  font-weight: 900;
+  font-size: 30px;
+  color: #7958D2;
 }
 </style>
