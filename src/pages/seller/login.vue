@@ -5,8 +5,13 @@ import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { themeConfig } from '@themeConfig'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
 import authV2LoginIllustrationBorderedLight from '@images/pages/auth-v2-login-illustration-bordered-light.png'
-import authV2LoginIllustrationDark from '@images/pages/auth-v2-login-illustration-dark.png'
-import authV2LoginIllustrationLight from '@images/pages/auth-v2-login-illustration-light.png'
+
+// import authV2LoginIllustrationDark from '@images/pages/auth-v2-login-illustration-dark.png'
+// import authV2LoginIllustrationLight from '@images/pages/auth-v2-login-illustration-light.png'
+
+import authV2LoginIllustrationLight from '@images/pages/seller-light.png'
+import authV2LoginIllustrationDark from '@images/pages/seller-dark.png'
+
 import authV2LoginMaskDark from '@images/pages/auth-v2-login-mask-dark.png'
 import authV2LoginMaskLight from '@images/pages/auth-v2-login-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'

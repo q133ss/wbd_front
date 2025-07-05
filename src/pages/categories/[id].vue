@@ -154,6 +154,20 @@ watch(() => route.params.id, (newId) => {
   categoryId.value = newId
   fetchProducts(1, true)
 })
+
+const goToCategory = (id) => {
+  categoryId.value = id
+  fetchSubCategories()
+  router.push(`/categories/${id}`)
+}
+
+const back = () => {
+  if (route.params.id) {
+    router.push('/categories')
+  } else {
+    router.back()
+  }
+}
 </script>
 
 <template>
@@ -169,7 +183,7 @@ watch(() => route.params.id, (newId) => {
               <VListItem
                 v-for="category in subCategories"
                 :key="category.category_id"
-                :to="`/categories/${category.category_id}`"
+                @click="goToCategory(category.category_id)"
                 active-class="active-subcategory"
               >
                 <VListItemTitle>
@@ -184,6 +198,7 @@ watch(() => route.params.id, (newId) => {
             <div v-else class="pa-4 text-center text-disabled">
               <VIcon icon="mdi-folder-remove-outline" size="48" class="mb-2" />
               <div>Нет подкатегорий</div>
+              <VBtn @click="back()">Назад</VBtn>
             </div>
           </VCard>
         </VCol>
@@ -191,7 +206,7 @@ watch(() => route.params.id, (newId) => {
         <!-- Блок товаров -->
         <VCol cols="12" md="9" class="filters-block">
           <!-- Фильтры -->
-          <VCard class="mb-4">
+          <VCard class="mb-4" v-if="productsData?.data?.length != 0">
             <VCardText>
               <VRow>
                 <VCol cols="12" md="4">
@@ -291,6 +306,10 @@ watch(() => route.params.id, (newId) => {
               :item="item"
             />
           </VRow>
+
+          <VRow v-if="productsData?.data?.length == 0">
+            <span class="w-100 text-center">Товары не найдены</span>
+          </VRow>
         </VCol>
       </VRow>
 
@@ -330,12 +349,6 @@ watch(() => route.params.id, (newId) => {
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-}
-
-@media screen and (max-width: 960px) {
-  .filters-block {
-    display: none;
   }
 }
 </style>
