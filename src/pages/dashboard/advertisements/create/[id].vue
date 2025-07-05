@@ -21,7 +21,9 @@ const adData = ref({
   redemption_count: 1,
   order_conditions: '',
   redemption_instructions: '',
-  review_criteria: ''
+  review_criteria: '',
+  size: '',
+  color: ''
 })
 const balance = ref(null)
 const loading = ref(true)
@@ -271,6 +273,30 @@ const submitAd = async () => {
                 Кэшбек для покупателя: <span class="total-cost user-price">{{ cashbackPerRedemption }} ₽ за выкуп</span>
               </p>
             </div>
+
+            <!-- Выбор цвета -->
+            <v-select
+              v-model="adData.color"
+              :items="product.colors"
+              item-title="name"
+              item-value="name"
+              label="Цвет"
+              persistent-hint
+              clearable
+              class="mt-5"
+            />
+
+            <!-- Размер -->
+            <v-select
+              v-model="adData.size"
+              :items="product.sizes"
+              item-title="name"
+              item-value="id"
+              label="Размер"
+              persistent-hint
+              clearable
+              class="mt-5 mb-5"
+            />
 
             <!-- Textareas with Templates -->
             <v-row v-for="field in [

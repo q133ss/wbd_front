@@ -201,7 +201,7 @@ const confirmArchive = async () => {
     })
   } catch (error) {
     snackbar.notify({
-      text: 'Ошибка при архивировании объявлений',
+      text: error.response?._data?.message ?? 'Ошибка при архивировании объявлений',
       color: 'error'
     })
   } finally {
@@ -410,7 +410,7 @@ const closeTgModal = () => {
     </v-row>
 
     <!-- Таблица объявлений -->
-    <VTable>
+    <VTable class="rounded-table">
       <thead>
       <tr>
         <th class="text-uppercase">
@@ -489,7 +489,10 @@ const closeTgModal = () => {
         </tr>
         <tr v-if="!ads.length">
           <td colspan="8" class="text-center">
-            <v-btn class="mt-7 mb-7" prepend-icon="ri-add-fill" @click="openProductModal">Создать объявление</v-btn>
+            <span v-if="!filters.is_archived">Объявлений нет</span>
+            <span v-else>Архивных объявлений нет</span>
+            <br>
+            <v-btn v-if="!filters.is_archived" class="mt-7 mb-7" prepend-icon="ri-add-fill" @click="openProductModal">Создать объявление</v-btn>
           </td>
         </tr>
       </template>
@@ -554,7 +557,7 @@ const closeTgModal = () => {
             @update:modelValue="handleProductSearch"
             class="mb-4"
           ></v-text-field>
-          <VTable>
+          <VTable style="background: none">
             <thead>
             <tr>
               <th class="text-uppercase">Товар</th>
@@ -744,5 +747,12 @@ const closeTgModal = () => {
   td {
     vertical-align: middle;
   }
+}
+
+.rounded-table {
+  border-collapse: separate; /* Важно! */
+  border-spacing: 0;
+  border-radius: 0.5rem;
+  overflow: hidden; /* Обрезает углы у внутренних элементов */
 }
 </style>

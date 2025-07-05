@@ -245,6 +245,7 @@ onUnmounted(() => {
                   v-model="filters.cashback"
                   label="Кешбек"
                   :min="0"
+                  :step="1"
                   :max="100"
                   thumb-label="always"
                 />

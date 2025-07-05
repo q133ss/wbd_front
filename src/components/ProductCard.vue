@@ -27,7 +27,7 @@
 
       <VChip
         size="small"
-        color="rgb(var(--v-theme-on-surface))"
+        color="rgb(var(--v-theme-primary))"
         variant="flat"
         class="product-percentage"
       >
@@ -143,6 +143,6 @@ const isDialogVisible = ref(false)
   bottom: 40px;
   left: 10px;
   text-align: center;
-  background: rgb(38,43,67)!important;
+  //background: rgb(38,43,67)!important;
 }
 </style>

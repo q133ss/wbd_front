@@ -137,7 +137,6 @@ import { themeConfig } from '@themeConfig'
                 <ul>
                   <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
                     <VIcon
-                      color="#000"
                       icon="ri-mail-line"
                       size="20"
                     />
@@ -145,7 +144,6 @@ import { themeConfig } from '@themeConfig'
                   </li>
                   <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
                     <VIcon
-                      color="#000"
                       icon="ri-phone-line"
                       size="20"
                     />
@@ -153,7 +151,6 @@ import { themeConfig } from '@themeConfig'
                   </li>
                   <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
                     <VIcon
-                      color="#000"
                       icon="ri-map-pin-line"
                       size="20"
                     />
@@ -189,13 +186,12 @@ import { themeConfig } from '@themeConfig'
                 :href="item.href"
                 size="x-small"
                 target="_blank"
-                color="#fff"
                 rel="noopener noreferrer"
               >
                 <VIcon
                   :icon="item.icon"
                   size="16"
-                  color="white"
+                  color="rgb(103, 106, 123)"
                 />
               </IconBtn>
             </template>

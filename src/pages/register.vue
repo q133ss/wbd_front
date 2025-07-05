@@ -76,7 +76,7 @@ const verifyCode = async () => {
 
       useCookie('accessToken').value = token
       useCookie('userData').value = user
-      router.push('/profile')
+      router.push('/')
     }catch (error) {
       console.log(error)
       handleError(error, 'Неверный код')

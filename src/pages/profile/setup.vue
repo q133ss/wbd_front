@@ -55,7 +55,7 @@ const completeRegistration = async () => {
     useCookie('userData').value = response.user
 
     if(response.user?.role?.slug != 'seller'){
-      window.location.href = '/profile'
+      window.location.href = '/'
     }else{
       window.location.href = '/dashboard/products'
     }

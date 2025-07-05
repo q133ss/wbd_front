@@ -407,7 +407,7 @@ const handleFilterStatus = () => {
     </v-row>
 
     <!-- Таблица товаров -->
-    <VTable>
+    <VTable class="rounded-table">
       <thead>
       <tr>
         <th class="text-uppercase">
@@ -471,7 +471,7 @@ const handleFilterStatus = () => {
           <td>{{ item.conversion }}</td>
           <td>{{ item.ads_count }}</td>
         </tr>
-        <tr v-if="!products?.length">
+        <tr v-if="!products?.length && !filters.is_archived">
           <td colspan="8" class="text-center pb-7">
             <v-btn
               color="primary"
@@ -483,6 +483,11 @@ const handleFilterStatus = () => {
             </v-btn>
             <br>
             <span class="text-subtitle-1">Загрузите первый товар, что бы начать продвижение</span>
+          </td>
+        </tr>
+        <tr v-else>
+          <td colspan="8" class="text-center pb-7">
+            <span class="text-subtitle-1">Архивных товаров нет</span>
           </td>
         </tr>
       </template>
@@ -648,5 +653,12 @@ const handleFilterStatus = () => {
   td {
     vertical-align: middle;
   }
+}
+
+.rounded-table {
+  border-collapse: separate; /* Важно! */
+  border-spacing: 0;
+  border-radius: 0.5rem;
+  overflow: hidden; /* Обрезает углы у внутренних элементов */
 }
 </style>

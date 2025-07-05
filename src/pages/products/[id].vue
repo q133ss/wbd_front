@@ -209,6 +209,7 @@ const addToFavorites = async (productId) => {
   }
 }
 
+const showPayModal = ref(false)
 const handleOrderClick = async () => {
   const token = useCookie('accessToken').value
   const user = useCookie('userData').value
@@ -224,7 +225,11 @@ const handleOrderClick = async () => {
       router.push(`/dashboard/orders?chatId=${response.message?.id}`)
     }
   }catch (error){
-    snackbar.notify({text: error.response?._data?.message, color: "error"})
+    if(error.response?.status){
+      showPayModal.value = true
+    }else{
+      snackbar.notify({text: error.response?._data?.message, color: "error"})
+    }
   }
 }
 
@@ -266,8 +271,9 @@ const resetLoginForm = () => {
             <VCarousel
               :continuous="false"
               :show-arrows="parsedImages?.length > 1"
-              hide-delimiters
               height="100%"
+              cycle
+              hide-delimiter-background
             >
               <VCarouselItem
                 v-for="(image, idx) in parsedImages"
@@ -281,6 +287,7 @@ const resetLoginForm = () => {
                   class="product-image"
                 />
               </VCarouselItem>
+
             </VCarousel>
           </template>
           <!-- Плейсхолдер если нет картинок -->
@@ -471,6 +478,20 @@ const resetLoginForm = () => {
     </VCard>
   </VDialog>
 
+  <v-dialog v-model="showPayModal" max-width="400px">
+    <v-sheet class="pa-6">
+      <h6 class="text-h6 mb-4 text-center">Вам необходимо заполнить платежные данные для создания заказа</h6>
+      <div class="text-center">
+        <v-btn
+          color="primary"
+          @click="$router.push('/profile')"
+        >
+          Перейти в профиль
+        </v-btn>
+      </div>
+    </v-sheet>
+  </v-dialog>
+
 </template>
 
 <style scoped lang="scss">
@@ -619,5 +640,11 @@ h2.mb-4 {
   .tabs-mobile-justify ::v-deep .v-slide-group__content {
     justify-content: flex-start !important;
   }
+}
+</style>
+
+<style>
+.v-carousel__controls__item.v-btn.v-btn--icon {
+  color: rgb(var(--v-theme-primary));
 }
 </style>

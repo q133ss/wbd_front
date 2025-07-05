@@ -21,7 +21,9 @@ const adData = ref({
   redemption_count: 1,
   order_conditions: '',
   redemption_instructions: '',
-  review_criteria: ''
+  review_criteria: '',
+  size: '',
+  color: ''
 })
 const balance = ref(null)
 const loading = ref(true)
@@ -46,6 +48,8 @@ onMounted(() => {
   }
 })
 
+const product = ref(null)
+
 // Fetch ad, balance, and templates
 onMounted(async () => {
   if (!adId.value) return
@@ -65,8 +69,12 @@ onMounted(async () => {
       redemption_count: adResponse.redemption_count || 1,
       order_conditions: adResponse.order_conditions || '',
       redemption_instructions: adResponse.redemption_instructions || '',
-      review_criteria: adResponse.review_criteria || ''
+      review_criteria: adResponse.review_criteria || '',
+      size: adResponse.size || '',
+      color: adResponse.color || ''
     }
+
+    product.value = adResponse.product || {}
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка загрузки данных',
@@ -258,12 +266,38 @@ const submitAd = async () => {
                 step="5"
                 max="100"
                 thumb-label="always"
-                class="mb-6"
+                class="mb-2 ml-0"
               />
               <p class="text-body-1">
-                Цена для пользователя: {{ userPrice }} ₽
+                Цена для покупателя: <span class="total-cost user-price">{{ userPrice }} ₽</span>
+                <br>
+                Кэшбек для покупателя: <span class="total-cost user-price">{{ cashbackPerRedemption }} ₽ за выкуп</span>
               </p>
             </div>
+
+            <!-- Выбор цвета -->
+            <v-select
+              v-model="adData.color"
+              :items="product.colors"
+              item-title="name"
+              item-value="name"
+              label="Цвет"
+              persistent-hint
+              clearable
+              class="mt-5"
+            />
+
+            <!-- Размер -->
+            <v-select
+              v-model="adData.size"
+              :items="product.sizes"
+              item-title="name"
+              item-value="id"
+              label="Размер"
+              persistent-hint
+              clearable
+              class="mt-5 mb-5"
+            />
 
             <!-- Textareas with Templates -->
             <v-row v-for="field in [
@@ -347,9 +381,6 @@ const submitAd = async () => {
               <h3 class="mb-3">Итого: <span class="total-cost">{{ totalCost }} ₽</span></h3>
               <p class="text-subtitle-1 mb-0 pb-0">Количество выкупов: <span class="text-black">{{ adData.redemption_count }}</span></p>
               <p class="text-subtitle-1 mb-0 pb-0">Кэшбек для покупателя: <span class="text-black">{{ cashbackPerRedemption }} ₽ за выкуп</span></p>
-              <p class="text-subtitle-1" v-if="additionalRedemptions > 0">
-                Дополнительные выкупы: <span class="text-black">{{ additionalRedemptions }} × 95 ₽</span>
-              </p>
             </div>
 
             <v-btn
