@@ -252,7 +252,11 @@ const handleFilterArchived = () => {
   currentPage.value = 1
   loadAds()
 }
-const handleFilterStatus = () => {
+const handleFilterStatus = value => {
+  // Архивные — отдельный флаг, но выбираются через status
+  filters.value.is_archived = value === 'archived' ? true : null
+  filters.value.status = value
+
   currentPage.value = 1
   loadAds()
 }
@@ -360,39 +364,40 @@ const closeTgModal = () => {
               color="secondary"
               v-bind="props"
             >
-              Все объявления
+              Сортировка
               <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
             </v-btn>
           </template>
           <v-list>
-            <v-list-item @click.stop>
-              <v-checkbox
-                v-model="filters.is_archived"
-                label="Показать архивные"
-                :true-value="true"
-                :false-value="null"
-                @update:modelValue="handleFilterArchived"
-              ></v-checkbox>
-            </v-list-item>
-            <v-list-item @click.stop>
               <v-radio-group
                 v-model="filters.status"
                 @update:modelValue="handleFilterStatus"
               >
+                <v-list-item @click.stop>
                 <v-radio
                   label="Все"
                   :value="null"
                 ></v-radio>
+                </v-list-item>
+                <v-list-item @click.stop>
                 <v-radio
                   label="Активные"
                   :value="1"
                 ></v-radio>
+                </v-list-item>
+                <v-list-item @click.stop>
                 <v-radio
                   label="Неактивные"
                   :value="0"
                 ></v-radio>
+                </v-list-item>
+                <v-list-item @click.stop>
+                <v-radio
+                  label="Архивные"
+                  :value="'archived'"
+                />
+                </v-list-item>
               </v-radio-group>
-            </v-list-item>
           </v-list>
         </v-menu>
       </v-col>

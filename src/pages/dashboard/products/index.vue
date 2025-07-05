@@ -307,9 +307,17 @@ const handleFilterArchived = () => {
   loadProducts()
 }
 
-const handleFilterStatus = () => {
-  currentPage.value = 1
-  loadProducts()
+const handleFilterStatus = value => {
+    if (value === 'archived') {
+      filters.value.is_archived = true
+    } else {
+      filters.value.is_archived = null
+    }
+
+    filters.value.status = value
+
+    currentPage.value = 1
+    loadProducts()
 }
 </script>
 
@@ -357,39 +365,40 @@ const handleFilterStatus = () => {
               color="secondary"
               v-bind="props"
             >
-              Все товары
+              Сортировка
               <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
             </v-btn>
           </template>
           <v-list>
-            <v-list-item @click.stop>
-              <v-checkbox
-                v-model="filters.is_archived"
-                label="Показать архивные"
-                :true-value="true"
-                :false-value="null"
-                @update:modelValue="handleFilterArchived"
-              ></v-checkbox>
-            </v-list-item>
-            <v-list-item @click.stop>
               <v-radio-group
                 v-model="filters.status"
                 @update:modelValue="handleFilterStatus"
               >
+                <v-list-item @click.stop>
                 <v-radio
                   label="Все"
                   :value="null"
                 ></v-radio>
+                </v-list-item>
+                <v-list-item @click.stop>
                 <v-radio
                   label="Активные"
                   :value="1"
                 ></v-radio>
+                </v-list-item>
+                <v-list-item @click.stop>
                 <v-radio
                   label="Неактивные"
                   :value="0"
                 ></v-radio>
+                </v-list-item>
+                <v-list-item @click.stop>
+                <v-radio
+                  label="Архивные"
+                  :value="'archived'"
+                ></v-radio>
+                </v-list-item>
               </v-radio-group>
-            </v-list-item>
           </v-list>
         </v-menu>
       </v-col>
@@ -485,8 +494,8 @@ const handleFilterStatus = () => {
             <span class="text-subtitle-1">Загрузите первый товар, что бы начать продвижение</span>
           </td>
         </tr>
-        <tr v-else>
-          <td colspan="8" class="text-center pb-7">
+        <tr v-else-if="!products?.length && filters.is_archived">
+          <td colspan="8" class="text-center pb-7 pt-3">
             <span class="text-subtitle-1">Архивных товаров нет</span>
           </td>
         </tr>
