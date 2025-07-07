@@ -239,6 +239,18 @@ const resetLoginForm = () => {
   password.value = ''
   isLoginFormVisible.value = false
 }
+
+const currentSlide = ref(0);
+const carouselRef = ref(null);
+
+function goTo(idx) {
+  currentSlide.value = idx;
+  carouselRef.value && (carouselRef.value.internalValue = idx);
+}
+
+function onSlideChange(val) {
+  currentSlide.value = val;
+}
 </script>
 
 <template>
@@ -269,11 +281,15 @@ const resetLoginForm = () => {
         <VCard class="product-card">
           <template v-if="parsedImages?.length">
             <VCarousel
+              ref="carouselRef"
+              v-model="currentSlide"
+              @update:modelValue="onSlideChange"
               :continuous="false"
               :show-arrows="parsedImages?.length > 1"
               height="100%"
               cycle
               hide-delimiter-background
+              hide-delimiters
             >
               <VCarouselItem
                 v-for="(image, idx) in parsedImages"
@@ -287,7 +303,6 @@ const resetLoginForm = () => {
                   class="product-image"
                 />
               </VCarouselItem>
-
             </VCarousel>
           </template>
           <!-- Плейсхолдер если нет картинок -->
@@ -297,6 +312,17 @@ const resetLoginForm = () => {
             </div>
           </template>
         </VCard>
+        <div class="product-card" style="height: auto">
+          <div v-if="parsedImages.length > 1" class="d-flex justify-center mt-3">
+              <span
+                v-for="(_, idx) in parsedImages"
+                :key="idx"
+                class="my-dot"
+                :class="{ 'my-dot--active': currentSlide === idx }"
+                @click="goTo(idx)"
+              />
+          </div>
+        </div>
       </VCol>
 
       <!-- Информация о товаре -->
@@ -646,5 +672,17 @@ h2.mb-4 {
 <style>
 .v-carousel__controls__item.v-btn.v-btn--icon {
   color: rgb(var(--v-theme-primary));
+}
+
+.my-dot {
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background-color: rgb(var(--v-theme-primary), 50%);
+  cursor: pointer;
+}
+.my-dot--active {
+  background-color: rgb(var(--v-theme-primary));
 }
 </style>
