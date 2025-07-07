@@ -241,7 +241,9 @@ const submitAd = async () => {
               <h3 class="mb-3">{{ ad.product.name }}</h3>
               <p class="text-subtitle-1 mb-0 pb-0">Цена: <span class="text-black"><span class="total-cost">{{ ad.product.price }} ₽</span></span> </p>
               <p class="text-subtitle-1 mb-0 pb-0">Бренд: <span class="text-black">{{ ad.product.brand }} </span></p>
-              <p class="text-subtitle-1">Доступно: <span class="text-black">{{ ad.product.quantity_available }} </span> шт.</p>
+              <p class="text-subtitle-1">
+                Артикул: <span class="text-black">{{ product?.wb_id }}</span>
+              </p>
             </v-col>
           </v-row>
         </div>
@@ -258,7 +260,7 @@ const submitAd = async () => {
               required
             />
 
-            <div class="mb-6">
+            <div class="cashback-section">
               <v-slider
                 v-model="adData.cashback_percentage"
                 label="Процент кэшбека"
@@ -428,6 +430,10 @@ const submitAd = async () => {
   margin-left: 0;
 }
 
+.m0-auto{
+  margin-left: 10%;
+}
+
 .product-info,
 .ad-form,
 .cost-breakdown {
@@ -496,7 +502,25 @@ const submitAd = async () => {
   font-weight: 600;
 }
 
-.m0-auto{
-  margin-left: 10%;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+.keywords-block {
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.p-0{
+  padding: 0 !important;
+}
+
+.cashback-section{
+  margin-bottom: 55px;
 }
 </style>

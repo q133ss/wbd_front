@@ -180,11 +180,23 @@ const saveTemplate = async () => {
 }
 
 const submitAd = async () => {
+  const payload = {
+    ...adData.value,
+    product_id: productId.value,
+  }
+
+  if (isKeywords.value && keywords.value.length) {
+    // Собираем массив для ключевых слов
+    payload.keywords = keywords.value
+      .filter(k => k.text.trim())
+      .map(k => ({
+        word: k.text.trim(),
+        redemption_count: k.count || 1
+      }))
+  }
+
   try {
-    await api.ads.createAd({
-      ...adData.value,
-      product_id: productId.value
-    })
+    await api.ads.createAd(payload)
     snackbar.notify({
       text: 'Объявление создано',
       color: 'success'
@@ -204,6 +216,37 @@ const submitAd = async () => {
       color: 'error'
     })
   }
+}
+
+const isKeywords = ref(false)
+
+const toggleKeywords = () => {
+  isKeywords.value = !isKeywords.value
+}
+
+const keywords = ref([
+  { id: 1, text: '', count: 0 },
+  { id: 2, text: '', count: 0 },
+  { id: 3, text: '', count: 0 },
+])
+
+let nextId = 4
+
+function addKeyword() {
+  keywords.value.push({ id: nextId++, text: '', count: 0 })
+}
+
+function remove(idx) {
+  keywords.value.splice(idx, 1)
+}
+
+function increment(idx) {
+  keywords.value[idx].count++
+}
+
+function decrement(idx) {
+  const cw = keywords.value[idx]
+  if (cw.count > 0) cw.count--
 }
 </script>
 
@@ -336,7 +379,62 @@ const submitAd = async () => {
             </v-row>
 
             <!-- Redemption Count -->
-            <v-row class="mb-4">
+            <label class="d-flex align-center mb-10" style="cursor: pointer;">
+              <v-switch
+                v-model="isKeywords"
+                color="primary"
+                hide-details
+                class="mr-2"
+              />
+              Ключевые слова для поиска товара и продвижения
+            </label>
+
+
+            <div v-if="isKeywords">
+              <transition name="fade">
+                <div v-if="isKeywords">
+                  <v-row
+                    v-for="(item, idx) in keywords"
+                    :key="item.id"
+                    class="align-center"
+                  >
+                    <v-col cols="1">{{ idx + 1 }}.</v-col>
+                    <v-col cols="6" class="p-0">
+                      <v-text-field v-model="item.text" placeholder="Введите ключевое слово" dense />
+                    </v-col>
+                    <v-col cols="2" class="d-flex align-center">
+                      <v-btn icon @click="decrement(idx)">
+                        <v-icon>ri-subtract-line</v-icon>
+                      </v-btn>
+                      <span class="mx-2">{{ item.count }}</span>
+                      <v-btn icon @click="increment(idx)">
+                        <v-icon>ri-add-line</v-icon>
+                      </v-btn>
+                    </v-col>
+                    <v-col cols="2">
+                      <v-btn icon color="error" @click="remove(idx)">
+                        <v-icon>ri-delete-bin-line</v-icon>
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+
+                  <v-btn
+                    outlined
+                    color="primary"
+                    class="mt-2"
+                    @click="addKeyword"
+                  >
+                    <v-icon left>mdi-plus</v-icon>
+                    Добавить еще
+                  </v-btn>
+                </div>
+              </transition>
+
+              <div v-if="isKeywords" class="mt-4 text-subtitle-1 grey--text">
+                Если вы активируете эту функцию, то поиск и выкуп товаров покупателями будет происходить по этим ключевым словам. Активируйте в случае нужды продвижения карточки по ключевым запросам.
+              </div>
+            </div>
+            <v-row class="mb-4" v-else>
               <v-col cols="12" md="6">
                 <div class="d-flex align-center">
                   <button
@@ -496,5 +594,23 @@ const submitAd = async () => {
 
 .user-price{
   font-weight: 600;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+.keywords-block {
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.p-0{
+  padding: 0 !important;
 }
 </style>
