@@ -213,7 +213,7 @@ const reloadPage = (role) => {
                 </span>
                 <RouterLink
                   class="text-primary ms-1 d-inline-block text-body-1"
-                  :to="role === 'seller' ? '/register?role=seller' : '/register'"
+                  to="/seller/register"
                 >
                   Создать аккаунт
                 </RouterLink>

@@ -154,6 +154,7 @@ declare module 'vue-router/auto-routes' {
     'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'seller': RouteRecordInfo<'seller', '/seller', Record<never, never>, Record<never, never>>,
     'seller-login': RouteRecordInfo<'seller-login', '/seller/login', Record<never, never>, Record<never, never>>,
+    'seller-register': RouteRecordInfo<'seller-register', '/seller/register', Record<never, never>, Record<never, never>>,
     'shop-id': RouteRecordInfo<'shop-id', '/shop/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'tables-data-table': RouteRecordInfo<'tables-data-table', '/tables/data-table', Record<never, never>, Record<never, never>>,
     'tables-simple-table': RouteRecordInfo<'tables-simple-table', '/tables/simple-table', Record<never, never>, Record<never, never>>,

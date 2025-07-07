@@ -271,7 +271,7 @@ const submitAd = async () => {
               <p class="text-body-1">
                 Цена для покупателя: <span class="total-cost user-price">{{ userPrice }} ₽</span>
                 <br>
-                Кэшбек для покупателя: <span class="total-cost user-price">{{ cashbackPerRedemption }} ₽ за выкуп</span>
+                Размер кэшбека: <span class="total-cost user-price">{{ cashbackPerRedemption }} ₽</span>
               </p>
             </div>
 
@@ -377,12 +377,6 @@ const submitAd = async () => {
 
             <hr class="total-hr">
             <!-- Cost Breakdown -->
-            <div class="cost-breakdown">
-              <h3 class="mb-3">Итого: <span class="total-cost">{{ totalCost }} ₽</span></h3>
-              <p class="text-subtitle-1 mb-0 pb-0">Количество выкупов: <span class="text-black">{{ adData.redemption_count }}</span></p>
-              <p class="text-subtitle-1 mb-0 pb-0">Кэшбек для покупателя: <span class="text-black">{{ cashbackPerRedemption }} ₽ за выкуп</span></p>
-            </div>
-
             <v-btn
               color="primary"
               type="submit"
@@ -503,6 +497,6 @@ const submitAd = async () => {
 }
 
 .m0-auto{
-  margin: 0 auto;
+  margin-left: 10%;
 }
 </style>
