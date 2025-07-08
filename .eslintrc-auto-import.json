@@ -362,6 +362,7 @@
     "watchWithFilter": true,
     "whenever": true,
     "api": true,
-    "phoneValidator": true
+    "phoneValidator": true,
+    "useSellerNavigation": true
   }
 }
