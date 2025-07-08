@@ -109,7 +109,7 @@ const addProduct = async () => {
     }
 
     // Если магазина нет, получаем данные о товаре
-    const response = await api.products.fetchWbProduct(articleInput.value)
+    const response = await api.products.fetchWbProduct(articleInput.value, loadRelated.value)
 
     // Проверяем, что ответ содержит нужные данные
     if (!response || !response.product || !response.shop) {
@@ -319,6 +319,8 @@ const handleFilterStatus = value => {
     currentPage.value = 1
     loadProducts()
 }
+
+const loadRelated = ref(false)
 </script>
 
 <template>
@@ -527,6 +529,13 @@ const handleFilterStatus = value => {
             label="Артикул WB"
             required
           ></v-text-field>
+
+          <VCheckbox
+            label="Загрузить связанные товары"
+            v-model="loadRelated"
+            :value="loadRelated"
+            @update:model-value="loadReload = !loadReload"
+          />
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>

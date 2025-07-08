@@ -50,6 +50,16 @@ onMounted(() => {
 
 const product = ref(null)
 
+const isKeywords = ref(false)
+
+const toggleKeywords = () => {
+  isKeywords.value = !isKeywords.value
+}
+
+const keywords = ref([])
+
+let nextId = 0
+
 // Fetch ad, balance, and templates
 onMounted(async () => {
   if (!adId.value) return
@@ -60,6 +70,19 @@ onMounted(async () => {
       api.template.getAllTemplates()
     ])
     ad.value = adResponse
+
+    keywords.value = (adResponse.keywords || []).map((item, index) => ({
+      id: index + 1,
+      text: item.word,
+      count: item.redemption_count
+    }))
+    nextId = keywords.value.length + 1
+
+    if(keywords.value.length != 0){
+      isKeywords.value = true
+    }
+
+
     balance.value = balanceResponse
     templates.value = templatesResponse || {}
     // Pre-populate form with ad data
@@ -194,18 +217,49 @@ const saveTemplate = async () => {
 
 const submitAd = async () => {
   try {
-    await api.ads.updateAd(adId.value, adData.value)
+    const payload = {
+      ...adData.value
+    }
+    if (isKeywords.value && keywords.value.length) {
+      // Собираем массив для ключевых слов
+      payload.keywords = keywords.value
+        .filter(k => k.text.trim())
+        .map(k => ({
+          word: k.text.trim(),
+          redemption_count: k.count || 1
+        }))
+    }
+
+    await api.ads.updateAd(adId.value, payload)
     snackbar.notify({
       text: 'Объявление обновлено',
       color: 'success'
     })
     router.push('/dashboard/advertisements')
   } catch (error) {
+    console.error(error)
     snackbar.notify({
       text: 'Ошибка при обновлении объявления',
       color: 'error'
     })
   }
+}
+
+function addKeyword() {
+  keywords.value.push({ id: nextId++, text: '', count: 0 })
+}
+
+function remove(idx) {
+  keywords.value.splice(idx, 1)
+}
+
+function increment(idx) {
+  keywords.value[idx].count++
+}
+
+function decrement(idx) {
+  const cw = keywords.value[idx]
+  if (cw.count > 0) cw.count--
 }
 </script>
 
@@ -339,7 +393,61 @@ const submitAd = async () => {
             </v-row>
 
             <!-- Redemption Count -->
-            <v-row class="mb-4">
+            <label class="d-flex align-center mb-10" style="cursor: pointer;">
+              <v-switch
+                v-model="isKeywords"
+                color="primary"
+                hide-details
+                class="mr-2"
+              />
+              Ключевые слова для поиска товара и продвижения
+            </label>
+
+            <div v-if="isKeywords">
+              <transition name="fade">
+                <div v-if="isKeywords">
+                  <v-row
+                    v-for="(item, idx) in keywords"
+                    :key="item.id"
+                    class="align-center"
+                  >
+                    <v-col cols="1">{{ idx + 1 }}.</v-col>
+                    <v-col cols="6" class="p-0">
+                      <v-text-field v-model="item.text" placeholder="Введите ключевое слово" dense />
+                    </v-col>
+                    <v-col cols="2" class="d-flex align-center">
+                      <v-btn icon @click="decrement(idx)">
+                        <v-icon>ri-subtract-line</v-icon>
+                      </v-btn>
+                      <span class="mx-2">{{ item.count }}</span>
+                      <v-btn icon @click="increment(idx)">
+                        <v-icon>ri-add-line</v-icon>
+                      </v-btn>
+                    </v-col>
+                    <v-col cols="2">
+                      <v-btn icon color="error" @click="remove(idx)">
+                        <v-icon>ri-delete-bin-line</v-icon>
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+
+                  <v-btn
+                    outlined
+                    color="primary"
+                    class="mt-5 ml-14"
+                    @click="addKeyword"
+                  >
+                    <v-icon left>mdi-plus</v-icon>
+                    Добавить еще
+                  </v-btn>
+                </div>
+              </transition>
+
+              <div v-if="isKeywords" class="mt-4 text-subtitle-1 grey--text">
+                Если вы активируете эту функцию, то поиск и выкуп товаров покупателями будет происходить по этим ключевым словам. Активируйте в случае нужды продвижения карточки по ключевым запросам.
+              </div>
+            </div>
+            <v-row class="mb-4" v-else>
               <v-col cols="12" md="6">
                 <div class="d-flex align-center">
                   <button

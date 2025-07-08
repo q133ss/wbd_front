@@ -1,8 +1,10 @@
 <script setup>
 import authV2ForgotPasswordIllustrationBorderedDark from '@images/pages/auth-v2-forgot-password-illustration-bordered-dark.png'
 import authV2ForgotPasswordIllustrationBorderedLight from '@images/pages/auth-v2-forgot-password-illustration-bordered-light.png'
-import authV2ForgotPasswordIllustrationDark from '@images/pages/auth-v2-forgot-password-illustration-dark.png'
-import authV2ForgotPasswordIllustrationLight from '@images/pages/auth-v2-forgot-password-illustration-light.png'
+
+import authV2ForgotPasswordIllustrationDark from '@images/pages/buyer-dark.png'
+import authV2ForgotPasswordIllustrationLight from '@images/pages/buyer-light.png'
+
 import authV2ForgotPasswordMaskDark from '@images/pages/auth-v2-forgot-password-mask-dark.png'
 import authV2ForgotPasswordMaskLight from '@images/pages/auth-v2-forgot-password-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'

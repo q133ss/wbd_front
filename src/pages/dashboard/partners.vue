@@ -36,7 +36,7 @@
       <v-col cols="12" sm="6" md="3">
         <v-card class="pa-4" outlined>
           <div class="text-subtitle-1 font-weight-medium">Вы заработали</div>
-          <div class="text-h5 mt-2">—</div> <!-- Можно заменить на сумму, если появится -->
+          <div class="text-h5 mt-2">{{ stats.earnings }}</div> <!-- Можно заменить на сумму, если появится -->
         </v-card>
       </v-col>
     </v-row>
@@ -120,7 +120,8 @@ const snackbar = useSnackbarStore()
 const stats = ref({
   clicks_count: 0,
   registrations_count: 0,
-  topup_count: 0
+  topup_count: 0,
+  earnings: 0
 })
 
 const user = ref(null)

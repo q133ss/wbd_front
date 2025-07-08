@@ -488,7 +488,10 @@ const closeTgModal = () => {
             {{ truncateName(item.product.name) }}
           </td>
           <td>{{ parseInt(item.cashback_percentage) }}%</td>
-          <td>{{item.completed_buybacks_count}} из {{ item.redemption_count }}</td>
+          <td v-if="item.keywords == null">{{item.completed_buybacks_count}} из {{ item.redemption_count }}</td>
+          <td v-else>
+            {{ item.completed_buybacks_count }} из {{ item.keywords.reduce((sum, kw) => sum + (kw.redemption_count || 0), 0) }}
+          </td>
           <td>{{ item.views_count }}</td>
           <td>{{ item.cr }}</td>
         </tr>

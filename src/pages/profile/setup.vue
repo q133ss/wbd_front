@@ -3,8 +3,10 @@ import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import authV2RegisterIllustrationBorderedDark from '@images/pages/auth-v2-register-illustration-bordered-dark.png'
 import authV2RegisterIllustrationBorderedLight from '@images/pages/auth-v2-register-illustration-bordered-light.png'
-import authV2RegisterIllustrationDark from '@images/pages/auth-v2-register-illustration-dark.png'
-import authV2RegisterIllustrationLight from '@images/pages/auth-v2-register-illustration-light.png'
+
+import authV2RegisterIllustrationDark from '@images/pages/buyer-dark.png'
+import authV2RegisterIllustrationLight from '@images/pages/buyer-light.png'
+
 import authV2RegisterMaskDark from '@images/pages/auth-v2-register-mask-dark.png'
 import authV2RegisterMaskLight from '@images/pages/auth-v2-register-mask-light.png'
 import api from '@/api'

@@ -4,8 +4,10 @@ import { themeConfig } from '@themeConfig'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import authV2RegisterIllustrationBorderedDark from '@images/pages/auth-v2-register-illustration-bordered-dark.png'
 import authV2RegisterIllustrationBorderedLight from '@images/pages/auth-v2-register-illustration-bordered-light.png'
-import authV2RegisterIllustrationDark from '@images/pages/auth-v2-register-illustration-dark.png'
-import authV2RegisterIllustrationLight from '@images/pages/auth-v2-register-illustration-light.png'
+
+import authV2RegisterIllustrationDark from '@images/pages/seller-dark.png'
+import authV2RegisterIllustrationLight from '@images/pages/seller-light.png'
+
 import authV2RegisterMaskDark from '@images/pages/auth-v2-register-mask-dark.png'
 import authV2RegisterMaskLight from '@images/pages/auth-v2-register-mask-light.png'
 import api from '@/api'
@@ -200,7 +202,7 @@ const reloadPage = (role) => {
                 <div class="text-center text-base">
                   <span class="d-inline-block">Уже есть аккаунт?</span> <RouterLink
                   class="text-primary d-inline-block"
-                  :to="{ name: 'login' }"
+                  to="/seller/login"
                 >
                   Войти
                 </RouterLink>

@@ -100,7 +100,7 @@ export default {
 
     return response
   },
-  async fetchWbProduct(article) {
+  async fetchWbProduct(article, loadRelated) {
     const token = useCookie('accessToken').value
     if (!token) return null
 
@@ -108,7 +108,10 @@ export default {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`
-      }
+      },
+      body: JSON.stringify({
+        loadRelated: loadRelated
+      })
     })
 
     return response

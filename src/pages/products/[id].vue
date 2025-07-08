@@ -506,7 +506,7 @@ function onSlideChange(val) {
 
   <v-dialog v-model="showPayModal" max-width="400px">
     <v-sheet class="pa-6">
-      <h6 class="text-h6 mb-4 text-center">Вам необходимо заполнить платежные данные для создания заказа</h6>
+      <h6 class="text-h6 mb-4 text-center">Перед началом оформления заказа вам необходимо заполнить платежные данные для получения кэшбека</h6>
       <div class="text-center">
         <v-btn
           color="primary"
