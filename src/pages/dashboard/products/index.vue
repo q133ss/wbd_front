@@ -491,7 +491,7 @@ const handleFilterStatus = value => {
               Добавить
             </v-btn>
             <br>
-            <span class="text-subtitle-1">Загрузите первый товар, что бы начать продвижение</span>
+            <span class="text-subtitle-1">Загрузите первый товар, чтобы начать продвижение</span>
           </td>
         </tr>
         <tr v-else-if="!products?.length && filters.is_archived">

@@ -421,7 +421,7 @@ function decrement(idx) {
                   <v-btn
                     outlined
                     color="primary"
-                    class="mt-2"
+                    class="mt-5 ml-14"
                     @click="addKeyword"
                   >
                     <v-icon left>mdi-plus</v-icon>

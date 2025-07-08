@@ -92,10 +92,10 @@ const loadProductData = async (id) => {
     })).slice(0, 6);
   } catch (error) {
     // Если товар не найден, редирект на страницу 404
-    if (error.status == 404) {
-      router.push('/not-found')
-      return
-    }
+    // if (error.status == 404) {
+    //   router.push('/not-found')
+    //   return
+    // }
 
     console.error('Ошибка при загрузке данных:', error);
     errorMessage.value = 'Не удалось загрузить данные. Попробуйте позже.';
@@ -312,7 +312,7 @@ function onSlideChange(val) {
             </div>
           </template>
         </VCard>
-        <div class="product-card" style="height: auto">
+        <div class="slider-pagination" style="height: auto">
           <div v-if="parsedImages.length > 1" class="d-flex justify-center mt-3">
               <span
                 v-for="(_, idx) in parsedImages"
@@ -679,10 +679,18 @@ h2.mb-4 {
   height: 10px;
   margin: 0 4px;
   border-radius: 50%;
-  background-color: rgb(var(--v-theme-primary), 50%);
+  background-color: rgb(var(--v-theme-primary), 25%);
   cursor: pointer;
 }
 .my-dot--active {
   background-color: rgb(var(--v-theme-primary));
+}
+
+
+
+@media (min-width: 960px) {
+  .slider-pagination{
+    width: 526px;
+  }
 }
 </style>

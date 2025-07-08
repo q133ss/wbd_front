@@ -493,7 +493,7 @@ const closeTgModal = () => {
           <td>{{ item.cr }}</td>
         </tr>
         <tr v-if="!ads.length">
-          <td colspan="8" class="text-center">
+          <td colspan="8" class="text-center pt-10">
             <span v-if="!filters.is_archived">Объявлений нет</span>
             <span v-else>Архивных объявлений нет</span>
             <br>
@@ -693,8 +693,8 @@ const closeTgModal = () => {
       max-width="500"
     >
       <VCard>
-        <VCardTitle class="d-flex justify-space-between align-center">
-          <span>Подключите Telegram бота</span>
+        <VCardTitle class="d-flex justify-space-between align-center font-weight-bold">
+          <span class="w-100 text-center mt-6 mb-6">Подключите Telegram бота</span>
         </VCardTitle>
 
         <div class="d-flex justify-center">
@@ -707,26 +707,23 @@ const closeTgModal = () => {
             @click="connectTelegram"
           />
         </div>
-        <p class="text-center mt-4">Подключите телеграм бота, чтобы получать уведомления о новых выкупах вашего товара
-          от покупателей и статусах этих выкупов.</p>
-        <p class="text-center">Отсканируйте QR-код для подключения к Telegram-боту</p>
-        <div class="text-center">
-          <VBtn variant="outlined" @click="connectTelegram" color="primary" append-icon="ri-telegram-2-fill">Подключить</VBtn>
+        <div class="text-center mt-6">
+          <VBtn color="#29A9EB" style="border-color: #29A9EB" variant="outlined" @click="connectTelegram" append-icon="ri-telegram-2-fill">Подключить</VBtn>
         </div>
+        <p class="text-center mt-4 pl-3 pr-3 pt-3 pb-0">Подключите телеграм бота, чтобы получать уведомления о ваших заказах, а так же статусах этих выкупов</p>
 
-        <VCardText>
-
-        </VCardText>
-
-        <VCardActions>
-          <VSpacer />
-          <VBtn
-            color="secondary"
-            @click="closeTgModal"
-          >
-            Закрыть
-          </VBtn>
-        </VCardActions>
+        <VBtn
+          color="primary"
+          @click="closeTgModal"
+          class="text-center mb-6"
+          variant="text"
+        >
+          Закрыть
+        </VBtn>
+<!--        <VCardActions>-->
+<!--          <VSpacer />-->
+<!--          -->
+<!--        </VCardActions>-->
       </VCard>
     </VDialog>
 

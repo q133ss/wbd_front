@@ -147,7 +147,7 @@ onMounted(fetchCategories)
   .img-wrap{
     //height: 285px;
     width: 170px;
-    height: 235px;
+    height: 200px;
   }
 
   .category-img{
@@ -155,11 +155,20 @@ onMounted(fetchCategories)
   }
 }
 
+@media screen and (max-width: 550px){
+  .category-img{
+    border-radius: 10px;
+  }
+  .category-col{
+    padding-top: 0!important;
+  }
+}
+
 @media screen and (max-width: 520px){
   .img-wrap{
     //height: 285px;
     width: 150px;
-    height: 200px;
+    height: 170px;
   }
 
   .category-name{
@@ -171,7 +180,7 @@ onMounted(fetchCategories)
   .img-wrap{
     //height: 285px;
     width: 130px;
-    height: 200px;
+    height: 150px;
   }
 
   .category-name{
@@ -186,12 +195,12 @@ onMounted(fetchCategories)
 @media screen and (max-width: 410px){
   .img-wrap{
     //height: 285px;
-    width: 100px;
-    height: 110px;
+    width: 115px;
+    height: 135px;
   }
 
   .category-name{
-    top: -120px;
+    top: -140px;
     font-size: 12px !important;
   }
 
@@ -233,7 +242,7 @@ onMounted(fetchCategories)
   .img-wrap{
     //height: 285px;
     width: 200px;
-    height: 235px;
+    height: 200px;
   }
 
   .category-img{
