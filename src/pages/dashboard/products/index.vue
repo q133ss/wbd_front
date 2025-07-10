@@ -533,7 +533,6 @@ const loadRelated = ref(false)
           <VCheckbox
             label="Загрузить связанные товары"
             v-model="loadRelated"
-            :value="loadRelated"
             @update:model-value="loadReload = !loadReload"
           />
         </v-card-text>

@@ -104,14 +104,11 @@ export default {
     const token = useCookie('accessToken').value
     if (!token) return null
 
-    const response = await $api(`/wb/fetch-product/${article}`, {
+    const response = await $api(`/wb/fetch-product/${article}?loadRelated=${loadRelated}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        loadRelated: loadRelated
-      })
+      }
     })
 
     return response

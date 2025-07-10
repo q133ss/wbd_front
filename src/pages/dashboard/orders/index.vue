@@ -304,10 +304,10 @@ const { cancelOrder } = useOrders()
 const statusMessages = {
   cancelled: 'Заказ отменен',
   order_expired: 'Срок для размещения заказа истек',
-  pending: 'Ожидание размещения заказа',
+  pending: 'Ожидание заказа',
   awaiting_receipt: 'Ожидание получения товара',
-  on_confirmation: 'Ожидание подтверждения продавцом',
-  cashback_received: 'Кэшбек зачислен на ваш баланс в размере {price}',
+  on_confirmation: 'На подтверждении',
+  cashback_received: 'Отправка кэшбека',
   completed: 'Заказ завершен',
   archive: 'В архиве'
 }
@@ -317,6 +317,42 @@ const statusMessage = computed(() => {
   let message = statusMessages[activeChat.value.status] || ''
   if (activeChat.value.status === 'cashback_received') message = message.replace('{price}', activeChat.value.price)
   return message
+})
+
+const step = computed(() => {
+  if (!activeChat.value) return ''
+  if(activeChat.value.status === 'pending'){
+    return 1
+  }else if(activeChat.value.status === 'awaiting_receipt'){
+    return 2
+  }else if(activeChat.value.status === 'on_confirmation'){
+    return 3
+  }else if (activeChat.value.status === 'cashback_received'){
+    return 4
+  }else if (activeChat.value.status === 'completed'){
+    return 5
+  }
+
+  return ''
+})
+
+const alertType = computed(() => {
+  if (!activeChat.value) return ''
+  if(activeChat.value.status === 'pending'){
+    return 'primary'
+  }else if(activeChat.value.status === 'awaiting_receipt'){
+    return 'info'
+  }else if(activeChat.value.status === 'on_confirmation'){
+    return 'danger'
+  }else if (activeChat.value.status === 'cashback_received'){
+    return 'success'
+  }else if (activeChat.value.status === 'completed'){
+    return 'success'
+  }else if (activeChat.value.status === 'cancelled'){
+    return 'secondary'
+  }
+
+  return ''
 })
 
 const shouldShowChatList = computed(() => (isMobile.value && !activeChat.value) || !isMobile.value)
@@ -429,13 +465,15 @@ onUnmounted(() => {
                   </v-avatar>
                   <div>
                     <h3 class="text-h6">{{ activeChat.ad.product.name }}</h3>
-                    <p class="text-body-2">{{ activeChat.ad.shop.wb_name }}</p>
+                    <p class="text-body-2">{{ activeChat.ad?.shop?.wb_name ?? '' }}</p>
                   </div>
                 </div>
-                <v-alert :type="['cancelled', 'order_expired'].includes(activeChat.status) ? 'error' : 'info'" class="status-alert">
-                  {{ statusMessage }}
-                  <span v-if="timer" class="timer ml-2">{{ timer }}</span>
-                  <span v-else-if="activeChat.status === 'pending'" class="timer ml-2 text-warning">Ожидание таймера...</span>
+                <v-alert :type="alertType" class="status-alert" :icon="false">
+                  <span class="msg-alert-text">
+                    Шаг {{step}}/5 - {{ statusMessage }}
+                    <span v-if="timer" class="timer ml-2">{{ timer }}</span>
+                    <span v-else-if="activeChat.status === 'pending'" class="timer ml-2 text-warning">Ожидание таймера...</span>
+                  </span>
                 </v-alert>
               </div>
 
@@ -727,11 +765,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.timer {
-  font-weight: 500;
-  color: #d81b60;
+  justify-content: center;
 }
 
 .text-warning {
@@ -780,5 +814,18 @@ onUnmounted(() => {
     margin-top: 30px;
     margin-left: 20px;
   }
+}
+
+.msg-alert-text{
+  color: #000;
+  padding: 5px;
+}
+</style>
+
+<style>
+.status-alert .v-alert__content{
+  background: #fff;
+  border-radius: 30px;
+  padding: 5px;
 }
 </style>
