@@ -51,7 +51,6 @@ let channel = null
 
 const lastSeen = ref('')
 
-///
 // Функция для форматирования времени
 function formatLastSeen(dateString) {
   if (!dateString) return 'давно'; // Если даты нет
@@ -212,7 +211,7 @@ const useTimer = () => {
     const start = new Date(startTime).getTime()
     if (isNaN(start)) return
 
-    const durations = { pending: 30 * 60 * 1000, awaiting_receipt: 10 * 24 * 60 * 60 * 1000, on_confirmation: 72 * 60 * 60 * 1000 }
+    const durations = { pending: 30 * 60 * 1000, awaiting_receipt: 10 * 24 * 60 * 60 * 1000, on_confirmation: 24 * 60 * 60 * 1000 }
     const duration = durations[status]
 
     const update = () => {
@@ -387,6 +386,8 @@ const step = computed(() => {
   }else if (activeChat.value.status === 'cashback_received'){
     return 4
   }else if (activeChat.value.status === 'completed'){
+    return 5
+  }else if (activeChat.value.status === 'order_expired'){
     return 5
   }
 

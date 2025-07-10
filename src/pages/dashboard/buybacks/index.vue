@@ -16,6 +16,58 @@ const { smAndDown } = useDisplay()
 const route = useRoute()
 const router = useRouter()
 
+const lastSeen = ref('')
+
+// TODO доедлать онлайн!
+// Функция для форматирования времени
+function formatLastSeen(dateString) {
+  if (!dateString) return 'давно'; // Если даты нет
+
+  const now = new Date();
+  const lastSeen = new Date(dateString);
+  const diffInSeconds = Math.floor((now - lastSeen) / 1000);
+
+  // Форматируем разницу
+  if (diffInSeconds < 60) {
+    return 'только что';
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} мин назад`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours} ${getHoursWord(diffInHours)} назад`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays === 1) {
+    return 'вчера';
+  }
+
+  if (diffInDays < 7) {
+    return `${diffInDays} ${getDaysWord(diffInDays)} назад`;
+  }
+
+  return 'давно';
+}
+
+// Склонение слова "час"
+function getHoursWord(hours) {
+  if (hours % 10 === 1 && hours % 100 !== 11) return 'час';
+  if ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100)) return 'часа';
+  return 'часов';
+}
+
+// Склонение слова "день"
+function getDaysWord(days) {
+  if (days % 10 === 1 && days % 100 !== 11) return 'день';
+  if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) return 'дня';
+  return 'дней';
+}
+
 // State
 const currentUser = ref(null)
 const statuses = ref([])
@@ -78,6 +130,9 @@ const useChat = () => {
     activeChat.value = chat
     messages.value = []
     try {
+      const lastSeenResponse = await api.chat.lastSeen(chat.id)
+      lastSeen.value = lastSeenResponse.seller
+
       const response = await api.chat.getMessages(chat.id)
       messages.value = response.data || []
       setupPusher(chat.id)
@@ -123,26 +178,18 @@ const useTimer = () => {
     if (!activeChat.value) return
 
     const status = activeChat.value.status
-    const startTime = activeChat.value.updated_at || activeChat.value.created_at || new Date().toISOString()
-
+    // const startTime = activeChat.value.updated_at || activeChat.value.created_at || new Date().toISOString()
+    const startTime = activeChat.value.updated_at || activeChat.value.created_at
     if (!['pending', 'awaiting_receipt', 'on_confirmation'].includes(status)) return
 
     const start = new Date(startTime).getTime()
-    if (isNaN(start)) {
-      console.error('Invalid start time:', startTime)
-      return
-    }
+    if (isNaN(start)) return
 
-    const durations = {
-      pending: 30 * 60 * 1000, // 30 minutes
-      awaiting_receipt: 10 * 24 * 60 * 60 * 1000, // 10 days
-      on_confirmation: 72 * 60 * 60 * 1000 // 72 hours
-    }
-
+    const durations = { pending: 30 * 60 * 1000, awaiting_receipt: 10 * 24 * 60 * 60 * 1000, on_confirmation: 24 * 60 * 60 * 1000 }
     const duration = durations[status]
+
     const update = () => {
-      const now = Date.now()
-      const remaining = start + duration - now
+      const remaining = start + duration - Date.now()
       if (remaining <= 0) {
         timer.value = 'Истек'
         clearInterval(timerInterval.value)
@@ -152,11 +199,7 @@ const useTimer = () => {
       const minutes = Math.floor((remaining / (1000 * 60)) % 60)
       const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24)
       const days = Math.floor(remaining / (1000 * 60 * 60 * 24))
-      timer.value = days > 0
-        ? `${days} д ${hours} ч ${minutes} м`
-        : hours > 0
-          ? `${hours} ч ${minutes} м ${seconds} с`
-          : `${minutes} м ${seconds} с`
+      timer.value = days > 0 ? `${days} д ${hours} ч ${minutes} м` : hours > 0 ? `${hours} ч ${minutes} м ${seconds} с` : `${minutes} м ${seconds} с`
     }
 
     update()
@@ -227,27 +270,22 @@ const useFiles = () => {
     }
   }
 
+  // Сделать отдельный route, что бы он был с комментом!
   const rejectFile = async () => {
     try {
-      const response = await api.buyback.rejectPhoto(chatId.value, fileId.value, comment.value)
+      const response = await api.buyback.cancelOrder(chatId.value, comment.value)
       if (response.buyback) {
-        activeChat.value.status = response.buyback.status
+        activeChat.value.status = response.system_type
         updateStatusTimer()
-      }
-      if (response.message) {
-        if (!messages.value.some(msg => msg.id === response.message.id)) {
-          messages.value.push(response.message)
-          scrollToBottom()
-        }
       }
       const chat = await api.buyback.getBuybackById(chatId.value)
       if (chat) selectChat(chat)
-      snackbar.notify({ text: 'Файл отклонен', color: 'success' })
+      snackbar.notify({ text: 'Выкуп отменен', color: 'success' })
       resetForm()
     } catch (error) {
       console.error('Error rejecting file:', error)
       snackbar.notify({
-        text: error.response?._data?.message || 'Ошибка отклонения файла',
+        text: error.response?._data?.message || 'Ошибка отмены выкупа',
         color: 'error'
       })
     }
@@ -301,26 +339,61 @@ const { scrollToBottom, sendMessage } = useMessages()
 const { approveFile, rejectFile, openRejectModal, resetForm } = useFiles()
 const { submitReview } = useReviews()
 
-// Computed: Status message
+
 const statusMessages = {
-  cancelled: 'Отменен',
-  order_expired: 'Покупатель не успел сделать заказ в установленный срок',
+  cancelled: 'Заказ отменен',
+  order_expired: 'Срок для размещения заказа истек',
   pending: 'Ожидание заказа',
-  awaiting_receipt: 'Ожидание получения',
+  awaiting_receipt: 'Ожидание получения товара',
   on_confirmation: 'На подтверждении',
-  cashback_received: 'Кэшбек был зачислен на баланс покупателя',
-  completed: 'Завершено',
-  archive: 'Архив'
+  cashback_received: 'Кэшбек отправлен',
+  completed: 'Заказ завершен',
+  archive: 'В архиве'
 }
 
 const statusMessage = computed(() => {
   if (!activeChat.value) return ''
-  const status = activeChat.value.status
-  let message = statusMessages[status] || ''
-  if (status === 'cashback_received') {
-    message = message.replace('{price}', activeChat.value.price)
-  }
+  let message = statusMessages[activeChat.value.status] || ''
+  if (activeChat.value.status === 'cashback_received') message = message.replace('{price}', activeChat.value.price)
   return message
+})
+
+const step = computed(() => {
+  if (!activeChat.value) return ''
+  if(activeChat.value.status === 'pending'){
+    return 1
+  }else if(activeChat.value.status === 'awaiting_receipt'){
+    return 2
+  }else if(activeChat.value.status === 'on_confirmation'){
+    return 3
+  }else if (activeChat.value.status === 'cashback_received'){
+    return 4
+  }else if (activeChat.value.status === 'completed'){
+    return 5
+  }else if (activeChat.value.status === 'order_expired'){
+    return 5
+  }
+
+  return ''
+})
+
+const alertType = computed(() => {
+  if (!activeChat.value) return ''
+  if(activeChat.value.status === 'pending'){
+    return 'primary'
+  }else if(activeChat.value.status === 'awaiting_receipt'){
+    return 'info'
+  }else if(activeChat.value.status === 'on_confirmation'){
+    return 'danger'
+  }else if (activeChat.value.status === 'cashback_received'){
+    return 'success'
+  }else if (activeChat.value.status === 'completed'){
+    return 'success'
+  }else if (activeChat.value.status === 'cancelled'){
+    return 'secondary'
+  }
+
+  return ''
 })
 
 // Computed: UI visibility
@@ -374,6 +447,14 @@ onUnmounted(() => {
   cleanupPusher()
   if (timerInterval.value) clearInterval(timerInterval.value)
 })
+
+const pendingScreen = ref(null)
+
+const uploadScreen = async () => {
+  const response = await api.buyback.sendScreen(activeChat.value.id, pendingScreen.value);
+  snackbar.notify({ text: 'Скриншот заказа отправлен', color: 'success' })
+  await selectChat(activeChat.value)
+}
 </script>
 
 <template>
@@ -469,11 +550,12 @@ onUnmounted(() => {
                   <div>
                     <h3 class="text-h6">{{ activeChat.ad.product.name }}</h3>
                     <p class="text-body-2">{{ activeChat.user.name }}</p>
+                    <span class="text-body-2 text-secondary">Был в сети {{formatLastSeen(lastSeen)}}</span>
                   </div>
                 </div>
                 <v-alert
-                  :type="['cancelled', 'order_expired'].includes(activeChat.status) ? 'error' : 'info'"
-                  class="status-alert"
+                  :type="alertType"
+                  class="status-alert" :icon="false"
                 >
                   {{ statusMessage }}
                   <span v-if="timer" class="timer ml-2">{{ timer }}</span>
@@ -501,7 +583,47 @@ onUnmounted(() => {
                     }"
                     class="mb-4"
                   >
+                     <span class="w-100 text-caption text-center text-disabled mb-2" v-if="message.hide_for != 'seller'">
+                        {{
+                         new Date(message.created_at).toLocaleDateString('ru-RU', {
+                           day: '2-digit',
+                           month: '2-digit',
+                           year: 'numeric'
+                         })
+                       }} в {{
+                         new Date(message.created_at).toLocaleTimeString('ru-RU', {
+                           hour: '2-digit',
+                           minute: '2-digit'
+                         })
+                       }}
+                      </span>
+
+                    <div v-if="message.type != 'system' && message.system_type != 'success' && message.hide_for != 'seller'">
+                      <span v-if="activeChat.ad.user_id != message.sender_id">{{activeChat.user?.name}}</span>
+                      <span v-else>Вы</span>
+                    </div>
+
+
+                    <div v-if="message.type == 'system' && message.system_type == 'success' && message.hide_for != 'seller'" class="w-100 text-center d-flex justify-center">
+                      <div class="success-msg">
+                        {{message.text}}
+                      </div>
+                    </div>
+
+                    <div v-else-if="message.type == 'system' && message.system_type == 'info' && message.hide_for != 'seller'" class="w-100 text-center d-flex justify-center">
+                      <div class="info-msg">
+                        {{message.text}}
+                      </div>
+                    </div>
+
+                    <div v-else-if="message.type == 'system' && message.system_type == 'cancel' && message.hide_for != 'seller'" class="w-100 text-center d-flex justify-center">
+                      <div class="cancel-msg">
+                        {{message.text}}
+                      </div>
+                    </div>
+
                     <div
+                      v-else-if="message.hide_for != 'seller'"
                       :style="{
                         backgroundColor: message.sender_id === currentUser?.id ? message.color || '#1976d2' : '#f5f5f5',
                         color: message.sender_id === currentUser?.id ? 'white' : 'black',
@@ -541,24 +663,44 @@ onUnmounted(() => {
                           <span v-if="file.status == null && activeChat.status === 'cashback_received'" class="mt-2 d-block">
                             Скриншот
                           </span>
-                          <v-row v-else-if="file.status == null && activeChat.status !== 'cashback_received' && index === (message.files || (message.file ? [message.file] : [])).length - 1"  no-gutters class="mt-2">
+                          <v-row v-else-if="file.status == null && activeChat.status !== 'cashback_received && ' && index === (message.files || (message.file ? [message.file] : [])).length - 1"  no-gutters class="mt-2">
                             <v-col>
-                              <v-btn color="success" @click="approveFile(message.buyback_id, file.id)">Принять</v-btn>
-                            </v-col>
-                            <v-col>
-                              <v-btn color="error" @click="openRejectModal(message.buyback_id, file.id)" class="ml-2">Отклонить</v-btn>
+                              <v-btn v-if="activeChat.status !== 'cancelled'" color="secondary" variant="outlined" @click="openRejectModal(message.buyback_id, file.id)" class="ml-2">Отклонить</v-btn>
+                              <span v-else>Выкуп отменен</span>
                             </v-col>
                           </v-row>
-                          <span v-else-if="file.status != null && index === (message.files || (message.file ? [message.file] : [])).length - 1" class="mt-2 d-block">
-                            {{ file.status ? 'Файл подтвержден' : 'Файл отклонен' }}
-                          </span>
                         </div>
                       </template>
                     </div>
-                    <span class="text-caption text-disabled mt-1">
-                      {{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}
-                    </span>
                   </li>
+
+                  <div v-if="activeChat.status === 'on_confirmation'" class="mt-4">
+                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
+                      <v-card-title class="text-h6 d-flex align-center">
+                        <v-icon icon="ri-image-line" class="mr-2" />
+                        Загрузите скриншот перевода
+                      </v-card-title>
+                      <v-card-text>
+                        <p class="text-body-2 mb-4">Загрузите скриншот перевода средств по указанным реквизитам</p>
+                        <v-file-input
+                          label="Выберите скриншот"
+                          accept=".jpeg,.png,.jpg,.gif"
+                          v-model="pendingScreen"
+                          variant="outlined"
+                          density="compact"
+                          show-size
+                          prepend-icon="ri-upload-cloud-line"
+                          class="mb-4"
+                          aria-label="Загрузить скриншот заказа"
+                        />
+                        <v-img v-if="pendingScreen" :src="pendingScreen" max-width="100" class="mb-4 rounded" cover />
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-btn color="primary" :disabled="!pendingScreen" @click="uploadScreen" class="px-4" rounded>Отправить</v-btn>
+                        <v-btn color="error" @click="rejectFile" variant="outlined" class="px-4" rounded>Отменить заказ</v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </div>
 
                   <!-- Review Form -->
                   <div
@@ -662,13 +804,16 @@ onUnmounted(() => {
 
       <!-- Reject Modal -->
       <v-dialog v-model="isRejectVisible" max-width="500">
-        <v-card title="Отклонить фото">
-          <v-btn icon variant="text" @click="resetForm" class="dialog-close-btn">
-            <v-icon icon="ri-close-line" />
-          </v-btn>
+        <v-card title="Отклонение подтверждения">
           <v-card-text>
-            <v-textarea v-model="comment" placeholder="Укажите причину" variant="outlined" />
-            <v-btn color="error" @click="rejectFile" class="mt-4">Отклонить</v-btn>
+            <span>
+              Пожалуйста, напишите комментарий к вашему решению, чтобы покупатель смог исправить ошибки.
+              <br><br>
+Заказ будет отменен, а выкуп возвращен на баланс объявления
+            </span>
+            <v-textarea class="mt-5" label="Комментарий" v-model="comment" placeholder="Укажите причину" variant="outlined" />
+            <v-btn color="error" @click="rejectFile" class="w-100 mt-4">Отклонить</v-btn>
+            <v-btn color="secondary" variant="outlined" @click="resetForm()" class="w-100 mt-2">Назад</v-btn>
           </v-card-text>
         </v-card>
       </v-dialog>
@@ -718,11 +863,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.timer {
-  font-weight: 500;
-  color: #d81b60;
+  justify-content: center;
 }
 
 .text-warning {
@@ -771,5 +912,43 @@ onUnmounted(() => {
     margin-top: 30px;
     margin-left: 20px;
   }
+}
+
+.msg-alert-text{
+  color: #000;
+  padding: 5px;
+}
+
+.success-msg{
+  background: #D1FADF;
+  padding: 10px 35px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  color: #000000cc!important;
+}
+
+.info-msg{
+  background: #D1D7FA;
+  border-radius: 15px;
+  color: #000000!important;
+  max-width: 70%;
+  padding: 10px 35px;
+}
+
+.cancel-msg{
+  background: #FEE4E2;
+  border-radius: 15px;
+  color: #000000!important;
+  max-width: 70%;
+  padding: 10px 35px;
+}
+</style>
+
+<style>
+.status-alert .v-alert__content{
+  background: #fff;
+  border-radius: 30px;
+  padding: 5px;
+  color: #000;
 }
 </style>

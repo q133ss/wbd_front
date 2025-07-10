@@ -17,7 +17,7 @@ export default {
   },
 
   // Отменить заказ
-  async cancelOrder(id) {
+  async cancelOrder(id, comment = null) {
     const token = useCookie('accessToken').value
     if (!token) return null
 
@@ -27,6 +27,9 @@ export default {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
+      body: JSON.stringify({
+        comment: comment
+      })
     })
 
     return response
@@ -78,6 +81,25 @@ export default {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
+    })
+
+    return response
+  },
+
+  async sendScreen(id, file){
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await $api(`/seller/chat/${id}/payment/screen`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+      body: formData
     })
 
     return response
