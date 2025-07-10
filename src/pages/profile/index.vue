@@ -572,7 +572,7 @@ getPayments()
                     'text-warning': statistics.average_response_time <= 5 && statistics.average_response_time > 15,
                     'text-error': statistics.average_response_time > 5
                   }"
-                  >{{ statistics.average_response_time }} мин.</VCardTitle>
+                  >{{ parseInt(statistics.average_response_time) }} мин.</VCardTitle>
                   <VCardText>Среднее время ответа</VCardText>
                 </VCard>
               </VCol>

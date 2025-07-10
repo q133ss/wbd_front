@@ -49,6 +49,59 @@ const sendReview = ref(false)
 let pusher = null
 let channel = null
 
+const lastSeen = ref('')
+
+///
+// Функция для форматирования времени
+function formatLastSeen(dateString) {
+  if (!dateString) return 'давно'; // Если даты нет
+
+  const now = new Date();
+  const lastSeen = new Date(dateString);
+  const diffInSeconds = Math.floor((now - lastSeen) / 1000);
+
+  // Форматируем разницу
+  if (diffInSeconds < 60) {
+    return 'только что';
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} мин назад`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours} ${getHoursWord(diffInHours)} назад`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays === 1) {
+    return 'вчера';
+  }
+
+  if (diffInDays < 7) {
+    return `${diffInDays} ${getDaysWord(diffInDays)} назад`;
+  }
+
+  return 'давно';
+}
+
+// Склонение слова "час"
+function getHoursWord(hours) {
+  if (hours % 10 === 1 && hours % 100 !== 11) return 'час';
+  if ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100)) return 'часа';
+  return 'часов';
+}
+
+// Склонение слова "день"
+function getDaysWord(days) {
+  if (days % 10 === 1 && days % 100 !== 11) return 'день';
+  if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) return 'дня';
+  return 'дней';
+}
+///
+
 const getBuybackDeclension = (count) => {
   const num = Math.abs(count)
   if (num % 10 === 1 && num % 100 !== 11) return 'выкуп'
@@ -78,6 +131,9 @@ const useChat = () => {
     activeChat.value = chat
     messages.value = []
     try {
+      const lastSeenResponse = await api.chat.lastSeen(chat.id)
+      lastSeen.value = lastSeenResponse.buyer
+
       const response = await api.chat.getMessages(chat.id)
       messages.value = response.data?.data || response.data || []
       setupPusher(chat.id)
@@ -467,7 +523,7 @@ onUnmounted(() => {
                   <div>
                     <h3 class="text-h6">{{ activeChat.ad.product.name }}</h3>
                     <p class="text-body-2 mb-0">{{ activeChat.ad?.shop?.wb_name ?? '' }}</p>
-                    <span class="text-body-2 text-secondary">Была в сети 18 мин назад</span>
+                    <span class="text-body-2 text-secondary">Был в сети {{formatLastSeen(lastSeen)}}</span>
                   </div>
                 </div>
                 <v-alert :type="alertType" class="status-alert" :icon="false">
@@ -496,7 +552,6 @@ onUnmounted(() => {
                     }"
                     class="mb-4"
                   >
-                    {{activeChat}}
                     <span class="w-100 text-caption text-center text-disabled mb-2" v-if="message.hide_for != 'user'">
                         {{
                             new Date(message.created_at).toLocaleDateString('ru-RU', {

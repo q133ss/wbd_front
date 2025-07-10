@@ -114,5 +114,18 @@ export default {
     })
 
     return response
+  },
+
+  async lastSeen(chatId) {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+    const response = await $api(`/chat/${chatId}/last_seen`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    return response
   }
 }
