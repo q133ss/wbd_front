@@ -466,7 +466,8 @@ onUnmounted(() => {
                   </v-avatar>
                   <div>
                     <h3 class="text-h6">{{ activeChat.ad.product.name }}</h3>
-                    <p class="text-body-2">{{ activeChat.ad?.shop?.wb_name ?? '' }}</p>
+                    <p class="text-body-2 mb-0">{{ activeChat.ad?.shop?.wb_name ?? '' }}</p>
+                    <span class="text-body-2 text-secondary">Была в сети 18 мин назад</span>
                   </div>
                 </div>
                 <v-alert :type="alertType" class="status-alert" :icon="false">
@@ -495,7 +496,44 @@ onUnmounted(() => {
                     }"
                     class="mb-4"
                   >
+                    {{activeChat}}
+                    <span class="w-100 text-caption text-center text-disabled mb-2" v-if="message.hide_for != 'user'">
+                        {{
+                            new Date(message.created_at).toLocaleDateString('ru-RU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            })
+                          }} в {{
+                            new Date(message.created_at).toLocaleTimeString('ru-RU', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          }}
+                      </span>
+
+                    <div v-if="message.type != 'system' && message.system_type != 'success' && message.hide_for != 'user'">
+                      <span v-if="activeChat.ad.user_id == message.sender_id">{{activeChat.ad?.shop?.wb_name}}</span>
+                      <span v-else>Вы</span>
+                    </div>
+
+
+                    <div v-if="message.type == 'system' && message.system_type == 'success' && message.hide_for != 'user'" class="w-100 text-center d-flex justify-center">
+                      <div class="success-msg">
+                        {{message.text}}
+                      </div>
+                    </div>
+
+                    <div v-else-if="message.type == 'system' && message.system_type == 'info' && message.hide_for != 'user'" class="w-100 text-center d-flex justify-center">
+                      <div class="info-msg">
+                        {{message.text}}
+                      </div>
+                    </div>
+
+<!--                    old below-->
+
                     <div
+                      v-else-if="message.hide_for != 'user'"
                       :style="{
                         backgroundColor: message.sender_id === currentUser?.id ? message.color || '#1976d2' : '#f5f5f5',
                         color: message.sender_id === currentUser?.id ? 'white' : 'black',
@@ -532,7 +570,6 @@ onUnmounted(() => {
                         <span>{{ message.text }}</span>
                       </template>
                     </div>
-                    <span class="text-caption text-disabled mt-1">{{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}</span>
                   </li>
 
                   <div v-if="activeChat.status === 'cashback_received' && !activeChat.has_review_by_buyer && !sendReview" class="mt-4">
@@ -820,6 +857,22 @@ onUnmounted(() => {
 .msg-alert-text{
   color: #000;
   padding: 5px;
+}
+
+.success-msg{
+  background: #D1FADF;
+  padding: 10px 35px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  color: #000000cc!important;
+}
+
+.info-msg{
+  background: #D1D7FA;
+  border-radius: 15px;
+  color: #000000!important;
+  max-width: 70%;
+  padding: 10px 35px;
 }
 </style>
 
