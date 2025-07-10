@@ -149,7 +149,8 @@ const useTimer = () => {
     if (!activeChat.value) return
 
     const status = activeChat.value.status
-    const startTime = activeChat.value.updated_at || activeChat.value.created_at || new Date().toISOString()
+    // const startTime = activeChat.value.updated_at || activeChat.value.created_at || new Date().toISOString()
+    const startTime = activeChat.value.updated_at || activeChat.value.created_at
     if (!['pending', 'awaiting_receipt', 'on_confirmation'].includes(status)) return
 
     const start = new Date(startTime).getTime()
