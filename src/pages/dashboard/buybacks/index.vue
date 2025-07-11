@@ -456,6 +456,15 @@ const uploadScreen = async () => {
   await selectChat(activeChat.value)
   showUploadScreen.value = false
 }
+
+function openSupport() {
+  // Логика перехода или вызова окна поддержки
+  router.push('/dashboard/support')
+}
+
+function cancelOrder() {
+  isRejectVisible.value = true
+}
 </script>
 
 <template>
@@ -540,19 +549,38 @@ const uploadScreen = async () => {
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <!-- Chat Header -->
               <div class="chat-header mb-4">
-                <div class="d-flex align-center mb-2">
-                  <v-avatar size="48" class="mr-2 cursor-pointer" color="primary" @click="goToUserProfile(activeChat.user.id)">
-                    <v-img v-if="activeChat.user.avatar" :src="activeChat.user.avatar" :alt="activeChat.user.name" />
-                    <span v-else>{{ activeChat.user.name[0] }}</span>
-                  </v-avatar>
-                  <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToProduct(activeChat.ad.id)" style="position: relative; left: -20px;">
-                    <v-img :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'" :alt="activeChat.ad.name" />
-                  </v-avatar>
-                  <div>
-                    <h3 class="text-h6">{{ activeChat.ad.product.name }}</h3>
-                    <p class="text-body-2">{{ activeChat.user.name }}</p>
-                    <span class="text-body-2 text-secondary">Был в сети {{formatLastSeen(lastSeen)}}</span>
+                <div class="d-flex justify-between align-center mb-2">
+                  <div class="d-flex align-center">
+                    <v-avatar size="48" class="mr-2 cursor-pointer" color="primary" @click="goToUserProfile(activeChat.user.id)">
+                      <v-img v-if="activeChat.user.avatar" :src="activeChat.user.avatar" :alt="activeChat.user.name" />
+                      <span v-else>{{ activeChat.user.name[0] }}</span>
+                    </v-avatar>
+                    <v-avatar size="48" class="mr-2 cursor-pointer" @click="goToProduct(activeChat.ad.id)" style="position: relative; left: -20px;">
+                      <v-img :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'" :alt="activeChat.ad.name" />
+                    </v-avatar>
+                    <div>
+                      <h3 class="text-h6">{{ activeChat.ad.product.name }}</h3>
+                      <p class="text-body-2">{{ activeChat.user.name }}</p>
+                      <span class="text-body-2 text-secondary">Был в сети {{formatLastSeen(lastSeen)}}</span>
+                    </div>
                   </div>
+                  <v-menu offset-y>
+                    <template #activator="{ props }">
+                      <v-btn type="info" variant="outlined" icon v-bind="props">
+                        <v-icon>ri-more-fill</v-icon>
+                      </v-btn>
+                    </template>
+
+                    <v-list>
+                      <v-list-item @click="openSupport">
+                        <v-list-item-title>Поддержка</v-list-item-title>
+                      </v-list-item>
+
+                      <v-list-item @click="cancelOrder">
+                        <v-list-item-title>Отменить заказ</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
                 </div>
                 <v-alert
                   :type="alertType"
@@ -952,6 +980,9 @@ const uploadScreen = async () => {
   color: #000000!important;
   max-width: 70%;
   padding: 10px 35px;
+}
+.justify-between{
+  justify-content: space-between;
 }
 </style>
 

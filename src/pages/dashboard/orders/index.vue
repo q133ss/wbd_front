@@ -389,6 +389,8 @@ const step = computed(() => {
     return 5
   }else if (activeChat.value.status === 'order_expired'){
     return 5
+  }else if (activeChat.value.status === 'cancelled'){
+    return 5
   }
 
   return ''
@@ -450,6 +452,16 @@ onUnmounted(() => {
   cleanupPusher()
   if (timerInterval.value) clearInterval(timerInterval.value)
 })
+
+function openSupport() {
+  // Логика перехода или вызова окна поддержки
+  router.push('/dashboard/support')
+}
+
+function cancelBuyback() {
+  cancelOrder()
+  selectChat(activeChat.value)
+}
 </script>
 
 <template>
@@ -513,7 +525,8 @@ onUnmounted(() => {
           <v-card class="chat-content pa-6" min-height="calc(100vh - 20%)">
             <div v-if="activeChat" class="d-flex flex-column h-100">
               <div class="chat-header mb-4">
-                <div class="d-flex align-center mb-2">
+                <div class="d-flex align-center justify-between mb-2">
+                  <div class="d-flex align-center">
                   <v-avatar size="48" class="mr-2 cursor-pointer" color="primary" @click="goToUserProfile(activeChat.user.id)">
                     <v-img v-if="activeChat.user.avatar" :src="activeChat.user.avatar" :alt="activeChat.user.name" />
                     <span v-else>{{ activeChat.user.name[0] }}</span>
@@ -526,6 +539,24 @@ onUnmounted(() => {
                     <p class="text-body-2 mb-0">{{ activeChat.ad?.shop?.wb_name ?? '' }}</p>
                     <span class="text-body-2 text-secondary">Был в сети {{formatLastSeen(lastSeen)}}</span>
                   </div>
+                  </div>
+                  <v-menu offset-y>
+                    <template #activator="{ props }">
+                      <v-btn type="info" variant="outlined" icon v-bind="props">
+                        <v-icon>ri-more-fill</v-icon>
+                      </v-btn>
+                    </template>
+
+                    <v-list>
+                      <v-list-item @click="openSupport">
+                        <v-list-item-title>Поддержка</v-list-item-title>
+                      </v-list-item>
+
+                      <v-list-item @click="cancelBuyback">
+                        <v-list-item-title>Отменить заказ</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
                 </div>
                 <v-alert :type="alertType" class="status-alert" :icon="false">
                   <span class="msg-alert-text">
@@ -534,6 +565,7 @@ onUnmounted(() => {
                     <span v-else-if="activeChat.status === 'pending'" class="timer ml-2 text-warning">Ожидание таймера...</span>
                   </span>
                 </v-alert>
+
               </div>
 
               <div class="flex-grow-1 d-flex flex-column">
@@ -937,6 +969,9 @@ onUnmounted(() => {
   color: #000000!important;
   max-width: 70%;
   padding: 10px 35px;
+}
+.justify-between{
+  justify-content: space-between;
 }
 </style>
 
