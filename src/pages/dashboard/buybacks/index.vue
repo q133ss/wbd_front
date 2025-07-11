@@ -18,54 +18,53 @@ const router = useRouter()
 
 const lastSeen = ref('')
 
-// TODO доедлать онлайн!
 // Функция для форматирования времени
 function formatLastSeen(dateString) {
-  if (!dateString) return 'давно'; // Если даты нет
+  if (!dateString) return 'давно' // Если даты нет
 
-  const now = new Date();
-  const lastSeen = new Date(dateString);
-  const diffInSeconds = Math.floor((now - lastSeen) / 1000);
+  const now = new Date()
+  const _lastSeen = new Date(dateString)
+  const diffInSeconds = Math.floor((now - _lastSeen) / 1000)
 
   // Форматируем разницу
   if (diffInSeconds < 60) {
     return 'только что';
   }
 
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  const diffInMinutes = Math.floor(diffInSeconds / 60)
   if (diffInMinutes < 60) {
-    return `${diffInMinutes} мин назад`;
+    return `${diffInMinutes} мин назад`
   }
 
-  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInHours = Math.floor(diffInMinutes / 60)
   if (diffInHours < 24) {
-    return `${diffInHours} ${getHoursWord(diffInHours)} назад`;
+    return `${diffInHours} ${getHoursWord(diffInHours)} назад`
   }
 
-  const diffInDays = Math.floor(diffInHours / 24);
+  const diffInDays = Math.floor(diffInHours / 24)
   if (diffInDays === 1) {
-    return 'вчера';
+    return 'вчера'
   }
 
   if (diffInDays < 7) {
-    return `${diffInDays} ${getDaysWord(diffInDays)} назад`;
+    return `${diffInDays} ${getDaysWord(diffInDays)} назад`
   }
 
-  return 'давно';
+  return 'давно'
 }
 
 // Склонение слова "час"
 function getHoursWord(hours) {
-  if (hours % 10 === 1 && hours % 100 !== 11) return 'час';
-  if ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100)) return 'часа';
-  return 'часов';
+  if (hours % 10 === 1 && hours % 100 !== 11) return 'час'
+  if ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100)) return 'часа'
+  return 'часов'
 }
 
 // Склонение слова "день"
 function getDaysWord(days) {
-  if (days % 10 === 1 && days % 100 !== 11) return 'день';
-  if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) return 'дня';
-  return 'дней';
+  if (days % 10 === 1 && days % 100 !== 11) return 'день'
+  if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) return 'дня'
+  return 'дней'
 }
 
 // State
@@ -132,6 +131,7 @@ const useChat = () => {
     try {
       const lastSeenResponse = await api.chat.lastSeen(chat.id)
       lastSeen.value = lastSeenResponse.seller
+      console.log(lastSeenResponse)
 
       const response = await api.chat.getMessages(chat.id)
       messages.value = response.data || []
@@ -645,8 +645,10 @@ const uploadScreen = async () => {
                           aria-label="Рейтинг"
                         />
                         <br>
+                        {{message.text}}
                       </template>
-                      <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
+
+                      <span v-if="message.text && message.system_type !== 'review' && message.type !== 'system'" v-html="message.text.replace(/\n/g, '<br>')"></span>
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type === 'send_photo'">Заказ сделан</span>
                         <span v-if="message.system_type === 'review' && message.type === 'system' && activeChat.has_review_by_seller && activeChat.has_review_by_buyer">
@@ -671,6 +673,14 @@ const uploadScreen = async () => {
                             </v-col>
                           </v-row>
                         </div>
+                      </template>
+
+                      <template v-else-if="activeChat.has_review_by_seller && !activeChat.has_review_by_buyer" class="success-msg">
+                        <span>Покупатель еще не оставил отзыв о вас. Мы сообщим вам сразу же как покупатель напишет отзыв </span>
+                      </template>
+
+                      <template v-else-if="!activeChat.has_review_by_seller && activeChat.has_review_by_buyer" class="success-msg">
+                        <span>Покупатель оставил о вас отзыв. Оставьте отзыв о покупателе, чтобы увидеть его отзыв </span>
                       </template>
                     </div>
                   </li>
