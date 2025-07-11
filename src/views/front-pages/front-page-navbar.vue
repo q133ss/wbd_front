@@ -210,7 +210,7 @@ const isCurrentRoute = to => {
           :prepend-icon="isLoggedIn ? 'ri-user-line' : 'ri-login-box-line'"
           variant="elevated"
           color="primary"
-          :href="isLoggedIn ? '/profile' : '/seller/login'"
+          :href="'/seller/login'"
           rel="noopener noreferrer"
         >
           {{ isLoggedIn ? 'Профиль' : 'Войти' }}
@@ -222,7 +222,7 @@ const isCurrentRoute = to => {
           rounded
           variant="elevated"
           color="primary"
-          href="/login"
+          href="/seller/login"
           rel="noopener noreferrer"
         >
           <VIcon icon="ri-login-box-line" />
