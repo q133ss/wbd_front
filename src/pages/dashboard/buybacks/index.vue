@@ -449,11 +449,12 @@ onUnmounted(() => {
 })
 
 const pendingScreen = ref(null)
-
+const showUploadScreen = ref(true)
 const uploadScreen = async () => {
   const response = await api.buyback.sendScreen(activeChat.value.id, pendingScreen.value);
   snackbar.notify({ text: 'Скриншот заказа отправлен', color: 'success' })
   await selectChat(activeChat.value)
+  showUploadScreen.value = false
 }
 </script>
 
@@ -632,7 +633,7 @@ const uploadScreen = async () => {
                         maxWidth: '70%'
                       }"
                     >
-                      <template v-if="message.system_type === 'review' && message.type === 'system'">
+                      <template v-if="message.system_type === 'review' && message.type === 'system' && activeChat.has_review_by_seller && activeChat.has_review_by_buyer">
                         <v-rating
                           v-model="message.color"
                           length="5"
@@ -648,7 +649,7 @@ const uploadScreen = async () => {
                       <span v-if="message.text" v-html="message.text.replace(/\n/g, '<br>')"></span>
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type === 'send_photo'">Заказ сделан</span>
-                        <span v-if="message.system_type === 'review' && message.type === 'system'">
+                        <span v-if="message.system_type === 'review' && message.type === 'system' && activeChat.has_review_by_seller && activeChat.has_review_by_buyer">
                           {{ message.sender_id === currentUser.id ? 'Вы оставили отзыв' : 'Покупатель оставил отзыв' }}
                         </span>
                         <!-- Handle multiple files -->
@@ -674,7 +675,7 @@ const uploadScreen = async () => {
                     </div>
                   </li>
 
-                  <div v-if="activeChat.status === 'on_confirmation'" class="mt-4">
+                  <div v-if="activeChat.status === 'on_confirmation' && showUploadScreen" class="mt-4">
                     <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
                       <v-card-title class="text-h6 d-flex align-center">
                         <v-icon icon="ri-image-line" class="mr-2" />
@@ -713,7 +714,7 @@ const uploadScreen = async () => {
                         Оставьте отзыв
                       </v-card-title>
                       <v-card-text>
-                        <p class="text-body-2 mb-4">Пожалуйста, оставьте отзыв о покупателе</p>
+                        <p class="text-body-2 mb-4">Оставьте отзыв о покупателе, чтобы увидеть его отзыв о вас.</p>
                         <v-rating
                           v-model="reviewRating"
                           length="5"

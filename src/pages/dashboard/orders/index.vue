@@ -611,7 +611,7 @@ onUnmounted(() => {
                         </div>
                       </template>
                       <span v-if="message.text && message.system_type !== 'review'" v-html="message.text.replace(/\n/g, '<br>')"></span>
-                      <template v-else-if="message.system_type === 'review' && message.type === 'system'">
+                      <template v-else-if="message.system_type === 'review' && message.type === 'system' && activeChat.has_review_by_seller && activeChat.has_review_by_buyer">
                         <v-rating
                           v-model="message.color"
                           length="5"
@@ -625,6 +625,14 @@ onUnmounted(() => {
                         <br>
                         <span>{{ message.text }}</span>
                       </template>
+
+                      <template v-else-if="!activeChat.has_review_by_seller && activeChat.has_review_by_buyer" class="success-msg">
+                        <span>Продавец еще не оставил отзыв о вас. Мы сообщим вам сразу же как продавец напишет отзыв </span>
+                      </template>
+
+                      <template v-else-if="activeChat.has_review_by_seller && !activeChat.has_review_by_buyer" class="success-msg">
+                        <span>Продавец оставил о вас отзыв. Оставьте отзыв о продавце, чтобы увидеть его отзыв </span>
+                      </template>
                     </div>
                   </li>
 
@@ -635,7 +643,7 @@ onUnmounted(() => {
                         Оставьте отзыв
                       </v-card-title>
                       <v-card-text>
-                        <p class="text-body-2 mb-4">Пожалуйста, оставьте отзыв о заказе</p>
+                        <p class="text-body-2 mb-4">Оставьте отзыв о продавце, чтобы увидеть отзыв продавца о вас.</p>
                         <v-rating
                           v-model="reviewRating"
                           length="5"
