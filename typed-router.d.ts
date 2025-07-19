@@ -161,6 +161,7 @@ declare module 'vue-router/auto-routes' {
     'tables-data-table': RouteRecordInfo<'tables-data-table', '/tables/data-table', Record<never, never>, Record<never, never>>,
     'tables-simple-table': RouteRecordInfo<'tables-simple-table', '/tables/simple-table', Record<never, never>, Record<never, never>>,
     'telegram': RouteRecordInfo<'telegram', '/telegram', Record<never, never>, Record<never, never>>,
+    'telegram-auth-complete': RouteRecordInfo<'telegram-auth-complete', '/telegram/auth/complete', Record<never, never>, Record<never, never>>,
     'telegram-auth-conditions': RouteRecordInfo<'telegram-auth-conditions', '/telegram/auth/conditions', Record<never, never>, Record<never, never>>,
     'telegram-auth-contact': RouteRecordInfo<'telegram-auth-contact', '/telegram/auth/contact', Record<never, never>, Record<never, never>>,
     'telegram-auth-select': RouteRecordInfo<'telegram-auth-select', '/telegram/auth/select', Record<never, never>, Record<never, never>>,

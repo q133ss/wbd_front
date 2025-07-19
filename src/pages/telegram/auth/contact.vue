@@ -36,6 +36,7 @@
 </template>
 
 <script setup>
+import api from '@/api/index.js'
 import Header from '@/pages/telegram/inc/header.vue'
 import Footer from '@/pages/telegram/inc/footer.vue'
 import { useRoute } from "vue-router"
@@ -53,8 +54,27 @@ const chatId = route.query.chat_id
 const role = route.query.role
 
 const share = () => {
-  // get contact
-  alert(5455)
+  const tg = window.Telegram?.WebApp
+  if (!tg?.requestContact) {
+    tg?.showAlert?.('Функция недоступна в этом окружении.')
+    return
+  }
+
+  tg.requestContact((success, info) => {
+    if (!success || !info || info.status !== 'sent') {
+      tg.showAlert('Не удалось получить контакт.')
+      return
+    }
+
+    const contact = info.responseUnsafe.contact
+    const firstName = contact.first_name || ''
+    const lastName = contact.last_name || ''
+    const phone = contact.phone_number
+    const userId = contact.user_id
+
+    const response = api.auth.registerFromTelegram(userId, phone, role, chatId, firstName, lastName)
+    router.push(`/telegram/auth/complete?token=${response.token}`)
+  })
 }
 </script>
 
