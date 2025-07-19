@@ -886,6 +886,19 @@ onUnmounted(() => {
                       </p>
                     </div>
                   </div>
+                  <!-- Нужно поставить обработку и добавить функцию  -->
+                  <div
+                    style="max-width: 311px; margin-inline: auto"
+                    сlass="my-4"
+                  >
+                    <VBtn
+                      block
+                      color="primary"
+                      size="large"
+                    >
+                      Принят
+                    </VBtn>
+                  </div>
                 </PerfectScrollbar>
                 <div
                   v-else
