@@ -918,8 +918,8 @@ onUnmounted(() => {
                       <VBtn
                         variant="outlined"
                         color="primary"
-                        width="40"
-                        height="40"
+                        width="42"
+                        height="42"
                         size="small"
                         v-bind="activatorProps"
                         @click="fileInput.click()"
@@ -929,8 +929,8 @@ onUnmounted(() => {
                     </template>
                   </VTooltip>
                   <VBtn
-                    width="40"
-                    height="40"
+                    width="42"
+                    height="42"
                     :loading="sendingMessage"
                     @click="sendMessage"
                   >
