@@ -696,7 +696,7 @@ function cancelOrder() {
                           </span>
                           <v-row v-else-if="file.status == null && activeChat.status !== 'cashback_received && ' && index === (message.files || (message.file ? [message.file] : [])).length - 1"  no-gutters class="mt-2">
                             <v-col>
-                              <v-btn v-if="activeChat.status !== 'cancelled'" color="secondary" variant="outlined" @click="openRejectModal(message.buyback_id, file.id)" class="ml-2">Отклонить</v-btn>
+                              <v-btn v-if="activeChat.status !== 'cancelled' && message.sender_id !== currentUser?.id" color="secondary" variant="outlined" @click="openRejectModal(message.buyback_id, file.id)" class="ml-2">Отклонить</v-btn>
                               <span v-else>Выкуп отменен</span>
                             </v-col>
                           </v-row>
