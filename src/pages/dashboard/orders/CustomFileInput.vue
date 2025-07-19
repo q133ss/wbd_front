@@ -54,25 +54,53 @@ function handleFileChange(e) {
     show-size
     prepend-icon=""
     prepend-inner-icon="ri-file-3-line"
-    class="mb-2"
+    class="mb-2 text-body-3"
     @click:clear="barcodeFile = null"
-  />
+  >
+    <template #selection="{ fileNames }">
+      <div class="text-left">
+        <p
+          style="font-size: 10px; line-height: 1.4; max-width: 220px;"
+          class="text-no-wrap text-truncate ma-0"
+        >
+          {{ fileNames[0] }}
+        </p>
+
+        <p
+          v-if="barcodeFile"
+          style="font-size: 10px; line-height: 1.4"
+          class="text-no-wrap ma-0"          
+        >
+          ({{ (barcodeFile.size / 1024).toFixed(1) }} KB)
+        </p>
+      </div>
+    </template>
+  </VFileInput>
 
   <!-- Если файла нет — кастомный блок -->
   <div
     v-else
-    class="d-flex justify-center align-center gap-2 border rounded-lg py-2 cursor-pointer"
+    class="d-flex justify-center align-center gap-2 rounded-lg py-2 cursor-pointer"
+    style="border: 2px solid rgb(var(--v-theme-primary))"
     @click="triggerFileInput"
   >
-    <VIcon size="28">
+    <VIcon
+      size="20"
+      color="primary"
+    >
       ri-upload-cloud-2-line
     </VIcon>
-    <span class="upload-label">{{ label }}</span>
+    <span class="upload-label text-primary">{{ label }}</span>
   </div>
 </template>
 
 <style scoped>
+:deep(.v-file-input .v-file-input__text) {
+  font-size: 10px !important;
+  line-height: 1.4;
+}
+
 .upload-label {
-  font-size: 16px;
+  font-size: 14px;
 }
 </style>

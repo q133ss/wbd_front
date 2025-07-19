@@ -44,7 +44,7 @@ export const useTimer = () => {
           ? `${days} д : ${hours} ч : ${minutes} м`
           : hours > 0
             ? `${hours} ч : ${minutes} м : ${seconds} с`
-            : `${minutes} м : ${seconds} с`
+            : `${minutes} : ${seconds} `
     }
 
     update()

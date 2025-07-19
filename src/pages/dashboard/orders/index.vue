@@ -42,6 +42,7 @@ const receiptSent = ref(false)
 const confirmModal = ref(false)
 const cancelItem = ref(false)
 const correctPhotos = ref(false)
+const examplePhoto = ref(false)
 
 function formatTimeAgo(dateString) {
   if (!dateString) return 'давно'
@@ -171,6 +172,24 @@ const openSupport = () => router.push('/dashboard/support')
 const cancelBuyback = () => {
   cancelOrder()
   selectChat(chatStore.activeChat)
+}
+
+const handleConfirm = async () => {
+  const success = await uploadPendingFile()
+
+  confirmModal.value = false
+}
+
+const handleCancel = async () => {
+  const success = await cancelOrder()
+
+  cancelItem.value = false
+}
+
+const handleUpload = async () => {
+  const success = await uploadConfirmationFiles()
+
+  correctPhotos.value = false
 }
 
 onMounted(async () => {
@@ -443,7 +462,7 @@ onUnmounted(() => {
                     class="d-flex align-center"
                     :class="$vuetify.display.mdAndUp ? 'flex-row gap-3' : 'flex-column gap-1'"
                   >
-                    <span class="msg-alert-text text-no-wrap status-step d-block-inline">
+                    <span class="msg-alert-text text-no-wrap status-step d-block-inline px-3">
                       <span v-if="step <= 4 && step">Шаг {{ step }}/4 - </span> {{ statusInfo.title }}
                       <span
                         v-if="step === 1"
@@ -497,7 +516,10 @@ onUnmounted(() => {
                       <div class="w-100 text-caption text-center text-disabled mb-2">
                         {{ new Date(message.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }} в {{ new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }}
                       </div>
-                      <div class="w-100 text-center d-flex justify-center mb-5">
+                      <div
+                        class="w-100 text-center d-flex justify-center"
+                        style="font-size: 12px; line-height: 1.4; border-radius: 5px"
+                      >
                         <div
                           :class="{
                             'success-msg': message.system_type === 'success',
@@ -579,10 +601,10 @@ onUnmounted(() => {
                           />
                         </VAvatar>
                       </div>
-                      <template v-if="message.type === 'image'">
+                      <template v-if="message.type === 'image' && message.files && message.files.length > 0">
                         <div
                           class="chat-body d-inline-flex flex-column"
-                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-start'"
+                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-end'"
                         >
                           <div
                             class="text-body-1 py-2 px-4 elevation-2 mb-1"
@@ -594,18 +616,16 @@ onUnmounted(() => {
                             }"
                           >
                             <span v-if="message.system_type === 'send_photo' || message.system_type === 'review'">Скриншот</span>
-                            <div
-                              v-for="(file, index) in (chatStore.messages.find(m => m.id === message.id)?.files || [])"
-                              :key="`file-${message.id}-${index}`"
-                            >
-                              <VImg
-                                :src="file.src || 'https://via.placeholder.com/50'"
-                                max-width="200"
-                                class="mt-2 cursor-pointer rounded"
-                                @click="openImage(file.src)"
-                                @error="console.error('Failed to load image:', file.src)"
-                              />
-                            </div>
+                            <VImg
+                              v-for="(file, index) in message.files"
+                              :key="index"
+                              :src="file.src || 'https://via.placeholder.com/200'"
+                              alt="Изображение в чате"
+                              style="max-width: 200px; position: relative !important"
+                              class="mt-2 cursor-pointer rounded"
+                              cover
+                              @click="openImage(file.src)"
+                            />
                           </div>
                           <div class="d-flex align-center gap-2">
                             <p
@@ -707,22 +727,24 @@ onUnmounted(() => {
                     class="mt-4"
                   >
                     <VCard
-                      class="border border-dashed"
-                      :class="$vuetify.display.mdAndUp ? 'pa-8' : 'pa-4'"
+                      class="custom-dashed mx-auto py-6 px-4"
                       elevation="0"
+                      max-width="345"
                       rounded="lg"
                     >
                       <VCardTitle
-                        class="text-h6 text-center text-wrap pa-0 pb-3"
-                        style="line-height: 1.4;"
+                        class="text-center font-weight-normal text-wrap pa-0 pb-3"
+                        style="line-height: 1.4; font-size: 12px;"
                       >
                         Загрузите скриншот из кабинета Wildberries, на котором видно, что вы заказали этот товар.
                       </VCardTitle>
-                      <VCardText class="pa-0 mx-6">
+                      <VCardText
+                        class="pa-0 mx-auto"
+                        max-width="260"
+                      >
                         <CustomFileInput
                           v-model="pendingFile"
                           :panding="pendingFile"
-                          @update:model-value="file => generatePreview(file, pendingPreview)"
                         />
                         <VImg
                           v-if="pendingPreview"
@@ -759,22 +781,27 @@ onUnmounted(() => {
                     </div>
                   </div>
                   <div v-if="(chatStore.activeChat.status === 'awaiting_receipt' && !chatStore.activeChat.is_review_photo_sent && !receiptSent) || showBarcode">
-                    <div class="mt-4 border border-dashed rounded-lg px-4">
+                    <div
+                      class="mt-4 custom-dashed rounded-lg py-4 px-6 mx-auto"
+                      style="max-width: 345px"
+                    >
                       <VCard
-                        class="pa-4 mb-4"
+                        class="mb-4 pa-0"
                         elevation="0"
                       >
                         <VCardTitle
-                          class="text-h6 text-center text-wrap"
-                          style="line-height: 140%"
+                          class="text-center font-weight-regular text-base text-wrap pa-0"
+                          style="line-height: 140%; font-size: 12px"
                         >
                           Загрузите фото на котором видно что вы порезали QR код на упаковке товара, чтобы не было возможности сдать товар обратно
                         </VCardTitle>
-                        <VCardText class="mt-4 text-center">
+                        <VCardText
+                          class="mt-4 text-center mx-auto pa-0"
+                          max-width="260"
+                        >
                           <CustomFileInput
                             v-model="barcodeFile"
                             :panding="barcodeFile"
-                            @update:model-value="file => generatePreview(file, barcodePreview)"
                           />
                           <VImg
                             v-if="barcodePreview"
@@ -785,8 +812,10 @@ onUnmounted(() => {
                           />
                           <VBtn
                             variant="text"
-                            color="info"
-                            class="text-decoration-underline mt-4"
+                            color="#005AC5"
+                            class="text-decoration-underline text-none mt-2"
+                            style="font-size: 12px"
+                            @click="examplePhoto = true"
                           >
                             Пример порезанного штрихкода
                           </VBtn>
@@ -794,17 +823,22 @@ onUnmounted(() => {
                       </VCard>
                       <VDivider />
                       <VCard
-                        class="pa-4 mb-4 text-center"
+                        class="pa-0 mt-4 text-center"
                         elevation="0"
                       >
-                        <VCardTitle class="text-h6 text-center text-wrap">
+                        <VCardTitle
+                          class="text-center font-weight-regular text-base text-wrap pa-0"
+                          style="line-height: 140%; font-size: 12px"
+                        >
                           Загрузите скриншот где видно, что вы оставили отзыв
                         </VCardTitle>
-                        <VCardText class="mt-4">
+                        <VCardText
+                          class="mt-4 pa-0"
+                          max-width="260"
+                        >
                           <CustomFileInput
                             v-model="reviewFile"
                             :panding="reviewFile"
-                            @update:model-value="file => generatePreview(file, reviewPreview)"
                           />
                           <VImg
                             v-if="reviewPreview"
@@ -815,19 +849,24 @@ onUnmounted(() => {
                           />
                           <VBtn
                             variant="text"
-                            color="info"
-                            class="text-decoration-underline mt-4"
+                            color="#005AC5"
+                            class="text-decoration-underline text-none my-2"
+                            style="font-size: 12px"
+                            @click="examplePhoto = true"
                           >
                             Пример скриншота с отзывом
                           </VBtn>
                         </VCardText>
-                        <VCardActions class="mx-3">
+                        <VCardActions
+                          class="pa-0"
+                          max-width="260"
+                        >
                           <VBtn
-                            color="primary"
+                            color="primary text-base"
                             :disabled="!reviewFile || !barcodeFile"
-                            class="px-4"
                             variant="flat"
                             rounded
+                            height="44"
                             size="large"
                             block
                             @click="correctPhotos = true"
@@ -837,9 +876,9 @@ onUnmounted(() => {
                         </VCardActions>
                       </VCard>
                     </div>
-                    <div class="d-flex justify-center mt-3">
+                    <div class="d-flex justify-center my-3">
                       <p
-                        class="cursor-pointer"
+                        class="cursor-pointer text-sm"
                         style="color: rgb(var(--v-theme-on-surface))"
                         @click="cancelItem = true"
                       >
@@ -860,41 +899,44 @@ onUnmounted(() => {
               </div>
               <VForm
                 v-if="chatStore.activeChat && (chatStore.activeChat.status === 'pending' && chatStore.activeChat.is_order_photo_sent || chatStore.activeChat.status === 'on_confirmation' && chatStore.activeChat.is_review_photo_sent || chatStore.activeChat.status === 'cashback_received' || (chatStore.activeChat.status === 'awaiting_receipt' && chatStore.activeChat.is_review_photo_sent) || receiptSent || orderSend)"
-                class="chat-log-message-form mb-10 mx-5"
+                class="pb-11 pt-4 px-5 border-t gap-3 d-flex justify-between align-center"
                 @submit.prevent="sendMessage"
               >
                 <VTextField
                   v-model="messageInput"
-                  variant="solo"
-                  density="default"
-                  class="chat-message-input"
+                  variant="outlined"
+                  density="compact"
+                  class="chat-message-input pa-0"
                   placeholder="Введите сообщение..."
                   autofocus
-                >
-                  <template #append-inner>
-                    <div class="d-flex gap-1 align-center">
-                      <VTooltip text="Прикрепить файл (.jpg, .jpeg, .png)">
-                        <template #activator="{ props: activatorProps }">
-                          <IconBtn
-                            icon
-                            size="small"
-                            v-bind="activatorProps"
-                            @click="fileInput.click()"
-                          >
-                            <VIcon icon="ri-attachment-2" />
-                          </IconBtn>
-                        </template>
-                      </VTooltip>
+                  single-line
+                  style="height: 44px"
+                />
+                <div class="d-flex gap-3 align-center">
+                  <VTooltip text="Прикрепить файл (.jpg, .jpeg, .png)">
+                    <template #activator="{ props: activatorProps }">
                       <VBtn
-                        :loading="sendingMessage"
-                        append-icon="ri-send-plane-line"
-                        @click="sendMessage"
+                        variant="outlined"
+                        color="primary"
+                        width="40"
+                        height="40"
+                        size="small"
+                        v-bind="activatorProps"
+                        @click="fileInput.click()"
                       >
-                        Отправить
+                        <VIcon size="18" icon="ri-attachment-2" />
                       </VBtn>
-                    </div>
-                  </template>
-                </VTextField>
+                    </template>
+                  </VTooltip>
+                  <VBtn
+                    width="40"
+                    height="40"
+                    :loading="sendingMessage"
+                    @click="sendMessage"
+                  >
+                    <VIcon size="18" icon="ri-send-plane-line" />
+                  </VBtn>
+                </div>
                 <input
                   ref="fileInput"
                   type="file"
@@ -950,14 +992,14 @@ onUnmounted(() => {
           <VCardText class="pa-0">
             Нажимая кнопку ниже, вы подтверждаете, что заказали товар согласно инструкции продавца.
           </VCardText>
-          <VCardActions>
+          <VCardActions class="d-flex flex-column pa-0">
             <VBtn
               block
               color="primary"
               variant="flat"
               class="mt-6"
               size="large"
-              @click="uploadPendingFile"
+              @click="handleConfirm"
             >
               Подтвердить
             </VBtn>
@@ -966,7 +1008,7 @@ onUnmounted(() => {
               color="secondary"
               block
               size="large"
-              class="text-gray-900 mt-3"
+              class="text-gray-900 mt-2"
               style="color: rgb(var(--v-theme-on-surface))"
               @click="confirmModal = false"
             >
@@ -986,14 +1028,14 @@ onUnmounted(() => {
           <VCardText class="pa-0">
             Нажимая кнопку ниже, вы подтверждаете, что отменяете заказ
           </VCardText>
-          <VCardActions>
+          <VCardActions class="d-flex flex-column pa-0">
             <VBtn
               block
               color="primary"
               variant="flat"
               class="mt-6"
               size="large"
-              @click="cancelOrder"
+              @click="handleCancel"
             >
               Подтвердить
             </VBtn>
@@ -1002,7 +1044,7 @@ onUnmounted(() => {
               color="secondary"
               block
               size="large"
-              class="text-gray-900 mt-3"
+              class="text-gray-900 mt-2"
               style="color: rgb(var(--v-theme-on-surface))"
               @click="cancelItem = false"
             >
@@ -1022,14 +1064,14 @@ onUnmounted(() => {
           <VCardText class="pa-0">
             Нажимая кнопку ниже, вы подтверждаете, что прикрепили корректные фото и видео материалы по инструкции продавца
           </VCardText>
-          <VCardActions>
+          <VCardActions class="d-flex flex-column pa-0">
             <VBtn
               block
               color="primary"
               variant="flat"
               class="mt-6"
               size="large"
-              @click="uploadConfirmationFiles"
+              @click="handleUpload"
             >
               Подтвердить
             </VBtn>
@@ -1038,7 +1080,7 @@ onUnmounted(() => {
               color="secondary"
               block
               size="large"
-              class="text-gray-900 mt-3"
+              class="text-gray-900 mt-2"
               style="color: rgb(var(--v-theme-on-surface))"
               @click="correctPhotos = false"
             >
@@ -1069,11 +1111,43 @@ onUnmounted(() => {
           </VCardActions>
         </VCard>
       </VDialog>
+      <VDialog  
+        v-model="examplePhoto"
+        max-width="500"
+      >
+        <VCard>
+          <VImg
+            src="https://basket-10.wbbasket.ru/vol1408/part140851/140851046/images/big/1.webp"
+            contain
+            max-height="400"
+          />
+          <VCardText>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsa cum non recusandae neque molestiae nisi quis, sapiente sunt facilis dolorum.
+          </VCardText>
+          <VCardActions>
+            <VSpacer />
+            <VBtn
+              color="primary px-3"
+              variant="flat"
+              @click="examplePhoto = false"
+            >
+              Закрыть
+            </VBtn>
+          </VCardActions>
+        </VCard>
+      </VDialog>
     </div>
   </div>
 </template>
 
 <style>
+.custom-dashed {
+  border: 1px dashed #C2C2C2;
+}
+
+.v-img__img {
+  position: relative !important;
+}
 ::v-deep(.custom-rating) {
   display: flex;
   gap: 8px;
@@ -1166,17 +1240,18 @@ onUnmounted(() => {
 .success-msg {
   background: #D1FADF;
   padding: 10px 35px;
-  border-radius: 15px;
-  margin-bottom: 30px;
+  border-radius: 5px;
+  margin-bottom: 10px;
   color: #000000cc !important;
 }
 
 .info-msg {
   background: #D1D7FA;
-  border-radius: 15px;
+  border-radius: 5px;
   color: #000000 !important;
   max-width: 70%;
   padding: 10px 15px;
+  margin-bottom: 10px;
 }
 
 .justify-between {
