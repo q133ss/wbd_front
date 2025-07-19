@@ -1,11 +1,11 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import { useSnackbarStore } from '@/stores/snackbar.js'
-import { useDisplay } from 'vuetify'
-import { useRoute, useRouter } from 'vue-router'
-import Pusher from 'pusher-js'
 import api from '@/api/index.js'
+import { useSnackbarStore } from '@/stores/snackbar.js'
+import Pusher from 'pusher-js'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { useDisplay } from 'vuetify'
 
 definePage({ meta: { layoutWrapperClasses: 'layout-content-height-fixed', authRequired: true } })
 
@@ -49,10 +49,11 @@ const sendReview = ref(false)
 let pusher = null
 let channel = null
 
-const getBuybackDeclension = (count) => {
+const getBuybackDeclension = count => {
   const num = Math.abs(count)
   if (num % 10 === 1 && num % 100 !== 11) return 'выкуп'
   if ([2, 3, 4].includes(num % 10) && ![12, 13, 14].includes(num % 100)) return 'выкупа'
+  
   return 'выкупов'
 }
 
@@ -69,16 +70,17 @@ const useChat = () => {
     }
   }
 
-  const selectStatus = async (status) => {
+  const selectStatus = async status => {
     selectedStatus.value = status
     if (!chatsByStatus.value[status]) await fetchChats()
   }
 
-  const selectChat = async (chat) => {
+  const selectChat = async chat => {
     activeChat.value = chat
     messages.value = []
     try {
       const response = await api.chat.getMessages(chat.id)
+
       messages.value = response.data?.data || response.data || []
       setupPusher(chat.id)
       updateStatusTimer()
@@ -94,22 +96,23 @@ const useChat = () => {
 }
 
 const usePusher = () => {
-  const setupPusher = (chatId) => {
+  const setupPusher = chatId => {
     if (pusher) {
       channel?.unsubscribe()
       pusher.disconnect()
     }
     pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
       cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-      encrypted: true
+      encrypted: true,
     })
     channel = pusher.subscribe(`chat-${chatId}`)
-    channel.bind('MessageSent', (data) => {
+    channel.bind('MessageSent', data => {
       const normalizedMessage = {
         ...data,
         files: data.files || (data.file ? [data.file] : []),
-        type: data.type || 'text'
+        type: data.type || 'text',
       }
+
       if (!messages.value.some(msg => msg.id === normalizedMessage.id)) {
         messages.value.push(normalizedMessage)
         if (normalizedMessage.type === 'system') refreshChat(chatId)
@@ -118,10 +121,11 @@ const usePusher = () => {
     })
 
     const notificationChannel = pusher.subscribe(`notification-${currentUser.value.id}`)
+
     notificationChannel.bind('MessageSent', () => refreshChat(chatId))
   }
 
-  const refreshChat = async (chatId) => {
+  const refreshChat = async chatId => {
     try {
       const chat = await api.buyback.getBuybackById(chatId)
       if (chat) {
@@ -163,12 +167,14 @@ const useTimer = () => {
       if (remaining <= 0) {
         timer.value = 'Истек'
         clearInterval(timerInterval.value)
+        
         return
       }
       const seconds = Math.floor((remaining / 1000) % 60)
       const minutes = Math.floor((remaining / (1000 * 60)) % 60)
       const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24)
       const days = Math.floor(remaining / (1000 * 60 * 60 * 24))
+
       timer.value = days > 0 ? `${days} д ${hours} ч ${minutes} м` : hours > 0 ? `${hours} ч ${minutes} м ${seconds} с` : `${minutes} м ${seconds} с`
     }
 
@@ -192,6 +198,7 @@ const useMessages = () => {
 
     try {
       const formData = new FormData()
+
       formData.append('message', messageInput.value)
       if (fileInput.value?.files?.length) formData.append('file', fileInput.value.files[0])
       await api.chat.sendMessage(activeChat.value.id, messageInput.value, formData)
@@ -211,7 +218,8 @@ const useFiles = () => {
   const generatePreview = (file, previewRef) => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader()
-      reader.onload = (e) => (previewRef.value = e.target.result)
+
+      reader.onload = e => (previewRef.value = e.target.result)
       reader.readAsDataURL(file)
     } else {
       previewRef.value = null
@@ -309,25 +317,28 @@ const statusMessages = {
   on_confirmation: 'Ожидание подтверждения продавцом',
   cashback_received: 'Кэшбек зачислен на ваш баланс в размере {price}',
   completed: 'Заказ завершен',
-  archive: 'В архиве'
+  archive: 'В архиве',
 }
 
 const statusMessage = computed(() => {
   if (!activeChat.value) return ''
   let message = statusMessages[activeChat.value.status] || ''
   if (activeChat.value.status === 'cashback_received') message = message.replace('{price}', activeChat.value.price)
+  
   return message
 })
 
 const shouldShowChatList = computed(() => (isMobile.value && !activeChat.value) || !isMobile.value)
 const shouldShowMessages = computed(() => (isMobile.value && activeChat.value) || !isMobile.value)
 
-const openImage = (url) => {
+const openImage = url => {
   selectedImage.value = url || 'https://via.placeholder.com/48'
   imageModal.value = true
 }
-const goToUserProfile = (userId) => router.push(`/users/${userId}`)
-const goToProduct = (adsId) => router.push(`/products/${adsId}`)
+
+const goToUserProfile = userId => router.push(`/users/${userId}`)
+const goToProduct = adsId => router.push(`/products/${adsId}`)
+
 const backToChats = () => {
   activeChat.value = null
   messages.value = []
@@ -361,11 +372,20 @@ onUnmounted(() => {
 <template>
   <div class="chats-container">
     <div class="content-wrapper">
-      <v-row class="chat-row">
-        <v-col cols="12" md="4" v-if="shouldShowChatList">
-          <v-card class="chat-list-sidebar pa-4" min-height="80vh">
-            <h2 class="text-h6 mb-4">Чаты</h2>
-            <v-select
+      <VRow class="chat-row">
+        <VCol
+          v-if="shouldShowChatList"
+          cols="12"
+          md="4"
+        >
+          <VCard
+            class="chat-list-sidebar pa-4"
+            min-height="80vh"
+          >
+            <h2 class="text-h6 mb-4">
+              Чаты
+            </h2>
+            <VSelect
               v-model="selectedStatus"
               :items="statuses"
               item-title="title"
@@ -375,68 +395,128 @@ onUnmounted(() => {
               density="compact"
               @update:model-value="selectStatus"
             >
-              <template v-slot:selection="{ item }">
+              <template #selection="{ item }">
                 <span>{{ item.title }}</span>
-                <v-badge v-if="item.raw.not_read" :content="item.raw.not_read" color="error" inline class="ml-2" />
+                <VBadge
+                  v-if="item.raw.not_read"
+                  :content="item.raw.not_read"
+                  color="error"
+                  inline
+                  class="ml-2"
+                />
               </template>
-            </v-select>
-            <v-divider class="my-4" />
-            <v-progress-circular v-if="loadingChats" indeterminate color="primary" class="d-block mx-auto" />
-            <v-list v-else>
-              <v-list-item
+            </VSelect>
+            <VDivider class="my-4" />
+            <VProgressCircular
+              v-if="loadingChats"
+              indeterminate
+              color="primary"
+              class="d-block mx-auto"
+            />
+            <VList v-else>
+              <VListItem
                 v-for="chat in chatsByStatus[selectedStatus] || []"
                 :key="chat.id"
                 :class="{ 'bg-light-primary': activeChat?.id === chat.id }"
                 class="border-b-sm d-flex"
                 @click="selectChat(chat)"
               >
-                <template v-slot:prepend>
-                  <v-avatar size="50" class="mr-2">
-                    <v-img :src="chat?.ad?.product?.images[0] || 'https://via.placeholder.com/50'" />
-                  </v-avatar>
+                <template #prepend>
+                  <VAvatar
+                    size="50"
+                    class="mr-2"
+                  >
+                    <VImg :src="chat?.ad?.product?.images[0] || 'https://via.placeholder.com/50'" />
+                  </VAvatar>
                 </template>
-                <v-list-item-title>
+                <VListItemTitle>
                   {{ chat.user.name }} ({{ statusMessages[chat.status] || chat.status }})
-                  <v-badge v-if="chat.messages.some(m => !m.is_read && m.whoSend === 'seller')" content="!" color="error" inline />
-                </v-list-item-title>
-                <v-list-item-subtitle>{{ chat.ad.product.name }}</v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-col>
+                  <VBadge
+                    v-if="chat.messages.some(m => !m.is_read && m.whoSend === 'seller')"
+                    content="!"
+                    color="error"
+                    inline
+                  />
+                </VListItemTitle>
+                <VListItemSubtitle>{{ chat.ad.product.name }}</VListItemSubtitle>
+              </VListItem>
+            </VList>
+          </VCard>
+        </VCol>
 
-        <v-col cols="12" md="8" class="active-chat-block" v-if="shouldShowMessages">
-          <v-btn
+        <VCol
+          v-if="shouldShowMessages"
+          cols="12"
+          md="8"
+          class="active-chat-block"
+        >
+          <VBtn
             v-if="shouldShowMessages && isMobile"
             size="small"
-            @click="backToChats"
             variant="outlined"
             class="mb-3 back-btn"
             prepend-icon="ri-arrow-left-line"
+            @click="backToChats"
           >
             Вернуться назад
-          </v-btn>
-          <v-card class="chat-content pa-6" min-height="calc(100vh - 20%)">
-            <div v-if="activeChat" class="d-flex flex-column h-100">
+          </VBtn>
+          <VCard
+            class="chat-content pa-6"
+            min-height="calc(100vh - 20%)"
+          >
+            <div
+              v-if="activeChat"
+              class="d-flex flex-column h-100"
+            >
               <div class="chat-header mb-4">
                 <div class="d-flex align-center mb-2">
-                  <v-avatar size="48" class="mr-2 cursor-pointer" color="primary" @click="goToUserProfile(activeChat.user.id)">
-                    <v-img v-if="activeChat.user.avatar" :src="activeChat.user.avatar" :alt="activeChat.user.name" />
+                  <VAvatar
+                    size="48"
+                    class="mr-2 cursor-pointer"
+                    color="primary"
+                    @click="goToUserProfile(activeChat.user.id)"
+                  >
+                    <VImg
+                      v-if="activeChat.user.avatar"
+                      :src="activeChat.user.avatar"
+                      :alt="activeChat.user.name"
+                    />
                     <span v-else>{{ activeChat.user.name[0] }}</span>
-                  </v-avatar>
-                  <v-avatar size="48" class="cursor-pointer" @click="goToProduct(activeChat.ad.id)" style="position: relative; left: -20px;">
-                    <v-img :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'" :alt="activeChat.ad.name" />
-                  </v-avatar>
+                  </VAvatar>
+                  <VAvatar
+                    size="48"
+                    class="cursor-pointer"
+                    style="position: relative; left: -20px;"
+                    @click="goToProduct(activeChat.ad.id)"
+                  >
+                    <VImg
+                      :src="activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'"
+                      :alt="activeChat.ad.name"
+                    />
+                  </VAvatar>
                   <div>
-                    <h3 class="text-h6">{{ activeChat.ad.product.name }}</h3>
-                    <p class="text-body-2">{{ activeChat.ad?.shop?.wb_name ?? '' }}</p>
+                    <h3 class="text-h6">
+                      {{ activeChat.ad.product.name }}
+                    </h3>
+                    <p class="text-body-2">
+                      {{ activeChat.ad?.shop?.wb_name ?? '' }}
+                    </p>
                   </div>
                 </div>
-                <v-alert :type="['cancelled', 'order_expired'].includes(activeChat.status) ? 'error' : 'info'" class="status-alert">
+                <VAlert
+                  :type="['cancelled', 'order_expired'].includes(activeChat.status) ? 'error' : 'info'"
+                  class="status-alert"
+                >
                   {{ statusMessage }}
-                  <span v-if="timer" class="timer ml-2">{{ timer }}</span>
-                  <span v-else-if="activeChat.status === 'pending'" class="timer ml-2 text-warning">Ожидание таймера...</span>
-                </v-alert>
+                  <span
+                    v-if="timer"
+                    class="timer ml-2"
+                  >{{ timer }}</span>
+                  <span
+                    v-else-if="activeChat.status === 'pending'"
+                    class="timer ml-2 text-warning"
+                  >Ожидание таймера...</span>
+                </VAlert>
               </div>
 
               <div class="flex-grow-1 d-flex flex-column">
@@ -467,8 +547,11 @@ onUnmounted(() => {
                     >
                       <template v-if="message.type === 'image'">
                         <span v-if="message.system_type === 'send_photo' || message.system_type === 'review'">Скриншот</span>
-                        <div v-for="(file, index) in message.files || (message.file ? [message.file] : [])" :key="`file-${message.id}-${index}`">
-                          <v-img
+                        <div
+                          v-for="(file, index) in message.files || (message.file ? [message.file] : [])"
+                          :key="`file-${message.id}-${index}`"
+                        >
+                          <VImg
                             :src="file.src || 'https://via.placeholder.com/50'"
                             max-width="200"
                             class="mt-2 cursor-pointer rounded"
@@ -477,9 +560,12 @@ onUnmounted(() => {
                           />
                         </div>
                       </template>
-                      <span v-if="message.text && message.system_type !== 'review'" v-html="message.text.replace(/\n/g, '<br>')"></span>
+                      <span
+                        v-if="message.text && message.system_type !== 'review'"
+                        v-html="message.text.replace(/\n/g, '<br>')"
+                      />
                       <template v-else-if="message.system_type === 'review' && message.type === 'system'">
-                        <v-rating
+                        <VRating
                           v-model="message.color"
                           length="5"
                           size="32"
@@ -496,15 +582,27 @@ onUnmounted(() => {
                     <span class="text-caption text-disabled mt-1">{{ new Date(message.created_at).toLocaleTimeString('ru-RU') }}</span>
                   </li>
 
-                  <div v-if="activeChat.status === 'cashback_received' && !activeChat.has_review_by_buyer && !sendReview" class="mt-4">
-                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                      <v-card-title class="text-h6 d-flex align-center">
-                        <v-icon icon="ri-star-line" class="mr-2" />
+                  <div
+                    v-if="activeChat.status === 'cashback_received' && !activeChat.has_review_by_buyer && !sendReview"
+                    class="mt-4"
+                  >
+                    <VCard
+                      class="pa-4 mb-4"
+                      elevation="2"
+                      rounded="lg"
+                    >
+                      <VCardTitle class="text-h6 d-flex align-center">
+                        <VIcon
+                          icon="ri-star-line"
+                          class="mr-2"
+                        />
                         Оставьте отзыв
-                      </v-card-title>
-                      <v-card-text>
-                        <p class="text-body-2 mb-4">Пожалуйста, оставьте отзыв о заказе</p>
-                        <v-rating
+                      </VCardTitle>
+                      <VCardText>
+                        <p class="text-body-2 mb-4">
+                          Пожалуйста, оставьте отзыв о заказе
+                        </p>
+                        <VRating
                           v-model="reviewRating"
                           length="5"
                           size="32"
@@ -513,7 +611,7 @@ onUnmounted(() => {
                           class="mb-4"
                           aria-label="Выберите рейтинг"
                         />
-                        <v-textarea
+                        <VTextarea
                           v-model="reviewText"
                           label="Ваш отзыв"
                           variant="outlined"
@@ -521,118 +619,190 @@ onUnmounted(() => {
                           class="mb-4"
                           aria-label="Оставить отзыв о заказе"
                         />
-                      </v-card-text>
-                      <v-card-actions>
-                        <v-btn
+                      </VCardText>
+                      <VCardActions>
+                        <VBtn
                           color="primary"
                           :disabled="!reviewText.trim() || reviewRating == null"
-                          @click="submitReview"
                           class="px-4"
                           rounded
+                          @click="submitReview"
                         >
                           Отправить отзыв
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
+                        </VBtn>
+                      </VCardActions>
+                    </VCard>
                   </div>
 
-                  <div v-if="(activeChat.status === 'pending' && !activeChat.is_order_photo_sent && !orderSend) || showOrderForm" class="mt-4">
-                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                      <v-card-title class="text-h6 d-flex align-center">
-                        <v-icon icon="ri-image-line" class="mr-2" />
+                  <div
+                    v-if="(activeChat.status === 'pending' && !activeChat.is_order_photo_sent && !orderSend) || showOrderForm"
+                    class="mt-4"
+                  >
+                    <VCard
+                      class="pa-4 mb-4"
+                      elevation="2"
+                      rounded="lg"
+                    >
+                      <VCardTitle class="text-h6 d-flex align-center">
+                        <VIcon
+                          icon="ri-image-line"
+                          class="mr-2"
+                        />
                         Загрузите скриншот заказа
-                      </v-card-title>
-                      <v-card-text>
-                        <p class="text-body-2 mb-4">Загрузите скриншот заказа из кабинета Wildberries чтобы продолжить или отмените заказ</p>
-                        <v-file-input
+                      </VCardTitle>
+                      <VCardText>
+                        <p class="text-body-2 mb-4">
+                          Загрузите скриншот заказа из кабинета Wildberries чтобы продолжить или отмените заказ
+                        </p>
+                        <VFileInput
+                          v-model="pendingFile"
                           label="Выберите скриншот"
                           accept=".jpeg,.png,.jpg,.gif"
-                          v-model="pendingFile"
                           variant="outlined"
                           density="compact"
                           show-size
                           prepend-icon="ri-upload-cloud-line"
-                          @update:model-value="generatePreview(pendingFile, pendingPreview)"
                           class="mb-4"
                           aria-label="Загрузить скриншот заказа"
+                          @update:model-value="generatePreview(pendingFile, pendingPreview)"
                         />
-                        <v-img v-if="pendingPreview" :src="pendingPreview" max-width="100" class="mb-4 rounded" cover />
-                      </v-card-text>
-                      <v-card-actions>
-                        <v-btn color="primary" :disabled="!pendingFile" @click="uploadPendingFile" class="px-4" rounded>Отправить</v-btn>
-                        <v-btn color="error" @click="cancelOrder" variant="outlined" class="px-4" rounded>Отменить заказ</v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </div>
-
-                  <div v-if="(activeChat.status === 'awaiting_receipt' && !activeChat.is_review_photo_sent && !receiptSent) || showBarcode" class="mt-4">
-                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                      <v-card-title class="text-h6 d-flex align-center">
-                        <v-icon icon="ri-barcode-line" class="mr-2" />
-                        Загрузите фото штрихкода
-                      </v-card-title>
-                      <v-card-text>
-                        <p class="text-body-2 mb-4">Загрузите фото, на котором видно, как вы порезали штрихкод</p>
-                        <v-file-input
-                          label="Выберите фото штрихкода"
-                          accept=".jpeg,.png,.jpg,.gif"
-                          v-model="barcodeFile"
-                          variant="outlined"
-                          density="compact"
-                          show-size
-                          prepend-icon="ri-upload-cloud-line"
-                          @update:model-value="generatePreview(barcodeFile, barcodePreview)"
-                          class="mb-4"
-                          aria-label="Загрузить фото штрихкода"
+                        <VImg
+                          v-if="pendingPreview"
+                          :src="pendingPreview"
+                          max-width="100"
+                          class="mb-4 rounded"
+                          cover
                         />
-                        <v-img v-if="barcodePreview" :src="barcodePreview" max-width="100" class="mb-4 rounded" cover />
-                      </v-card-text>
-                    </v-card>
-                    <v-card class="pa-4 mb-4" elevation="2" rounded="lg">
-                      <v-card-title class="text-h6 d-flex align-center">
-                        <v-icon icon="ri-star-line" class="mr-2" />
-                        Загрузите скриншот отзыва
-                      </v-card-title>
-                      <v-card-text>
-                        <p class="text-body-2 mb-4">Загрузите скриншот, где видно, что вы оставили отзыв</p>
-                        <v-file-input
-                          label="Выберите скриншот отзыва"
-                          accept=".jpeg,.png,.jpg,.gif"
-                          v-model="reviewFile"
-                          variant="outlined"
-                          density="compact"
-                          show-size
-                          prepend-icon="ri-upload-cloud-line"
-                          @update:model-value="generatePreview(reviewFile, reviewPreview)"
-                          class="mb-4"
-                          aria-label="Загрузить скриншот отзыва"
-                        />
-                        <v-img v-if="reviewPreview" :src="reviewPreview" max-width="100" class="mb-4 rounded" cover />
-                      </v-card-text>
-                      <v-card-actions>
-                        <v-btn
+                      </VCardText>
+                      <VCardActions>
+                        <VBtn
                           color="primary"
-                          :disabled="!barcodeFile || !reviewFile"
-                          @click="uploadConfirmationFiles"
+                          :disabled="!pendingFile"
                           class="px-4"
                           rounded
+@click="uploadPendingFile"
                         >
                           Отправить
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
+                        </VBtn>
+                        <VBtn
+                          color="error"
+                          variant="outlined"
+                          @click="cancelOrder"
+                          class="px-4"
+rounded
+                        >
+                          Отменить заказ
+                        </VBtn>
+                      </VCardActions>
+                    </VCard>
+                  </div>
+
+                  <div
+                    v-if="(activeChat.status === 'awaiting_receipt' && !activeChat.is_review_photo_sent && !receiptSent) || showBarcode"
+                    class="mt-4"
+                  >
+                    <VCard
+                      class="pa-4 mb-4"
+                      elevation="2"
+                      rounded="lg"
+                    >
+                      <VCardTitle class="text-h6 d-flex align-center">
+                        <VIcon
+                          icon="ri-barcode-line"
+                          class="mr-2"
+                        />
+                        Загрузите фото штрихкода
+                      </VCardTitle>
+                      <VCardText>
+                        <p class="text-body-2 mb-4">
+                          Загрузите фото, на котором видно, как вы порезали штрихкод
+                        </p>
+                        <VFileInput
+                          v-model="barcodeFile"
+                          label="Выберите фото штрихкода"
+                          accept=".jpeg,.png,.jpg,.gif"
+                          variant="outlined"
+                          density="compact"
+                          show-size
+                          prepend-icon="ri-upload-cloud-line"
+                          class="mb-4"
+                          aria-label="Загрузить фото штрихкода"
+                          @update:model-value="generatePreview(barcodeFile, barcodePreview)"
+                        />
+                        <VImg
+                          v-if="barcodePreview"
+                          :src="barcodePreview"
+                          max-width="100"
+                          class="mb-4 rounded"
+                          cover
+                        />
+                      </VCardText>
+                    </VCard>
+                    <VCard
+                      class="pa-4 mb-4"
+                      elevation="2"
+                      rounded="lg"
+                    >
+                      <VCardTitle class="text-h6 d-flex align-center">
+                        <VIcon
+                          icon="ri-star-line"
+                          class="mr-2"
+                        />
+                        Загрузите скриншот отзыва
+                      </VCardTitle>
+                      <VCardText>
+                        <p class="text-body-2 mb-4">
+                          Загрузите скриншот, где видно, что вы оставили отзыв
+                        </p>
+                        <VFileInput
+                          v-model="reviewFile"
+                          label="Выберите скриншот отзыва"
+                          accept=".jpeg,.png,.jpg,.gif"
+                          variant="outlined"
+                          density="compact"
+                          show-size
+                          prepend-icon="ri-upload-cloud-line"
+                          class="mb-4"
+                          aria-label="Загрузить скриншот отзыва"
+                          @update:model-value="generatePreview(reviewFile, reviewPreview)"
+                        />
+                        <VImg
+                          v-if="reviewPreview"
+                          :src="reviewPreview"
+                          max-width="100"
+                          class="mb-4 rounded"
+                          cover
+                        />
+                      </VCardText>
+                      <VCardActions>
+                        <VBtn
+                          color="primary"
+                          :disabled="!barcodeFile || !reviewFile"
+                          class="px-4"
+                          rounded
+                          @click="uploadConfirmationFiles"
+                        >
+                          Отправить
+                        </VBtn>
+                      </VCardActions>
+                    </VCard>
                   </div>
                 </PerfectScrollbar>
-                <div v-else class="flex-grow-1 d-flex align-center justify-center">
-                  <p class="text-field-error">Нет сообщений</p>
+                <div
+                  v-else
+                  class="flex-grow-1 d-flex align-center justify-center"
+                >
+                  <p class="text-field-error">
+                    Нет сообщений
+                  </p>
                 </div>
 
-                <v-form
+                <VForm
                   v-if="activeChat && (activeChat.status === 'pending' && activeChat.is_order_photo_sent || activeChat.status === 'on_confirmation' && activeChat.is_review_photo_sent || activeChat.status === 'cashback_received' || (activeChat.status === 'awaiting_receipt' && activeChat.is_review_photo_sent) || receiptSent || orderSend)"
-                  @submit.prevent="sendMessage"
                   class="mt-4"
+                  @submit.prevent="sendMessage"
                 >
-                  <v-text-field
+                  <VTextField
                     v-model="messageInput"
                     placeholder="Введите сообщение..."
                     variant="outlined"
@@ -640,49 +810,77 @@ onUnmounted(() => {
                     append-inner-icon="ri-send-plane-line"
                     @click:append-inner="sendMessage"
                   >
-                    <template v-slot:append-inner-label="{ props }">
-                      <v-tooltip text="Прикрепить файл (.jpg, .jpeg, .png)">
-                        <template v-slot:activator="{ props: activatorProps }">
-                          <v-btn icon size="small" v-bind="activatorProps" @click="fileInput.click()">
-                            <v-icon icon="ri-attachment-2"></v-icon>
-                          </v-btn>
+                    <template #append-inner-label="{ props }">
+                      <VTooltip text="Прикрепить файл (.jpg, .jpeg, .png)">
+                        <template #activator="{ props: activatorProps }">
+                          <VBtn
+                            icon
+                            size="small"
+                            v-bind="activatorProps"
+                            @click="fileInput.click()"
+                          >
+                            <VIcon icon="ri-attachment-2" />
+                          </VBtn>
                         </template>
-                      </v-tooltip>
+                      </VTooltip>
                     </template>
-</v-text-field>
-<input
-  ref="fileInput"
-  type="file"
-  accept=".jpeg,.png,.jpg"
-  hidden
-  @change="sendMessage"
-/>
-</v-form>
-</div>
-</div>
-<div v-else class="d-flex h-100 h-100 align-center justify-center flex-column">
-<v-avatar size="large" variant="tonal" color="primary" class="mb-2">
-  <v-icon size="large" icon="ri-wechat-line"></v-icon>
-</v-avatar>
-<p class="text-center text-muted">
-  Выберите чат для общения
-</p>
-</div>
-</v-card>
-</v-col>
-</v-row>
+                  </VTextField>
+                  <input
+                    ref="fileInput"
+                    type="file"
+                    accept=".jpeg,.png,.jpg"
+                    hidden
+                    @change="sendMessage"
+                  >
+                </VForm>
+              </div>
+            </div>
+            <div
+              v-else
+              class="d-flex h-100 h-100 align-center justify-center flex-column"
+            >
+              <VAvatar
+                size="large"
+                variant="tonal"
+                color="primary"
+                class="mb-2"
+              >
+                <VIcon
+                  size="large"
+                  icon="ri-wechat-line"
+                />
+              </VAvatar>
+              <p class="text-center text-muted">
+                Выберите чат для общения
+              </p>
+            </div>
+          </VCard>
+        </VCol>
+      </VRow>
 
-<v-dialog v-model="imageModal" max-width="800">
-<v-card>
-  <v-img :src="selectedImage" contain max-height="600" />
-  <v-card-actions>
-    <v-spacer />
-    <v-btn color="secondary" @click="imageModal = false">Закрыть</v-btn>
-  </v-card-actions>
-</v-card>
-</v-dialog>
-</div>
-</div>
+      <VDialog
+        v-model="imageModal"
+        max-width="800"
+      >
+        <VCard>
+          <VImg
+            :src="selectedImage"
+            contain
+            max-height="600"
+          />
+          <VCardActions>
+            <VSpacer />
+            <VBtn
+              color="secondary"
+              @click="imageModal = false"
+            >
+              Закрыть
+            </VBtn>
+          </VCardActions>
+        </VCard>
+      </VDialog>
+    </div>
+  </div>
 </template>
 
 <style>
