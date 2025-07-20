@@ -74,6 +74,8 @@ declare module 'vue-router/auto-routes' {
     'dashboard-advertisements-create-id': RouteRecordInfo<'dashboard-advertisements-create-id', '/dashboard/advertisements/create/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'dashboard-advertisements-edit-id': RouteRecordInfo<'dashboard-advertisements-edit-id', '/dashboard/advertisements/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'dashboard-buybacks': RouteRecordInfo<'dashboard-buybacks', '/dashboard/buybacks', Record<never, never>, Record<never, never>>,
+    'dashboard-buybacks-custom-file-input': RouteRecordInfo<'dashboard-buybacks-custom-file-input', '/dashboard/buybacks/CustomFileInput', Record<never, never>, Record<never, never>>,
+    'dashboard-buybacks-index copy': RouteRecordInfo<'dashboard-buybacks-index copy', '/dashboard/buybacks/index copy', Record<never, never>, Record<never, never>>,
     'dashboard-buybacks-oldindex': RouteRecordInfo<'dashboard-buybacks-oldindex', '/dashboard/buybacks/OLDindex', Record<never, never>, Record<never, never>>,
     'dashboard-notifications': RouteRecordInfo<'dashboard-notifications', '/dashboard/notifications', Record<never, never>, Record<never, never>>,
     'dashboard-orders': RouteRecordInfo<'dashboard-orders', '/dashboard/orders', Record<never, never>, Record<never, never>>,
