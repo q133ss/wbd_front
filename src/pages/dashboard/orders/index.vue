@@ -43,6 +43,7 @@ const confirmModal = ref(false)
 const cancelItem = ref(false)
 const correctPhotos = ref(false)
 const examplePhoto = ref(false)
+const infoProduct = ref(false)
 
 function formatTimeAgo(dateString) {
   if (!dateString) return 'давно'
@@ -190,6 +191,18 @@ const handleUpload = async () => {
   const success = await uploadConfirmationFiles()
 
   correctPhotos.value = false
+}
+
+const openInfo = () => {
+  console.log('openInfo called, infoProduct:', infoProduct.value)
+  infoProduct.value = false
+  confirmModal.value = false
+  cancelItem.value = false
+  correctPhotos.value = false
+  imageModal.value = false
+  examplePhoto.value = false
+  infoProduct.value = true
+  console.log('infoProduct set to:', infoProduct.value)
 }
 
 onMounted(async () => {
@@ -438,6 +451,10 @@ onUnmounted(() => {
                       </IconBtn>
                     </template>
                     <VList>
+                      <!-- добавить нужные ссылку -->
+                      <VListItem @click="openInfo">
+                        <VListItemTitle>Информация о выкупе</VListItemTitle>
+                      </VListItem>
                       <VListItem @click="openSupport">
                         <VListItemTitle>Поддержка</VListItemTitle>
                       </VListItem>
@@ -593,18 +610,19 @@ onUnmounted(() => {
                           color="primary"
                         >
                           <VImg
-                            :src="message.sender_id === chatStore.activeChat.ad.user_id
-                              ? chatStore.activeChat.ad.product?.images?.[0] || 'https://via.placeholder.com/48'
-                              : chatStore.activeChat.user?.avatar || ''"
+                            v-if="message.sender_id !== chatStore.currentUser?.id"
+                            :src="chatStore.activeChat.ad.product?.images?.[0] || 'https://via.placeholder.com/48'"
+                            :alt="chatStore.activeChat.user.name"
                             alt="avatar"
                             cover
                           />
+                          <span v-else>{{ chatStore.activeChat.user.name[0] }}</span>
                         </VAvatar>
                       </div>
                       <template v-if="message.type === 'image' && message.files && message.files.length > 0">
                         <div
                           class="chat-body d-inline-flex flex-column"
-                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-end'"
+                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-start'"
                         >
                           <div
                             class="text-body-1 py-2 px-4 elevation-2 mb-1"
@@ -886,6 +904,19 @@ onUnmounted(() => {
                       </p>
                     </div>
                   </div>
+                  <!-- Нужно поставить обработку и добавить функцию  -->
+                  <div
+                    style="max-width: 311px; margin-inline: auto"
+                    сlass="my-4"
+                  >
+                    <VBtn
+                      block
+                      color="primary"
+                      size="large"
+                    >
+                      Принят
+                    </VBtn>
+                  </div>
                 </PerfectScrollbar>
                 <div
                   v-else
@@ -899,7 +930,8 @@ onUnmounted(() => {
               </div>
               <VForm
                 v-if="chatStore.activeChat && (chatStore.activeChat.status === 'pending' && chatStore.activeChat.is_order_photo_sent || chatStore.activeChat.status === 'on_confirmation' && chatStore.activeChat.is_review_photo_sent || chatStore.activeChat.status === 'cashback_received' || (chatStore.activeChat.status === 'awaiting_receipt' && chatStore.activeChat.is_review_photo_sent) || receiptSent || orderSend)"
-                class="pb-11 pt-4 px-5 border-t gap-3 d-flex justify-between align-center"
+                class="pt-4 px-5 border-t gap-3 d-flex justify-between align-center"
+                :class="$vuetify.display.smAndDown ? 'pb-4' : 'pb-11'"
                 @submit.prevent="sendMessage"
               >
                 <VTextField
@@ -918,23 +950,29 @@ onUnmounted(() => {
                       <VBtn
                         variant="outlined"
                         color="primary"
-                        width="40"
-                        height="40"
+                        width="42"
+                        height="42"
                         size="small"
                         v-bind="activatorProps"
                         @click="fileInput.click()"
                       >
-                        <VIcon size="18" icon="ri-attachment-2" />
+                        <VIcon
+                          size="18"
+                          icon="ri-attachment-2"
+                        />
                       </VBtn>
                     </template>
                   </VTooltip>
                   <VBtn
-                    width="40"
-                    height="40"
+                    width="42"
+                    height="42"
                     :loading="sendingMessage"
                     @click="sendMessage"
                   >
-                    <VIcon size="18" icon="ri-send-plane-line" />
+                    <VIcon
+                      size="18"
+                      icon="ri-send-plane-line"
+                    />
                   </VBtn>
                 </div>
                 <input
@@ -1136,6 +1174,112 @@ onUnmounted(() => {
           </VCardActions>
         </VCard>
       </VDialog>
+      <VDialog
+        v-model="infoProduct"
+        max-width="300"
+      >
+        <VCard
+          max-width="300"
+          class="py-4 px-6"
+        >
+          <div class="d-flex">
+            <VSpacer />
+            <IconBtn
+              color="secondary relative"
+              style="right: -5px; top: -5px;"
+              @click="infoProduct = false"
+            >
+              <VIcon
+                width="12"
+                height="12"
+                icon="ri-close-fill"
+              />
+            </IconBtn>
+          </div>
+          <VCardTitle class="pa-0 text-body-1 font-weight-bold">
+            Заказ #739923
+          </VCardTitle>
+          <VCardText class="pa-0 mt-1">
+            <RouterLink
+              to="#"
+              class="text-decoration-underline text-wrap text-info"
+            >
+              {{ chatStore?.activeChat.ad.product.name }}
+            </RouterLink>
+            <p class="pt-3 pb-6 text-body-2 font-weight-medium">
+              Продавец:             
+              <RouterLink
+                to="#"
+                class="text-decoration-underline text-wrap text-info"
+              >
+                {{ chatStore?.activeChat.ad.shop.wb_name }}
+              </RouterLink>
+            </p>
+            <div class="d-flex text-body-2 justify-between gap-2 ">
+              <span>Размер скидки:</span>
+              <VChip
+                color="error"
+                class="px-0"
+              >
+                {{ chatStore?.activeChat.cashback_percentage }}%
+              </VChip>
+            </div>
+            <div class="d-flex text-body-2 justify-between gap-2 mt-3 mr-3  mb-2">
+              <span>Цена на Wildberries:</span>
+              <p class="text-secondary text-decoration-line-through">
+                {{ chatStore?.activeChat.product_price }}₽
+              </p>
+            </div>
+            <div class="d-flex text-body-2 justify-between gap-2 mr-3 mb-5">
+              <span>Размер скидки:</span>
+              <p class="text-primary">
+                {{ Math.round(chatStore?.activeChat.product_price - chatStore?.activeChat.price_with_cashback) }}₽
+              </p>
+            </div>
+          </VCardText>
+          <VCardActions class="pa-0 d-flex flex-column">
+            <VBtn
+              block
+              color="primary"
+              variant="flat"
+              class="mb-1"
+              size="large"
+              @click="openSupport"
+            >
+              Поддержка
+            </VBtn>
+            <VBtn
+              block
+              variant="text"
+              color="error"
+              class="text-decoration-underline"
+              @click="cancelItem = true"
+            >
+              Отменить заказ
+            </VBtn>
+          </VCardActions>
+        </VCard>
+      </VDialog>
+      <VSnackbar
+        v-model="snackbar.show"
+        :timeout="snackbar.timeout"
+        :color="snackbar.color"
+        location="top"
+        rounded="lg"
+        max-width="400"
+      >
+        {{ snackbar.text }}
+
+        <template #actions>
+          <VBtn
+            icon
+            variant="text"
+            @click="snackbar.show = false"
+          >
+            <VIcon>mdi-close</VIcon>
+          </VBtn>
+        </template>
+      </VSnackbar>
     </div>
   </div>
 </template>
@@ -1241,6 +1385,8 @@ onUnmounted(() => {
   background: #D1FADF;
   padding: 10px 35px;
   border-radius: 5px;
+  width: 80%;
+  max-width: 500px;
   margin-bottom: 10px;
   color: #000000cc !important;
 }
@@ -1249,7 +1395,8 @@ onUnmounted(() => {
   background: #D1D7FA;
   border-radius: 5px;
   color: #000000 !important;
-  max-width: 70%;
+  width: 80%;
+  max-width: 500px;
   padding: 10px 15px;
   margin-bottom: 10px;
 }
