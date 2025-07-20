@@ -96,5 +96,23 @@ export default {
         'Accept': 'application/json'
       }
     })
+  },
+
+  async registerFromTelegram({telegram_id, phone, role, chatId, first_name = null, last_name = null}){
+    return await $api('/telegram/register', {
+      method: 'POST',
+      body: {
+        telegram_id,
+        phone,
+        role,
+        chatId,
+        first_name,
+        last_name
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
   }
 }

@@ -110,5 +110,20 @@ export default {
     })
 
     return response
+  },
+
+  async getUser(){
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api('/profile', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+    })
+
+    return response
   }
 }

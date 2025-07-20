@@ -17,6 +17,7 @@ import notificationApi from "@/api/notification"
 import roleApi from "@/api/role"
 import orderApi from "@/api/order"
 import buybackApi from "@/api/buyback"
+import telegramApi from "@/api/telegram.js"
 
 export default {
   products: productsApi,
@@ -37,5 +38,6 @@ export default {
   notification: notificationApi,
   role: roleApi,
   order: orderApi,
-  buyback: buybackApi
+  buyback: buybackApi,
+  telegram: telegramApi
 }
