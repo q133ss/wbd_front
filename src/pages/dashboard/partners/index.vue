@@ -106,7 +106,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import api from '@/api'
+import api from '@/api/index.js'
 import { useSnackbarStore } from "@/stores/snackbar.js"
 
 definePage({

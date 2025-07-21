@@ -72,8 +72,13 @@ export function useSellerNavigation() {
     },
     {
       title: 'Партнерам',
-      icon: { icon: 'ri-gift-line' },
+      icon: { icon: 'ri-hand-heart-line' },
       to: 'dashboard-partners',
+    },
+    {
+      title: 'Партнеры',
+      icon: { icon: 'ri-gift-line' },
+      to: 'dashboard-partners-list',
     },
     {
       title: 'Поддержка',
