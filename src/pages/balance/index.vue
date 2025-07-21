@@ -85,8 +85,8 @@ const onConfirmation = computed(() => {
   return balance.value ? Math.floor(parseFloat(balance.value.onConfirmation)) : 0
 })
 
-const redemptionCount = computed(() => {
-  return balance.value?.redemption_count || 0
+const tariff = computed(() => {
+  return balance.value?.tariff || null
 })
 
 const spentToday = computed(() => {
@@ -295,11 +295,20 @@ const getBuybackDeclension = (count) => {
   }
 }
 
+const selectedTariff = ref(0)
+const selectTariff = (id) => {
+  selectedTariff.value = id
+}
+
 // Fetch tariffs
 onMounted(async () => {
   try {
     const response = await api.tariff.getTariffList()
     tariffs.value = response || []
+    if (tariffs.value.length > 0) {
+      selectedTariff.value = tariffs.value[0].id
+    }
+
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка загрузки тарифов',
@@ -311,10 +320,9 @@ onMounted(async () => {
 })
 
 // Buy tariff
-const buyTariff = async (tariff) => {
+const buyTariff = async (tariff, days) => {
   try {
-    const response = await api.balance.topUpBuybacks(tariff.id)
-    console.log(response)
+    const response = await api.balance.topUpBuybacks(tariff.id, days)
     const url = response.invoice.Url
     location.href=url
 
@@ -330,14 +338,34 @@ const buyTariff = async (tariff) => {
     })
   }
 }
+
+const getTariffEndDate = (tariff) => {
+  console.log(tariff)
+  const createdAt = tariff.pivot?.created_at
+  const durationDays = tariff.duration_days
+
+  const createdDate = new Date(createdAt)
+  const expirationDate = new Date(createdDate)
+  expirationDate.setDate(expirationDate.getDate() + durationDays)
+
+  const options = { year: 'numeric', month: 'long', day: 'numeric' }
+  const expirationDateString = expirationDate.toLocaleDateString('ru-RU', options)
+
+  const now = new Date()
+  if (now > expirationDate) {
+    return 'Тариф истёк'
+  }
+
+  return expirationDateString
+}
 </script>
 
 <template>
   <div class="balance-container">
 
     <div class="content-wrapper">
-      <h1 class="text-h4 mb-2">Баланс выкупов</h1>
-      <p class="text-body-1 mb-6">Управляйте вашим балансом, просматривайте транзакции и пополняйте счет</p>
+      <h1 class="text-h4 mb-2">Тарифы</h1>
+      <p class="text-body-1 mb-6">Управляйте тарифами и просматривайте транзакции</p>
 
       <div v-if="loading" class="text-center">
         <v-progress-circular indeterminate color="primary" />
@@ -346,9 +374,11 @@ const buyTariff = async (tariff) => {
       <div v-else>
         <!-- Balance and Details -->
         <v-row class="mb-6">
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="4">
             <div class="balance-box pa-6 pb-3" v-if="isSeller">
-              <p class="text-h5">Ваш баланс выкупов: <span class="font-weight-bold h-3 access-balance d-block mt-3">{{ redemptionCount }}</span></p>
+              <p class="text-h5">Ваш тариф:<span class="font-weight-bold h-3 access-balance d-block mt-3">{{ tariff?.name ?? 'У вас нет тарифа' }}</span>
+                <span v-if="tariff != null" class="text-subtitle-2">Действует до {{getTariffEndDate(tariff)}}</span>
+              </p>
             </div>
             <div class="buybacks-wrap" v-if="isSeller">
               <div class="text-none buybacks-btn promo-btn"
@@ -358,25 +388,6 @@ const buyTariff = async (tariff) => {
             </div>
 
           </v-col>
-          <v-col cols="12" md="4" v-if="isSeller">
-            <div class="details-box">
-              <h3 class="text-h6 mb-4">Потраченно</h3>
-              <div class="d-flex flex-column">
-                <div class="d-flex">
-                  <span class="text-body-1 w-25">Сегодня:</span>
-                  <span class="font-weight-bold">{{ parseInt(spentToday) }} {{ declension(spentToday, ['выкуп', 'выкупа', 'выкупов']) }}</span>
-                </div>
-                <div class="d-flex">
-                  <span class="text-body-1 w-25">Вчера:</span>
-                  <span class="font-weight-bold">{{parseInt(spentYesterday)}} {{ declension(spentYesterday, ['выкуп', 'выкупа', 'выкупов']) }}</span>
-                </div>
-                <div class="d-flex">
-                  <span class="text-body-1 w-25">За 7 дней:</span>
-                  <span class="font-weight-bold">{{parseInt(spentLast7Days)}} {{ declension(spentLast7Days, ['выкуп', 'выкупа', 'выкупов']) }}</span>
-                </div>
-              </div>
-            </div>
-          </v-col>
         </v-row>
 
 
@@ -384,54 +395,59 @@ const buyTariff = async (tariff) => {
         <div class="tariffs-container">
           <div class="content-wrapper">
             <h1 class="text-h4 mb-2">Тарифы</h1>
-            <p class="text-body-1 mb-8">Выберите подходящий тариф для продвижения ваших товаров с кэшбеком</p>
+            <p class="text-body-1 mb-8">Выберите тариф исходя из количества товаров для продвижения:
+              <br><br>
+              <span class="text-primary">Lite</span> - до 10 товаров (безлимит по выкупам) <br>
+              <span class="text-primary">Pro</span> - до 50 товаров (безлимит по выкупам) <br>
+              <span class="text-primary">Superstar</span> - безлимит товаров и выкупов
+            </p>
+
+            <v-btn v-for="tariff in tariffs" variant="outlined" :active="selectedTariff == tariff.id" class="ml-1" @click="selectTariff(tariff.id)">{{tariff.name}}</v-btn>
 
             <div v-if="loading" class="text-center">
               <v-progress-circular indeterminate color="primary" />
             </div>
 
             <v-row v-else>
-              <v-col
-                v-for="tariff in tariffs"
-                :key="tariff.id"
-                cols="12"
-                sm="6"
-                md="4"
-                lg="3"
-              >
-                <v-card class="tariff-card pa-6" min-height="400">
-                  <div class="card-content">
-                    <div class="d-flex justify-between">
-                      <h2 class="text-h5 mb-4 font-weight-bold tariff-name">{{ tariff.name }}</h2>
-                      <div class="tariff-badge">Бессрочно</div>
-                    </div>
-                    <p class="text-h6 font-weight-bold mb-2">{{ tariff.price }} ₽</p>
-                    <p class="text-body-1 mb-4">
-                      {{ tariff.buybacks_count }} {{ getBuybackDeclension(tariff.buybacks_count) }}
-                    </p>
-                    <v-divider class="mb-4" />
-                    <div class="min-100">
-                      <div
-                        v-for="(advantage, index) in tariff.advantages"
-                        :key="index"
-                        class="text-body-2 adv-item"
-                      >
-                        {{ advantage }}
+              <div class="w-100 d-flex tariff-wrap" :class="selectedTariff != tariff.id ? 'd-none' : ''" v-for="tariff in tariffs"
+                     :key="tariff.id">
+                <v-col
+                  class="mt-3"
+                  v-for="data in tariff.data"
+                  cols="12"
+                  sm="6"
+                  md="4"
+                  lg="3"
+                >
+                  <v-card class="tariff-card pa-6" min-height="400" v-if="selectedTariff == tariff.id">
+                    <div class="card-content">
+                      <div class="d-flex justify-between">
+                        <h2 class="text-h5 mb-4 font-weight-bold tariff-name">{{ data.name }}</h2>
+                        <div class="tariff-badge">Скидка 50%</div>
+                      </div>
+                      <p class="text-h6 font-weight-bold mb-2">{{ data.initial_price }} ₽</p>
+                      <p class="text-body-1 mb-4">
+                        Далее {{data.recurring_price}} ₽
+                      </p>
+                      <v-divider class="mb-4" />
+                      <div class="min-100">
+                        <div
+                          class="text-body-2 adv-item"
+                        >
+                          До {{tariff.products_count}} товаров в месяц на магазин
+                        </div>
                       </div>
                     </div>
-                    <p class="text-body-1 mt-12 text-center opacity-50">
-                      Стоимость выкупа: {{ tariff.redemption_price }} ₽
-                    </p>
-                  </div>
-                  <v-btn
-                    color="primary"
+                    <v-btn
+                      color="primary"
 
-                    @click="buyTariff(tariff)"
-                  >
-                    Купить
-                  </v-btn>
-                </v-card>
-              </v-col>
+                      @click="buyTariff(tariff, data.duration_days)"
+                    >
+                      Оформить
+                    </v-btn>
+                  </v-card>
+                </v-col>
+              </div>
             </v-row>
           </div>
         </div>
@@ -798,5 +814,15 @@ const buyTariff = async (tariff) => {
 
 .min-100{
   min-height: 100px;
+}
+
+.d-none{
+  display: none!important;
+}
+
+@media screen and (max-width: 960px){
+  .tariff-wrap{
+    flex-wrap: wrap;
+  }
 }
 </style>
