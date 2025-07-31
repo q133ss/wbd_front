@@ -1,33 +1,29 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 
 const route = useRoute()
-
-const text = ref('Загрузка..')
+const text = ref('Загрузка...')
+const router = useRouter()
 
 onMounted(() => {
-  const token = route.query.token // Получаем токен из URL
+  const chatId = route.query.chat_id // Получаем токен из URL
 
-  if (token) {
-    // Сохраняем токен!
-    useCookie('accessToken').value = token
-    fetchUserData()
-  }else{
-    // Токен не передан!
-    text.value = 'Токен не указан, попробуйте еще раз.'
+  try{
+    if (chatId) {
+      // Сохраняем чат ид!
+      useCookie('chatId').value = chatId
+      // Далее на логин!
+      router.push('/telegram/auth/select?chat_id=' + chatId)
+    }else{
+      text.value = 'Не удалось получить ID чата, попробуйте еще раз.'
+    }
+  }catch (err){
+    text.value = 'Произошла ошибка, попробуйте еще раз.'
   }
+
 })
-
-async function fetchUserData() {
-  try {
-    const response = await api.profile.getUser()
-  } catch (error) {
-    console.error('Authentication failed:', error)
-    text.value = 'Ваш токен устарел, попробуйте еще раз.'
-  }
-}
 </script>
 
 <template>
