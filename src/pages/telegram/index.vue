@@ -5,6 +5,8 @@ import api from '@/api'
 
 const route = useRoute()
 
+const text = ref('Загрузка..')
+
 onMounted(() => {
   const token = route.query.token // Получаем токен из URL
 
@@ -12,28 +14,25 @@ onMounted(() => {
     // Сохраняем токен!
     useCookie('accessToken').value = token
     fetchUserData()
+  }else{
+    // Токен не передан!
+    text.value = 'Токен не указан, попробуйте еще раз.'
   }
 })
 
 async function fetchUserData() {
   try {
     const response = await api.profile.getUser()
-    console.log(response)
-    alert('Авторизован:' + response.name)
   } catch (error) {
     console.error('Authentication failed:', error)
-    alert('Не авторизован!')
-    // Обработка ошибки аутентификации
+    text.value = 'Ваш токен устарел, попробуйте еще раз.'
   }
 }
 </script>
 
 <template>
   <div>
-    <div v-if="route.query.token" class="auth-message">
-      Processing authentication...
-    </div>
-    <!-- Остальной контент вашего компонента -->
+    {{text}}
   </div>
 </template>
 
