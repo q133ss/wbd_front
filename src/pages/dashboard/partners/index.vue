@@ -1,49 +1,101 @@
 <template>
-  <v-container class="py-6">
+  <VContainer class="py-6">
     <!-- Заголовок и описание -->
-    <v-row>
-      <v-col>
-        <h1 class="text-h4 font-weight-bold mb-2">Партнёрская программа</h1>
+    <VRow>
+      <VCol>
+        <h1 class="text-h4 font-weight-bold mb-2">
+          Партнёрская программа
+        </h1>
         <p class="text-body-1">
           Зарабатывайте вместе с нами — приглашайте пользователей и получайте бонусы!
         </p>
-      </v-col>
-    </v-row>
+      </VCol>
+    </VRow>
 
     <!-- Блоки статистики -->
-    <v-row class="mt-6" align="stretch">
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="pa-4" outlined>
-          <div class="text-subtitle-1 font-weight-medium">Перешли по ссылке</div>
-          <div class="text-h5 mt-2">{{ stats.clicks_count }}</div>
-        </v-card>
-      </v-col>
+    <VRow
+      class="mt-6"
+      align="stretch"
+    >
+      <VCol
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <VCard
+          class="pa-4"
+          outlined
+        >
+          <div class="text-subtitle-1 font-weight-medium">
+            Перешли по ссылке
+          </div>
+          <div class="text-h5 mt-2">
+            {{ stats.clicks_count }}
+          </div>
+        </VCard>
+      </VCol>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="pa-4" outlined>
-          <div class="text-subtitle-1 font-weight-medium">Зарегистрировались</div>
-          <div class="text-h5 mt-2">{{ stats.registrations_count }}</div>
-        </v-card>
-      </v-col>
+      <VCol
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <VCard
+          class="pa-4"
+          outlined
+        >
+          <div class="text-subtitle-1 font-weight-medium">
+            Зарегистрировались
+          </div>
+          <div class="text-h5 mt-2">
+            {{ stats.registrations_count }}
+          </div>
+        </VCard>
+      </VCol>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="pa-4" outlined>
-          <div class="text-subtitle-1 font-weight-medium">Пополнили баланс</div>
-          <div class="text-h5 mt-2">{{ stats.topup_count }}</div>
-        </v-card>
-      </v-col>
+      <VCol
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <VCard
+          class="pa-4"
+          outlined
+        >
+          <div class="text-subtitle-1 font-weight-medium">
+            Пополнили баланс
+          </div>
+          <div class="text-h5 mt-2">
+            {{ stats.topup_count }}
+          </div>
+        </VCard>
+      </VCol>
 
-      <v-col cols="12" sm="6" md="3">
-        <v-card class="pa-4" outlined>
-          <div class="text-subtitle-1 font-weight-medium">Вы заработали</div>
-          <div class="text-h5 mt-2">{{ stats.earnings }}</div> <!-- Можно заменить на сумму, если появится -->
-        </v-card>
-      </v-col>
-    </v-row>
+      <VCol
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <VCard
+          class="pa-4"
+          outlined
+        >
+          <div class="text-subtitle-1 font-weight-medium">
+            Вы заработали
+          </div>
+          <div class="text-h5 mt-2">
+            {{ stats.earnings }}
+          </div> <!-- Можно заменить на сумму, если появится -->
+        </VCard>
+      </VCol>
+    </VRow>
 
     <!-- Ссылка и инструкция -->
-    <v-row class="mt-10" v-if="user?.role?.slug == 'seller'">
-      <v-col cols="12">
+    <VRow
+      v-if="user?.role?.slug == 'seller'"
+      class="mt-10"
+    >
+      <VCol cols="12">
         <p class="text-body-1 mb-4">
           Специально для вас мы создали партнёрскую программу, по которой вы сможете зарабатывать независимо от собственных продвижений.
         </p>
@@ -51,7 +103,7 @@
           Копируйте вашу индивидуальную ссылку:
         </p>
 
-        <v-alert
+        <VAlert
           v-if="referralLink"
           type="primary"
           class="mb-4 cursor-pointer"
@@ -59,20 +111,23 @@
           @click="copyReferralLink"
         >
           <strong>{{ referralLink }}</strong>
-        </v-alert>
+        </VAlert>
 
         <p class="text-body-1 mb-4">
           Отправляйте другу, получайте <strong>10% от всех его платежей</strong> и выводите отчисления по партнёрской программе от <strong>10 000 ₽</strong>.
         </p>
 
         <p class="text-body-1">
-          А если вы являетесь веб-специалистом или медийной личностью, то для вас есть особые условия. <br />
-          <a href="/dashboard/support" class="text-primary font-weight-medium">Напишите нам</a> и узнайте все подробности.
+          А если вы являетесь веб-специалистом или медийной личностью, то для вас есть особые условия. <br>
+          <a
+            href="/dashboard/support"
+            class="text-primary font-weight-medium"
+          >Напишите нам</a> и узнайте все подробности.
         </p>
-      </v-col>
-    </v-row>
-    <v-row v-else>
-      <v-col cols="12">
+      </VCol>
+    </VRow>
+    <VRow v-else>
+      <VCol cols="12">
         <p class="text-body-1 mb-4">
           Специально для вас мы создали партнёрскую программу, по которой вы сможете зарабатывать не только с кэшбека, но и за рекомендации сервиса!
         </p>
@@ -80,7 +135,7 @@
           Копируйте вашу индивидуальную ссылку:
         </p>
 
-        <v-alert
+        <VAlert
           v-if="referralLink"
           type="primary"
           class="mb-4 cursor-pointer"
@@ -88,26 +143,29 @@
           @click="copyReferralLink"
         >
           <strong>{{ referralLink }}</strong>
-        </v-alert>
+        </VAlert>
 
         <p class="text-body-1 mb-4">
           Отправляйте другу, который хочет продвигать свои товары на Wildberries и получайте <strong>10% от всех его платежей в системе.</strong>
         </p>
 
         <p class="text-body-1">
-          Выводите отчисления по партнёрской программе от <strong>1000 ₽</strong>.<br />
+          Выводите отчисления по партнёрской программе от <strong>1000 ₽</strong>.<br>
           А если вы являетесь веб-специалистом или медийной личностью, то для вас есть особые условия.
-          <a href="/dashboard/support" class="text-primary font-weight-medium">Напишите нам</a> и узнайте все подробности.
+          <a
+            href="/dashboard/support"
+            class="text-primary font-weight-medium"
+          >Напишите нам</a> и узнайте все подробности.
         </p>
-      </v-col>
-    </v-row>
-  </v-container>
+      </VCol>
+    </VRow>
+  </VContainer>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
 import api from '@/api/index.js'
 import { useSnackbarStore } from "@/stores/snackbar.js"
+import { computed, onMounted, ref } from 'vue'
 
 definePage({
   meta: {
@@ -121,7 +179,7 @@ const stats = ref({
   clicks_count: 0,
   registrations_count: 0,
   topup_count: 0,
-  earnings: 0
+  earnings: 0,
 })
 
 const user = ref(null)
@@ -143,15 +201,14 @@ onMounted(async () => {
 })
 
 const copyReferralLink = () => {
-  if (referralLink) {
+  if (referralLink.value) {
     navigator.clipboard.writeText(referralLink.value)
       .then(() => {
-        snackbar.notify({text: "Ссылка скопирована в буфер обмена", color: 'success'})
+        snackbar.notify({ text: "Ссылка скопирована в буфер обмена", color: 'success' })
       })
       .catch(err => {
-        snackbar.notify({text: "Ошибка при копировании ссылки", color: 'error'})
+        snackbar.notify({ text: "Ошибка при копировании ссылки", color: 'error' })
       })
   }
 }
-
 </script>

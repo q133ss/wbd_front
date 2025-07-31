@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
 import api from '@/api/index.js'
+import { onMounted, ref } from 'vue'
 
 const categories = ref([])
 const partners = ref([])
@@ -18,75 +18,88 @@ onMounted(async () => {
 })
 
 // Загрузка партнёров по id категории
-const loadPartnersByCategoryId = async (categoryId) => {
+const loadPartnersByCategoryId = async categoryId => {
   selectedCategoryId.value = categoryId
+
   const response = await api.partners.list(categoryId)
+
   partners.value = response.data
 }
 
 // Локальная фильтрация по поиску
 const filteredPartners = computed(() => {
   return partners.value.filter(partner =>
-    partner.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    partner.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
 })
 </script>
 
 <template>
   <div class="partners-page">
-    <h1 class="text-2xl font-bold mb-4">Партнёры</h1>
+    <h1 class="text-2xl font-bold mb-7">
+      Партнеры
+    </h1>
 
     <!-- Категории -->
-    <div class="flex flex-wrap gap-2 mb-6">
-      <button
+    <div class="d-flex flex-wrap gap-2 mb-6">
+      <VBtn
         v-for="category in categories"
         :key="category.id"
+        variant="text"
+        size="small"
+        class="px-3 py-1 text-sm font-weight-medium rounded-xl"
+        :color="[
+          selectedCategoryId === category.id
+            ? 'primary'
+            : 'secondary'
+        ]"
         @click="loadPartnersByCategoryId(category.id)"
-        :class="[
-      'px-4 py-2 rounded-full border text-sm',
-      selectedCategoryId === category.id
-        ? 'bg-purple-100 text-purple-700 border-purple-300'
-        : 'bg-gray-100 text-gray-700 border-gray-300'
-    ]"
       >
         {{ category.name }}
-      </button>
+      </VBtn>
     </div>
 
 
     <!-- Поиск -->
-    <div class="mb-6">
-      <input
-        type="text"
-        v-model="searchQuery"
-        placeholder="🔍 Поиск по партнёрам"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-      />
-    </div>
+    <VTextField
+      v-model="searchQuery"
+      placeholder="Поиск по партнёрам"
+      variant="outlined"
+      density="compact"
+      prepend-inner-icon="ri-search-line"
+      width="404"
+      :rounded="100"
+      class="mb-6 rounded-xl"
+    />
 
     <!-- Сетка карточек: 3 колонки -->
-    <v-row dense>
-      <v-col
+    <div class="d-flex flex-wrap justify-start gap-5">
+      <VCard
         v-for="partner in filteredPartners"
         :key="partner.id"
-        cols="12"
-        sm="6"
-        md="4"
+        variant="text"
+        width="295"
+        class="rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition h-full flex flex-col"
       >
-        <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition h-full flex flex-col">
-          <img
-            :src="partner.img?.src"
-            alt="Логотип партнёра"
-            class="w-full h-20 object-contain bg-gray-100"
-          />
-          <div class="p-4 flex flex-col flex-grow justify-between">
+        <VImg
+          :src="partner.img?.src"
+          alt="Логотип партнёра"
+          max-height="191"
+          max-width="295"
+          position="center center"
+          class="w-full h-20 object-contain bg-gray-100"
+        />
+        <VCardText class="px-6 py-3">
+          <div class="d-flex flex-column flex-grow justify-between">
             <div>
-              <h3 class="text-lg font-semibold mb-1">{{ partner.name }}</h3>
-              <p class="text-sm text-gray-600 mb-4">
+              <h3 class="text-lg font-weight-semibold mb-1">
+                {{ partner.name }}
+              </h3>
+              <p class="text-caption text-secondary mb-4">
                 {{ partner.description }}
               </p>
             </div>
-            <div class="flex justify-between items-center mt-auto">
+            <div class="d-flex justify-space-between  w-100 items-center mt-auto">
               <a
                 :href="partner.link"
                 target="_blank"
@@ -94,17 +107,25 @@ const filteredPartners = computed(() => {
               >
                 Перейти
               </a>
-              <span class="text-xs px-2 py-1 bg-gray-100 rounded-full">
+              <VChip
+                color="secondary"
+                size="23"
+                class="px-2"
+                style="font-size: 12px;"
+              >
                 {{ partner.category?.name }}
-              </span>
+              </VChip>
             </div>
           </div>
-        </div>
-      </v-col>
-    </v-row>
+        </VCardText>
+      </VCard>
+    </div>
 
     <!-- Нет результатов -->
-    <div v-if="filteredPartners.length === 0" class="text-center text-gray-500 mt-10">
+    <div
+      v-if="filteredPartners.length === 0"
+      class="text-center text-gray-500 mt-10"
+    >
       Ничего не найдено
     </div>
   </div>
