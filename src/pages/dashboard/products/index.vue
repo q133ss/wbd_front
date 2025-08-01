@@ -15,10 +15,12 @@ const selectedRows = ref([])
 const showAddModal = ref(false)
 const articleInput = ref('')
 const loading = ref(false)
+
 const filters = ref({
   is_archived: null,
-  status: null
+  status: null,
 })
+
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 15
@@ -31,8 +33,9 @@ const shopData = ref(null)
 const userData = useCookie('userData')
 
 // Обрезка названия до 40 символов
-const truncateName = (name) => {
+const truncateName = name => {
   if (!name) return ''
+  
   return name.length > 40 ? name.slice(0, 40) + '...' : name
 }
 
@@ -41,18 +44,20 @@ const loadProducts = async () => {
   try {
     loading.value = true
     await nextTick() // Гарантируем рендеринг индикатора загрузки
+
     const response = await api.products.getSellerProducts({
       page: currentPage.value,
       per_page: itemsPerPage,
       ...filters.value,
-      search: searchQuery.value || undefined
+      search: searchQuery.value || undefined,
     })
+
     products.value = response.data
     totalItems.value = response.total || 0
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка при загрузке товаров',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -63,10 +68,11 @@ const loadProducts = async () => {
 loadProducts()
 
 // Переключение статуса
-const toggleStatus = async (productId) => {
+const toggleStatus = async productId => {
   const product = products?.value?.find(item => item.id === productId)
   if (!product) return
   const originalStatus = product.status
+
   product.status = product.status === 0 ? 1 : 0 // Оптимистичное обновление
 
   try {
@@ -74,13 +80,13 @@ const toggleStatus = async (productId) => {
     await api.products.stopSellerProducts([productId])
     snackbar.notify({
       text: 'Статус товара изменен',
-      color: 'success'
+      color: 'success',
     })
   } catch (error) {
     product.status = originalStatus // Откат при ошибке
     snackbar.notify({
       text: error.response?._data.message ?? 'Ошибка при изменении статуса',
-      color: 'error'
+      color: 'error',
     })
   }
 }
@@ -97,14 +103,16 @@ const addProduct = async () => {
     if (!userData.value) {
       snackbar.notify({
         text: 'Данные пользователя не найдены',
-        color: 'error'
+        color: 'error',
       })
+      
       return
     }
 
     if (userData.value.shop) {
       // Если магазин есть, сразу добавляем товар
       await addProductToWb()
+      
       return
     }
 
@@ -115,8 +123,9 @@ const addProduct = async () => {
     if (!response || !response.product || !response.shop) {
       snackbar.notify({
         text: 'Неверный формат данных товара или магазина',
-        color: 'error'
+        color: 'error',
       })
+      
       return
     }
 
@@ -136,7 +145,7 @@ const addProduct = async () => {
     }
     snackbar.notify({
       text: errorMessage,
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -145,10 +154,12 @@ const addProduct = async () => {
 
 // Добавление товара в WB
 const router = useRouter()
+
 const addProductToWb = async () => {
   try {
     loading.value = true
     await nextTick()
+
     const response = await api.products.addWbProduct(articleInput.value)
 
     if (response.code === 201) {
@@ -158,6 +169,7 @@ const addProductToWb = async () => {
       if (!userData.value?.shop) {
         // Обновляем данные пользователя в куках
         const updatedUser = await api.user.profile()
+
         userData.value = updatedUser
 
         // Перенаправляем на создание объявления
@@ -173,14 +185,14 @@ const addProductToWb = async () => {
         articleInput.value = ''
         snackbar.notify({
           text: 'Товар успешно добавлен',
-          color: 'success'
+          color: 'success',
         })
       }
     }
   } catch (error) {
     snackbar.notify({
       text: error.response._data.message ?? 'Произошла ошибка',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -194,6 +206,7 @@ const stopSelected = async () => {
 
   // Оптимистичное обновление
   const originalStatuses = new Map()
+
   products.value.forEach(item => {
     if (productIds.includes(item.id)) {
       originalStatuses.set(item.id, item.status)
@@ -209,7 +222,7 @@ const stopSelected = async () => {
     selectedRows.value = []
     snackbar.notify({
       text: 'Товары остановлены',
-      color: 'success'
+      color: 'success',
     })
   } catch (error) {
     // Откат при ошибке
@@ -220,7 +233,7 @@ const stopSelected = async () => {
     })
     snackbar.notify({
       text: 'Ошибка при остановке товаров',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -240,6 +253,7 @@ const confirmArchive = async () => {
 
   // Оптимистичное обновление (удаляем из списка)
   const originalProducts = [...products.value]
+
   products.value = products.value.filter(item => !productIds.includes(item.id))
 
   try {
@@ -250,14 +264,14 @@ const confirmArchive = async () => {
     selectedRows.value = []
     snackbar.notify({
       text: 'Товары заархивированы',
-      color: 'success'
+      color: 'success',
     })
   } catch (error) {
     // Откат при ошибке
     products.value = originalProducts
     snackbar.notify({
       text: 'Ошибка при архивировании товаров',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -269,7 +283,7 @@ const confirmArchive = async () => {
 const hasSelection = computed(() => selectedRows.value.length > 0)
 
 // Обработчик выбора строки
-const toggleSelect = (item) => {
+const toggleSelect = item => {
   const index = selectedRows.value.indexOf(item.id)
   if (index === -1) {
     selectedRows.value.push(item.id)
@@ -281,15 +295,16 @@ const toggleSelect = (item) => {
 // Выбор всех строк
 const selectAll = computed({
   get: () => selectedRows.value.length === products?.value?.length && products?.value?.length > 0,
-  set: (value) => {
+  set: value => {
     selectedRows.value = value ? products?.value?.map(item => item.id) : []
-  }
+  },
 })
 
 // Текст пагинации
 const paginationText = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage + 1
   const end = Math.min(currentPage.value * itemsPerPage, totalItems.value)
+  
   return `${start}-${end} из ${totalItems.value}`
 })
 
@@ -308,295 +323,340 @@ const handleFilterArchived = () => {
 }
 
 const handleFilterStatus = value => {
-    if (value === 'archived') {
-      filters.value.is_archived = true
-    } else {
-      filters.value.is_archived = null
-    }
+  if (value === 'archived') {
+    filters.value.is_archived = true
+  } else {
+    filters.value.is_archived = null
+  }
 
-    filters.value.status = value
+  filters.value.status = value
 
-    currentPage.value = 1
-    loadProducts()
+  currentPage.value = 1
+  loadProducts()
 }
 
 const loadRelated = ref(false)
 </script>
 
 <template>
-  <v-container fluid>
+  <VContainer fluid>
     <!-- Панель управления -->
-    <v-row class="mb-4" align="center">
-      <v-col cols="auto">
-        <v-btn
+    <h1 class="text-h3 mb-1 font-weight-bold">
+      Привет, Имя
+    </h1>
+    <p class="text-body-1 mb-6">
+      Продвижение > Товары 
+    </p>
+    <VRow
+      class="mb-4"
+      align="center"
+    >
+      <VCol cols="auto">
+        <VBtn
           color="primary"
-          @click="showAddModal = true"
           prepend-icon="ri-add-fill"
+          @click="showAddModal = true"
         >
           Добавить товар
-        </v-btn>
-      </v-col>
-      <v-col cols="auto">
-        <v-menu>
-          <template v-slot:activator="{ props }">
-            <v-btn
+        </VBtn>
+      </VCol>
+      <VCol cols="auto">
+        <VMenu>
+          <template #activator="{ props }">
+            <VBtn
               color="secondary"
               variant="outlined"
               :disabled="!hasSelection"
               v-bind="props"
             >
               Действия
-              <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
-            </v-btn>
+              <VIcon class="ml-2">
+                ri-arrow-down-s-line
+              </VIcon>
+            </VBtn>
           </template>
-          <v-list>
-            <v-list-item @click="stopSelected">
-              <v-list-item-title>Остановить/Активировать</v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="showArchiveModal = true">
-              <v-list-item-title>Архивировать</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </v-col>
-      <v-col cols="auto">
-        <v-menu close-on-content-click="false">
-          <template v-slot:activator="{ props }">
-            <v-btn
+          <VList>
+            <VListItem @click="stopSelected">
+              <VListItemTitle>Остановить/Активировать</VListItemTitle>
+            </VListItem>
+            <VListItem @click="showArchiveModal = true">
+              <VListItemTitle>Архивировать</VListItemTitle>
+            </VListItem>
+          </VList>
+        </VMenu>
+      </VCol>
+      <VCol cols="auto">
+        <VMenu close-on-content-click="false">
+          <template #activator="{ props }">
+            <VBtn
               variant="outlined"
               color="secondary"
               v-bind="props"
             >
               Сортировка
-              <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
-            </v-btn>
+              <VIcon class="ml-2">
+                ri-arrow-down-s-line
+              </VIcon>
+            </VBtn>
           </template>
-          <v-list>
-              <v-radio-group
-                v-model="filters.status"
-                @update:modelValue="handleFilterStatus"
-              >
-                <v-list-item @click.stop>
-                <v-radio
+          <VList>
+            <VRadioGroup
+              v-model="filters.status"
+              @update:model-value="handleFilterStatus"
+            >
+              <VListItem @click.stop>
+                <VRadio
                   label="Все"
                   :value="null"
-                ></v-radio>
-                </v-list-item>
-                <v-list-item @click.stop>
-                <v-radio
+                />
+              </VListItem>
+              <VListItem @click.stop>
+                <VRadio
                   label="Активные"
                   :value="1"
-                ></v-radio>
-                </v-list-item>
-                <v-list-item @click.stop>
-                <v-radio
+                />
+              </VListItem>
+              <VListItem @click.stop>
+                <VRadio
                   label="Неактивные"
                   :value="0"
-                ></v-radio>
-                </v-list-item>
-                <v-list-item @click.stop>
-                <v-radio
+                />
+              </VListItem>
+              <VListItem @click.stop>
+                <VRadio
                   label="Архивные"
-                  :value="'archived'"
-                ></v-radio>
-                </v-list-item>
-              </v-radio-group>
-          </v-list>
-        </v-menu>
-      </v-col>
-      <v-spacer></v-spacer>
-      <v-col cols="auto">
-        <v-text-field
+                  value="archived"
+                />
+              </VListItem>
+            </VRadioGroup>
+          </VList>
+        </VMenu>
+      </VCol>
+      <VSpacer />
+      <VCol cols="auto">
+        <VTextField
           v-model="searchQuery"
           label="Поиск"
           prepend-inner-icon="mdi-magnify"
           clearable
-          @update:modelValue="handleSearch"
           style="width: 300px"
-        ></v-text-field>
-      </v-col>
-    </v-row>
+          @update:model-value="handleSearch"
+        />
+      </VCol>
+    </VRow>
 
     <!-- Таблица товаров -->
     <VTable class="rounded-table">
       <thead>
-      <tr>
-        <th class="text-uppercase">
-          <v-checkbox
-            v-model="selectAll"
-            :indeterminate="selectedRows.length > 0 && selectedRows.length < products.length"
-            hide-details
-          ></v-checkbox>
-        </th>
-        <th class="text-uppercase">Товар</th>
-        <th class="text-uppercase">Статус</th>
-        <th class="text-uppercase">Выкупов</th>
-        <th class="text-uppercase">Просмотры</th>
-        <th class="text-uppercase">Выкупы</th>
-        <th class="text-uppercase">Конверсия</th>
-        <th class="text-uppercase">Объявлений</th>
-      </tr>
+        <tr>
+          <th class="text-uppercase">
+            <VCheckbox
+              v-model="selectAll"
+              :indeterminate="selectedRows.length > 0 && selectedRows.length < products.length"
+              hide-details
+            />
+          </th>
+          <th class="text-uppercase">
+            Товар
+          </th>
+          <th class="text-uppercase">
+            Статус
+          </th>
+          <th class="text-uppercase">
+            Выкупов
+          </th>
+          <th class="text-uppercase">
+            Просмотры
+          </th>
+          <th class="text-uppercase">
+            Выкупы
+          </th>
+          <th class="text-uppercase">
+            Конверсия
+          </th>
+          <th class="text-uppercase">
+            Объявлений
+          </th>
+        </tr>
       </thead>
       <tbody>
-      <tr v-if="loading" class="loading-row">
-        <td colspan="8" class="text-center">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-        </td>
-      </tr>
-      <template v-else>
         <tr
-          v-for="item in products"
-          :key="item.id"
-          :class="{ 'selected-row': selectedRows.includes(item.id) }"
+          v-if="loading"
+          class="loading-row"
         >
-          <td>
-            <v-checkbox
-              :model-value="selectedRows.includes(item.id)"
-              @update:modelValue="() => toggleSelect(item)"
-              hide-details
-            ></v-checkbox>
-          </td>
-          <td>
-            <div class="d-flex align-center">
-              <v-img
-                v-if="item.images"
-                :src="item.images[0]"
-                max-width="50"
-                max-height="66"
-                class="mr-2"
-              ></v-img>
-              <router-link :to="'/dashboard/advertisements?product_id='+item.id">{{ truncateName(item.name) }}</router-link>
-            </div>
-          </td>
-          <td>
-            <v-switch
-              :model-value="item.status === 1"
-              @update:modelValue="() => toggleStatus(item.id)"
+          <td
+            colspan="8"
+            class="text-center"
+          >
+            <VProgressCircular
+              indeterminate
               color="primary"
-              hide-details
-            ></v-switch>
+            />
           </td>
-          <td>{{ item.buybacks_progress }}</td>
-          <td>{{ item.views }}</td>
-          <td>{{ item.completed_buybacks_count }}</td>
-          <td>{{ item.conversion }}</td>
-          <td>{{ item.ads_count }}</td>
         </tr>
-        <tr v-if="!products?.length && !filters.is_archived">
-          <td colspan="8" class="text-center pb-7">
-            <v-btn
-              color="primary"
-              class="mt-7 mb-7"
-              @click="showAddModal = true"
+        <template v-else>
+          <tr
+            v-for="item in products"
+            :key="item.id"
+            :class="{ 'selected-row': selectedRows.includes(item.id) }"
+          >
+            <td>
+              <VCheckbox
+                :model-value="selectedRows.includes(item.id)"
+                hide-details
+                @update:model-value="() => toggleSelect(item)"
+              />
+            </td>
+            <td>
+              <div class="d-flex align-center">
+                <VImg
+                  v-if="item.images"
+                  :src="item.images[0]"
+                  max-width="50"
+                  max-height="66"
+                  class="mr-2"
+                />
+                <RouterLink :to="'/dashboard/advertisements?product_id='+item.id">
+                  {{ truncateName(item.name) }}
+                </RouterLink>
+              </div>
+            </td>
+            <td>
+              <VSwitch
+                :model-value="item.status === 1"
+                color="primary"
+                hide-details
+                @update:model-value="() => toggleStatus(item.id)"
+              />
+            </td>
+            <td>{{ item.buybacks_progress }}</td>
+            <td>{{ item.views }}</td>
+            <td>{{ item.completed_buybacks_count }}</td>
+            <td>{{ item.conversion }}</td>
+            <td>{{ item.ads_count }}</td>
+          </tr>
+          <tr v-if="!products?.length && !filters.is_archived">
+            <td
+              colspan="8"
+              class="text-center pb-7"
             >
-              <v-icon>ri-add-line</v-icon>
-              Добавить
-            </v-btn>
-            <br>
-            <span class="text-subtitle-1">Загрузите первый товар, чтобы начать продвижение</span>
-          </td>
-        </tr>
-        <tr v-else-if="!products?.length && filters.is_archived">
-          <td colspan="8" class="text-center pb-7 pt-3">
-            <span class="text-subtitle-1">Архивных товаров нет</span>
-          </td>
-        </tr>
-      </template>
+              <VBtn
+                color="primary"
+                class="mt-7 mb-7"
+                @click="showAddModal = true"
+              >
+                <VIcon>ri-add-line</VIcon>
+                Добавить
+              </VBtn>
+              <br>
+              <span class="text-subtitle-1">Загрузите первый товар, чтобы начать продвижение</span>
+            </td>
+          </tr>
+          <tr v-else-if="!products?.length && filters.is_archived">
+            <td
+              colspan="8"
+              class="text-center pb-7 pt-3"
+            >
+              <span class="text-subtitle-1">Архивных товаров нет</span>
+            </td>
+          </tr>
+        </template>
       </tbody>
     </VTable>
 
     <!-- Пагинация -->
-    <div class="text-center mt-4" v-if="products?.length && !loading && totalItems > itemsPerPage">
+    <div
+      v-if="products?.length && !loading && totalItems > itemsPerPage"
+      class="text-center mt-4"
+    >
       <div>{{ paginationText }}</div>
-      <v-pagination
+      <VPagination
         v-model="currentPage"
         :length="totalPages"
         :total-visible="7"
-        @update:modelValue="loadProducts"
-      ></v-pagination>
+        @update:model-value="loadProducts"
+      />
     </div>
 
     <!-- Модальное окно для добавления товара -->
-    <v-dialog
+    <VDialog
       v-model="showAddModal"
       max-width="500"
     >
-      <v-card>
-        <v-card-title>Добавить товар</v-card-title>
-        <v-card-text>
-          <v-text-field
+      <VCard>
+        <VCardTitle>Добавить товар</VCardTitle>
+        <VCardText>
+          <VTextField
             v-model="articleInput"
             label="Артикул WB"
             required
-          ></v-text-field>
+          />
 
           <VCheckbox
-            label="Загрузить связанные товары"
             v-model="loadRelated"
+            label="Загрузить связанные товары"
             @update:model-value="loadReload = !loadReload"
           />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
             color="primary"
-            @click="addProduct"
             :disabled="!articleInput"
+            @click="addProduct"
           >
             Добавить
-          </v-btn>
-          <v-btn
-            @click="showAddModal = false"
-          >
+          </VBtn>
+          <VBtn @click="showAddModal = false">
             Отмена
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
-<!--    Архивация-->
-    <v-dialog
+    <!--    Архивация -->
+    <VDialog
       v-model="showArchiveModal"
       max-width="500"
     >
-      <v-card>
-        <v-card-title>Архивировать товар?</v-card-title>
-        <v-card-text>
+      <VCard>
+        <VCardTitle>Архивировать товар?</VCardTitle>
+        <VCardText>
           После архивации товара запустить объявления по нему будет невозможно.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
             color="primary"
             @click="confirmArchive"
           >
             Подтвердить
-          </v-btn>
-          <v-btn
-            @click="showArchiveModal = false"
-          >
+          </VBtn>
+          <VBtn @click="showArchiveModal = false">
             Отменить
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- Модальное окно для подтверждения добавления магазина -->
-    <v-dialog
+    <VDialog
       v-model="showShopConfirmModal"
       max-width="600"
     >
-      <v-card>
-        <v-card-title>Добавление магазина</v-card-title>
-        <v-card-text>
+      <VCard>
+        <VCardTitle>Добавление магазина</VCardTitle>
+        <VCardText>
           <p>
             Этот товар находится в магазине продавца "{{ shopData?.wb_name }}".
             <br>
             Подтвердите добавление магазина в ваш профиль на Wbdiscount.
           </p>
-          <p class="text-caption">(Этот шаг делается один раз для новой учетной записи)</p>
-          <v-row v-if="productData">
-            <v-col cols="12">
+          <p class="text-caption">
+            (Этот шаг делается один раз для новой учетной записи)
+          </p>
+          <VRow v-if="productData">
+            <VCol cols="12">
               <VTextField
                 v-model="productData.name"
                 label="Товар"
@@ -617,38 +677,38 @@ const loadRelated = ref(false)
                 label="Бренд"
                 class="mb-4"
               />
-            </v-col>
+            </VCol>
 
             <div class="w-100 text-center d-flex">
-              <v-img
+              <VImg
                 v-if="productData.images && productData.images.length"
                 :src="productData.images[0]"
                 class="mb-2"
                 width="225"
                 height="300"
-              ></v-img>
+              />
             </div>
-          </v-row>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
+          </VRow>
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
             color="primary"
-            @click="addProductToWb"
             :disabled="loading"
+            @click="addProductToWb"
           >
             Далее
-          </v-btn>
-          <v-btn
-            @click="showShopConfirmModal = false"
+          </VBtn>
+          <VBtn
             :disabled="loading"
+            @click="showShopConfirmModal = false"
           >
             Отмена
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-container>
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+  </VContainer>
 </template>
 
 <style scoped lang="scss">

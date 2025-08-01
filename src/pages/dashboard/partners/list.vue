@@ -4,13 +4,14 @@ import { onMounted, ref } from 'vue'
 
 const categories = ref([])
 const partners = ref([])
-const selectedCategoryId = ref(0)
+const selectedCategoryId = ref('')
 const searchQuery = ref('')
 
 // Загрузка категорий и первой категории
 onMounted(async () => {
   try {
     categories.value = await api.partners.categories()
+    console.log('Категории загружены:', categories.value)    
     await loadPartnersByCategoryId(selectedCategoryId.value)
   } catch (e) {
     console.error('Ошибка при загрузке', e)
@@ -28,6 +29,7 @@ const loadPartnersByCategoryId = async categoryId => {
 
 // Локальная фильтрация по поиску
 const filteredPartners = computed(() => {
+  
   return partners.value.filter(partner =>
     partner.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
@@ -39,24 +41,50 @@ const filteredPartners = computed(() => {
     <h1 class="text-2xl font-bold mb-7">
       Партнеры
     </h1>
-
+    <h3 class="text-h6 font-weight-bold mb-3">
+      Фильтры
+    </h3>
     <!-- Категории -->
-    <div class="d-flex flex-wrap gap-2 mb-6">
-      <VBtn
-        v-for="category in categories"
-        :key="category.id"
-        variant="text"
-        size="small"
-        class="px-3 py-1 text-sm font-weight-medium rounded-xl"
-        :color="[
-          selectedCategoryId === category.id
-            ? 'primary'
-            : 'secondary'
-        ]"
-        @click="loadPartnersByCategoryId(category.id)"
+    <div class="d-flex flex-wrap gap-3 mb-6">
+      <VBadge
+        v-if="partners.length"
+        color="currentColor"
+        content=""
+        offset-x="-2"
+        offset-y="-2"
+        class="badge-small"
       >
-        {{ category.name }}
-      </VBtn>
+        <VBtn
+          size="small"
+          variant="flat"
+          class="px-3 py-1 text-sm font-weight-medium rounded-xl"
+          :color="selectedCategoryId === '' ? 'primary' : 'secondary'"
+          @click="loadPartnersByCategoryId('')"
+        >
+          Все
+        </VBtn>
+      </VBadge>
+
+      <VBadge        
+        v-for="category in categories"        
+        v-if="partner?.category?.id === category?.id"
+        :key="category.id"
+        content="" 
+        color="currentColor"
+        offset-x="-2"
+        offset-y="-2"
+        class="badge-small"
+      >
+        <VBtn
+          size="small"
+          variant="flat"
+          class="px-3 py-1 text-sm font-weight-medium rounded-xl"
+          :color="selectedCategoryId === category.id ? 'primary' : 'secondary'"
+          @click="loadPartnersByCategoryId(category.id)"
+        >
+          {{ category.name }}
+        </VBtn>
+      </VBadge>
     </div>
 
 
@@ -67,7 +95,7 @@ const filteredPartners = computed(() => {
       variant="outlined"
       density="compact"
       prepend-inner-icon="ri-search-line"
-      width="404"
+      max-width="404"
       :rounded="100"
       class="mb-6 rounded-xl"
     />
@@ -89,7 +117,7 @@ const filteredPartners = computed(() => {
           position="center center"
           class="w-full h-20 object-contain bg-gray-100"
         />
-        <VCardText class="px-6 py-3">
+        <VCardText class="px-6 py-3 pb-6">
           <div class="d-flex flex-column flex-grow justify-between">
             <div>
               <h3 class="text-lg font-weight-semibold mb-1">
@@ -134,5 +162,11 @@ const filteredPartners = computed(() => {
 <style scoped>
 .partners-page {
   padding: 24px;
+}
+
+:deep(.v-badge__badge) {
+  height: 15px !important;
+  min-width: 15px !important;
+  width: 15px !important;
 }
 </style>
