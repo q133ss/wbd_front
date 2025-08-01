@@ -21,6 +21,19 @@ const filters = ref({
   status: null,
 })
 
+const statusOptions = [
+  { label: 'Все', value: null },
+  { label: 'Активные', value: 1 },
+  { label: 'Неактивные', value: 0 },
+  { label: 'Архивные', value: 'archived' },
+]
+
+function selectStatus(value) {
+  filters.value.status = value
+  handleFilterStatus(value) // вызываешь, если у тебя есть логика
+}
+
+
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 15
@@ -31,6 +44,7 @@ const productData = ref(null)
 const shopData = ref(null)
 
 const userData = useCookie('userData')
+
 
 // Обрезка названия до 40 символов
 const truncateName = name => {
@@ -53,6 +67,7 @@ const loadProducts = async () => {
     })
 
     products.value = response.data
+    console.log(products.value)
     totalItems.value = response.total || 0
   } catch (error) {
     snackbar.notify({
@@ -341,16 +356,40 @@ const loadRelated = ref(false)
 <template>
   <VContainer fluid>
     <!-- Панель управления -->
-    <h1 class="text-h3 mb-1 font-weight-bold">
-      Привет, Имя
+    <h1 class="text-h3 mb-1 font-weight-bold md-and-up">
+      Привет, {{ userData.name || 'Продавец' }}
     </h1>
-    <p class="text-body-1 mb-6">
+    <p class="text-body-1 mb-6 md-and-up">
       Продвижение > Товары 
     </p>
-    <VRow
-      class="mb-4"
-      align="center"
+    <VTabs
+      color="deep-purple-accent-4"
+      align-tabs="start"
+      class="md-and-up"
     >
+      <VTab
+        to="/dashboard/products"
+        class="text-primary px-1 pb-4 text-body-2 font-weight-bold"
+      >
+        Товары <span
+          v-if="products.length"
+          class="pl-1"
+        >  ({{ products.length }})</span>
+      </VTab>
+      <VTab 
+        to="/dashboard/advertisements"         
+        class="text-secondary px-1 pb-4 text-body-2 font-weight-bold mx-4"
+      >
+        Объявления
+      </VTab>
+      <VTab 
+        to="/dashboard/buybacks"         
+        class="text-secondary px-1 pb-4 text-body-2 font-weight-bold"
+      >
+        Выкупы
+      </VTab>
+    </VTabs>
+    <VRow class="mb-4 mt-5 md-and-up">
       <VCol cols="auto">
         <VBtn
           color="primary"
@@ -437,25 +476,233 @@ const loadRelated = ref(false)
         <VTextField
           v-model="searchQuery"
           label="Поиск"
-          prepend-inner-icon="mdi-magnify"
+          prepend-inner-icon="ri-search-line"
           clearable
-          style="width: 300px"
+          density="compact"
+          width="300"
           @update:model-value="handleSearch"
         />
       </VCol>
     </VRow>
-
+    <VRow
+      v-if="$vuetify.display.smAndDown || !$vuetify.display.mdAndUp"
+      class="mb-4"
+    >
+      <VCol cols="12">
+        <VBtn
+          color="primary"
+          prepend-icon="ri-add-fill"
+          class="mb-2 !text-body-1"
+          style="font-size: 14px !important"
+          @click="openProductModal"
+        >
+          Добавить товар
+        </VBtn>
+      </VCol>
+      <VCol cols="12">
+        <VTabs
+          color="deep-purple-accent-4"
+          align-tabs="start"
+          class="border-none"
+        >
+          <VTab
+            to="/dashboard/products"
+            class="text-primary px-1 pb-4 text-body-2 font-weight-bold"
+            style="font-size: 14px !important"
+          >
+            Товары <span
+              v-if="products.length"
+              class="pl-1"
+            >  ({{ products.length }})</span>
+          </VTab>
+          <VTab 
+            to="/dashboard/advertisements"         
+            class="text-secondary px-1 pb-4 text-body-2 font-weight-bold mx-4"
+            style="font-size: 14px !important"
+          >
+            Объявления
+          </VTab>
+        </VTabs>
+      </VCol>
+      <VCol
+        cols="12"
+        class="d-flex flex-wrap"
+      >
+        <VBtn
+          v-for="option in statusOptions"
+          :key="option.value ?? 'all'"
+          size="small"
+          variant="flat"
+          class="px-3 py-1 text-sm font-weight-medium rounded-xl mr-2 mb-2"
+          :color="filters.status === option.value ? 'primary' : 'transparent'"
+          :style="filters.status === option.value ? '' : 'background-color: rgba(var(--v-theme-secondary), 0.08); color: rgb(var(--v-theme-secondary));'"
+          @click="selectStatus(option.value)"
+        >
+          {{ option.label }}
+        </VBtn>
+      </VCol>
+      <VCol
+        cols="12"
+        class="d-flex flex-wrap"
+      >
+        <VCard
+          v-for="item in products"
+          :key="item.id"
+          elevation="1"
+          width="100%"
+          class="pa-4 border"
+        >
+          <div class="d-flex gap-3 w-100">
+            <VImg
+              :src="item.images[0]"
+              class="rounded"
+              cover
+              width="36"
+              height="36"
+              max-width="36"
+            />
+            <div class="flex-grow-1 d-flex flex-column justify-center">
+              <RouterLink
+                :to="'/dashboard/advertisements?product_id=' + item.id"
+                class="text-h6 font-weight-medium text-truncate d-inline-block"
+                style="max-width: 180px; font-size: 14px;"
+              >
+                {{ truncateName(item.name) }}
+              </RouterLink>
+              <span
+                class="text-secondary"
+                style="font-size: 12px;"
+              >
+                {{ item.id }}
+              </span> 
+            </div>
+            <VSwitch
+              :model-value="item.status === 1"
+              color="primary"
+              hide-details
+              density="comfortable"
+              style="scale: 1.3;"
+              @update:model-value="() => toggleStatus(item.id)"
+            />
+          </div>
+          <div class="d-flex justify-between mt-3 !font-weight-medium">
+            <ul class="w-50">
+              <li class="list-none">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Объявления
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important;"
+                >{{ item.ads_count }} шт.</span>
+              </li>
+              <li class="list-none my-1">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  CR (Переход/Заказ)
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >
+                  {{
+                    item.conversion && item.completed_buybacks_count
+                      ? ((item.completed_buybacks_count / item.conversion) * 100).toFixed(1) + '%'
+                      : '0%'
+                  }}
+                </span>
+              </li>
+              <li class="list-none my-1">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Выкупы в процессе
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.completed_buybacks_count }}</span>
+              </li>
+            </ul>
+            <ul class="w-50">
+              <li class="list-none">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Просмотры
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.views || 0 }}</span>
+              </li>
+              <li class="list-none my-1">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Переходы
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.conversion }}</span>
+              </li>
+              <li class="list-none">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Выкупили
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.completed_buybacks_count }}</span>
+              </li>
+            </ul>
+          </div>
+          <div class="d-flex justify-end align-center w-100">
+            <VMenu>
+              <template #activator="{ props }">
+                <IconBtn
+                  icon
+                  color="transparent"
+                  height="24"
+                  rounded="lg"
+                  v-bind="props"
+                >
+                  <VIcon>
+                    ri-more-line
+                  </VIcon>
+                </IconBtn>
+              </template>
+              <VList>
+                <VListItem @click="stopSelected">
+                  <VListItemTitle>
+                    {{ item.status === 1 ? 'Остановить' : 'Активировать' }}
+                  </VListItemTitle>
+                </VListItem>
+                <VListItem @click="showArchiveModal = true">
+                  <VListItemTitle>Архивировать</VListItemTitle>
+                </VListItem>
+              </VList>
+            </VMenu>
+          </div>
+        </VCard>
+      </VCol>
+    </VRow>
     <!-- Таблица товаров -->
-    <VTable class="rounded-table">
+    <VTable class="rounded-table md-and-up">
       <thead>
         <tr>
-          <th class="text-uppercase">
-            <VCheckbox
-              v-model="selectAll"
-              :indeterminate="selectedRows.length > 0 && selectedRows.length < products.length"
-              hide-details
-            />
-          </th>
           <th class="text-uppercase">
             Товар
           </th>
@@ -501,24 +748,31 @@ const loadRelated = ref(false)
             :class="{ 'selected-row': selectedRows.includes(item.id) }"
           >
             <td>
-              <VCheckbox
-                :model-value="selectedRows.includes(item.id)"
-                hide-details
-                @update:model-value="() => toggleSelect(item)"
-              />
-            </td>
-            <td>
-              <div class="d-flex align-center">
-                <VImg
-                  v-if="item.images"
-                  :src="item.images[0]"
-                  max-width="50"
-                  max-height="66"
-                  class="mr-2"
+              <div class="d-flex align-center gap-3">
+                <VCheckbox
+                  :model-value="selectedRows.includes(item.id)"
+                  hide-details
+                  width="36"
+                  @update:model-value="() => toggleSelect(item)"
                 />
-                <RouterLink :to="'/dashboard/advertisements?product_id='+item.id">
-                  {{ truncateName(item.name) }}
-                </RouterLink>
+                <VAvatar
+                  v-if="item.images"
+                  size="40"
+                >
+                  <VImg :src="item.images[0]" />
+                </VAvatar>
+                <div
+                  class="d-flex flex-column"
+                  style="max-width: 179px;"
+                >
+                  <RouterLink
+                    :to="'/dashboard/advertisements?product_id='+item.id"
+                    class="text-no-wrap overflow-hidden text-body-2 font-weight-medium"
+                  >
+                    {{ truncateName(item.name) }}                    
+                  </RouterLink>
+                  {{ item.id }}
+                </div>
               </div>
             </td>
             <td>
@@ -530,8 +784,8 @@ const loadRelated = ref(false)
               />
             </td>
             <td>{{ item.buybacks_progress }}</td>
-            <td>{{ item.views }}</td>
-            <td>{{ item.completed_buybacks_count }}</td>
+            <td>{{ item.views || 0 }}</td>
+            <td>{{ item.completed_buybacks_count || 0 }}</td>
             <td>{{ item.conversion }}</td>
             <td>{{ item.ads_count }}</td>
           </tr>
@@ -737,5 +991,11 @@ const loadRelated = ref(false)
   border-spacing: 0;
   border-radius: 0.5rem;
   overflow: hidden; /* Обрезает углы у внутренних элементов */
+}
+
+@media screen and (max-width: 800px) {
+  .md-and-up {
+    display: none;
+  }  
 }
 </style>

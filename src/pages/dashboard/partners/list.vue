@@ -46,45 +46,28 @@ const filteredPartners = computed(() => {
     </h3>
     <!-- Категории -->
     <div class="d-flex flex-wrap gap-3 mb-6">
-      <VBadge
-        v-if="partners.length"
-        color="currentColor"
-        content=""
-        offset-x="-2"
-        offset-y="-2"
-        class="badge-small"
+      <VBtn
+        size="small"
+        variant="flat"
+        class="px-3 py-1 text-sm font-weight-medium rounded-xl"
+        :color="selectedCategoryId === '' ? 'primary' : 'transparent'"
+        :style="selectedCategoryId === '' ? '' : 'background-color: rgba(var(--v-theme-secondary), 0.16); color: rgb(var(--v-theme-secondary));'"
+        @click="loadPartnersByCategoryId('')"
       >
-        <VBtn
-          size="small"
-          variant="flat"
-          class="px-3 py-1 text-sm font-weight-medium rounded-xl"
-          :color="selectedCategoryId === '' ? 'primary' : 'secondary'"
-          @click="loadPartnersByCategoryId('')"
-        >
-          Все
-        </VBtn>
-      </VBadge>
-
-      <VBadge        
-        v-for="category in categories"        
-        v-if="partner?.category?.id === category?.id"
-        :key="category.id"
-        content="" 
-        color="currentColor"
-        offset-x="-2"
-        offset-y="-2"
-        class="badge-small"
+        Все
+      </VBtn>
+      <VBtn
+        v-for="category in categories" 
+        :key="category.id" 
+        size="small"
+        variant="flat"
+        class="px-3 py-1 text-sm font-weight-medium rounded-xl"
+        :color="selectedCategoryId === category.id ? 'primary' : 'transparent'"
+        :style="selectedCategoryId === category.id ? '' : 'background-color: rgba(var(--v-theme-secondary), 0.16); color: rgb(var(--v-theme-secondary));'"
+        @click="loadPartnersByCategoryId(category.id)"
       >
-        <VBtn
-          size="small"
-          variant="flat"
-          class="px-3 py-1 text-sm font-weight-medium rounded-xl"
-          :color="selectedCategoryId === category.id ? 'primary' : 'secondary'"
-          @click="loadPartnersByCategoryId(category.id)"
-        >
-          {{ category.name }}
-        </VBtn>
-      </VBadge>
+        {{ category.name }}
+      </VBtn>
     </div>
 
 
@@ -164,9 +147,8 @@ const filteredPartners = computed(() => {
   padding: 24px;
 }
 
-:deep(.v-badge__badge) {
-  height: 15px !important;
-  min-width: 15px !important;
-  width: 15px !important;
+:deep(.badge-small .v-badge__wrapper .v-badge__badge.v-badge--dot) {
+  height: 13px !important;
+  min-width: 13px !important;
 }
 </style>

@@ -52,7 +52,8 @@ const login = async () => {
     if (error.response?.status === 422) {
       const message = error.response?.data?.errors
         ? Object.values(error.response.data.errors)[0][0]
-        : 'Неверный телефон или пароль';
+        : 'Неверный телефон или пароль'
+
       snackbar.notify({ text: message, color: 'error' })
     } else {
       snackbar.notify({ text: 'Ошибка авторизации', color: 'error' })
@@ -63,33 +64,34 @@ const login = async () => {
 
 
 // Функция для загрузки данных
-const loadProductData = async (id) => {
+const loadProductData = async id => {
   try {
-    isLoading.value = true;
-    errorMessage.value = null;
+    isLoading.value = true
+    errorMessage.value = null
 
     // Загружаем данные о товаре
-    product.value = await productsApi.getAdById(id);
+    product.value = await productsApi.getAdById(id)
 
     // Загружаем первую страницу отзывов
-    const reviewsResponse = await reviewsApi.getProductReviews(id, currentPage.value);
+    const reviewsResponse = await reviewsApi.getProductReviews(id, currentPage.value)
 
     // Проверяем, что reviewsResponse содержит ожидаемые данные
     if (!reviewsResponse || typeof reviewsResponse !== 'object') {
-      throw new Error('Некорректный формат ответа API для отзывов');
+      throw new Error('Некорректный формат ответа API для отзывов')
     }
 
-    reviews.value = reviewsResponse.reviews || [];
-    summary.value = reviewsResponse.summary || {};
-    pagination.value = reviewsResponse.pagination || {};
+    reviews.value = reviewsResponse.reviews || []
+    summary.value = reviewsResponse.summary || {}
+    pagination.value = reviewsResponse.pagination || {}
 
     // Загружаем похожие товары
-    const relatedResponse = await productsApi.getRelatedProducts(id);
+    const relatedResponse = await productsApi.getRelatedProducts(id)
+
     relatedProducts.value = (relatedResponse || []).map(item => ({
       ...item,
       reviews: item.reviews || [],
-      summary: item.summary || { averageRating: 0, totalReviews: 0 }
-    })).slice(0, 6);
+      summary: item.summary || { averageRating: 0, totalReviews: 0 },
+    })).slice(0, 6)
   } catch (error) {
     // Если товар не найден, редирект на страницу 404
     // if (error.status == 404) {
@@ -97,12 +99,12 @@ const loadProductData = async (id) => {
     //   return
     // }
 
-    console.error('Ошибка при загрузке данных:', error);
-    errorMessage.value = 'Не удалось загрузить данные. Попробуйте позже.';
+    console.error('Ошибка при загрузке данных:', error)
+    errorMessage.value = 'Не удалось загрузить данные. Попробуйте позже.'
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 const checkIfInFavorites = async () => {
   try {
@@ -120,89 +122,97 @@ const checkIfInFavorites = async () => {
 
 // Выполняем загрузку данных при монтировании
 onMounted(async () => {
-  loadProductData(productId.value);
-  await checkIfInFavorites();
-});
+  loadProductData(productId.value)
+  await checkIfInFavorites()
+})
 
 // Отслеживаем изменения маршрута
 watch(
   () => route.params.id,
-  (newId) => {
+  newId => {
     if (newId && newId !== productId.value) {
-      productId.value = newId;
-      currentPage.value = 1; // Сбрасываем страницу отзывов
-      reviews.value = []; // Сбрасываем отзывы
-      summary.value = null; // Сбрасываем сводку
-      pagination.value = null; // Сбрасываем пагинацию
-      loadProductData(newId); // Загружаем данные для нового товара
+      productId.value = newId
+      currentPage.value = 1 // Сбрасываем страницу отзывов
+      reviews.value = [] // Сбрасываем отзывы
+      summary.value = null // Сбрасываем сводку
+      pagination.value = null // Сбрасываем пагинацию
+      loadProductData(newId) // Загружаем данные для нового товара
     }
-  }
-);
+  },
+)
 
 // Отладка изменения вкладок
-const onTabChange = (newTab) => {
-  tab.value = newTab;
-};
+const onTabChange = newTab => {
+  tab.value = newTab
+}
 
 // Загрузка следующей страницы отзывов
 const loadMoreReviews = async () => {
   try {
-    currentPage.value += 1;
-    const reviewsResponse = await reviewsApi.getProductReviews(productId.value, currentPage.value);
+    currentPage.value += 1
+
+    const reviewsResponse = await reviewsApi.getProductReviews(productId.value, currentPage.value)
 
     if (!reviewsResponse || typeof reviewsResponse !== 'object') {
-      throw new Error('Некорректный формат ответа API для дополнительных отзывов');
+      throw new Error('Некорректный формат ответа API для дополнительных отзывов')
     }
 
-    reviews.value = [...reviews.value, ...(reviewsResponse.reviews || [])];
-    summary.value = reviewsResponse.summary || {};
-    pagination.value = reviewsResponse.pagination || {};
+    reviews.value = [...reviews.value, ...(reviewsResponse.reviews || [])]
+    summary.value = reviewsResponse.summary || {}
+    pagination.value = reviewsResponse.pagination || {}
   } catch (error) {
-    console.error('Ошибка при загрузке дополнительных отзывов:', error);
-    errorMessage.value = 'Не удалось загрузить дополнительные отзывы.';
+    console.error('Ошибка при загрузке дополнительных отзывов:', error)
+    errorMessage.value = 'Не удалось загрузить дополнительные отзывы.'
   }
-};
+}
 
 const parsedImages = computed(() => {
   if (product.value && product.value.product && product.value.product.images) {
-    const images = product.value.product.images;
+    const images = product.value.product.images
     if (Array.isArray(images)) {
-      return images;
+      return images
     }
     if (typeof images === 'string') {
       try {
-        return JSON.parse(images);
+        return JSON.parse(images)
       } catch (e) {
-        console.error('Ошибка при разборе изображений:', e);
-        return [];
+        console.error('Ошибка при разборе изображений:', e)
+        
+        return []
       }
     }
   }
-  return [];
-});
+  
+  return []
+})
 
-const formatDate = (date) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(date).toLocaleDateString('ru-RU', options);
+const formatDate = date => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' }
+  
+  return new Date(date).toLocaleDateString('ru-RU', options)
 }
 
 const isLoginFormVisible = ref(false)
-const addToFavorites = async (productId) => {
+
+const addToFavorites = async productId => {
   try {
     const token = useCookie('accessToken').value
     const user = useCookie('userData').value
 
     if (!token || !user) {
       isLoginFormVisible.value = true
+      
       return
     }
+
     // Вызываем метод addToFavorite и передаем productId
     const response = await favoriteApi.addToFavorite(productId)
-    snackbar.notify({text: "Товар добавлен в избранное", color: "success"})
+
+    snackbar.notify({ text: "Товар добавлен в избранное", color: "success" })
     isInFavorites.value = true
   } catch (error) {
     if(error.statusCode == 401){
-      isLoginFormVisible.value = true;
+      isLoginFormVisible.value = true
     }else{
       console.error('Ошибка при добавлении в избранное:', error)
     }
@@ -210,12 +220,14 @@ const addToFavorites = async (productId) => {
 }
 
 const showPayModal = ref(false)
+
 const handleOrderClick = async () => {
   const token = useCookie('accessToken').value
   const user = useCookie('userData').value
 
   if (!token || !user) {
     isLoginFormVisible.value = true
+    
     return
   }
 
@@ -228,7 +240,7 @@ const handleOrderClick = async () => {
     if(error.response?.status){
       showPayModal.value = true
     }else{
-      snackbar.notify({text: error.response?._data?.message, color: "error"})
+      snackbar.notify({ text: error.response?._data?.message, color: "error" })
     }
   }
 }
@@ -240,34 +252,51 @@ const resetLoginForm = () => {
   isLoginFormVisible.value = false
 }
 
-const currentSlide = ref(0);
-const carouselRef = ref(null);
+const currentSlide = ref(0)
+const carouselRef = ref(null)
 
 function goTo(idx) {
-  currentSlide.value = idx;
-  carouselRef.value && (carouselRef.value.internalValue = idx);
+  currentSlide.value = idx
+  carouselRef.value && (carouselRef.value.internalValue = idx)
 }
 
 function onSlideChange(val) {
-  currentSlide.value = val;
+  currentSlide.value = val
 }
 </script>
 
 <template>
-  <VCol cols="12" v-if="isLoading" class="text-center py-10 mt-10" style="height: 100vh">
-    <VProgressCircular indeterminate color="primary" />
+  <VCol
+    v-if="isLoading"
+    cols="12"
+    class="text-center py-10 mt-10"
+    style="height: 100vh"
+  >
+    <VProgressCircular
+      indeterminate
+      color="primary"
+    />
   </VCol>
   <VContainer v-else>
     <!-- Отображение ошибки, если она есть -->
-    <VAlert v-if="errorMessage" type="error" class="mb-4">
+    <VAlert
+      v-if="errorMessage"
+      type="error"
+      class="mb-4"
+    >
       {{ errorMessage }}
     </VAlert>
 
     <!-- Хлебные крошки -->
     <VBreadcrumbs class="breadcrumbs-container">
-      <VBreadcrumbsItem to="/">Главная</VBreadcrumbsItem>
+      <VBreadcrumbsItem to="/">
+        Главная
+      </VBreadcrumbsItem>
       <span>/</span>
-      <VBreadcrumbsItem v-if="product?.product?.category" :to="`/categories/${product?.product?.category?.id}`">
+      <VBreadcrumbsItem
+        v-if="product?.product?.category"
+        :to="`/categories/${product?.product?.category?.id}`"
+      >
         {{ product?.product?.category.name }}
       </VBreadcrumbsItem>
       <span v-if="product?.product?.category">/</span>
@@ -277,19 +306,23 @@ function onSlideChange(val) {
     <!-- Основной контент -->
     <VRow>
       <!-- Слайдер изображений -->
-      <VCol cols="12" md="8" lg="6">
+      <VCol
+        cols="12"
+        md="8"
+        lg="6"
+      >
         <VCard class="product-card">
           <template v-if="parsedImages?.length">
             <VCarousel
               ref="carouselRef"
               v-model="currentSlide"
-              @update:modelValue="onSlideChange"
               :continuous="false"
               :show-arrows="parsedImages?.length > 1"
               height="100%"
               cycle
               hide-delimiter-background
               hide-delimiters
+              @update:model-value="onSlideChange"
             >
               <VCarouselItem
                 v-for="(image, idx) in parsedImages"
@@ -307,27 +340,42 @@ function onSlideChange(val) {
           </template>
           <!-- Плейсхолдер если нет картинок -->
           <template v-else>
-            <div class="product-image-placeholder" style="height: 400px; background: #f2f2f2; display: flex; align-items: center; justify-content: center;">
+            <div
+              class="product-image-placeholder"
+              style="height: 400px; background: #f2f2f2; display: flex; align-items: center; justify-content: center;"
+            >
               <span style="color: #999;">Нет изображения</span>
             </div>
           </template>
         </VCard>
-        <div class="slider-pagination" style="height: auto">
-          <div v-if="parsedImages.length > 1" class="d-flex justify-center mt-3">
-              <span
-                v-for="(_, idx) in parsedImages"
-                :key="idx"
-                class="my-dot"
-                :class="{ 'my-dot--active': currentSlide === idx }"
-                @click="goTo(idx)"
-              />
+        <div
+          class="slider-pagination"
+          style="height: auto"
+        >
+          <div
+            v-if="parsedImages.length > 1"
+            class="d-flex justify-center mt-3"
+          >
+            <span
+              v-for="(_, idx) in parsedImages"
+              :key="idx"
+              class="my-dot"
+              :class="{ 'my-dot--active': currentSlide === idx }"
+              @click="goTo(idx)"
+            />
           </div>
         </div>
       </VCol>
 
       <!-- Информация о товаре -->
-      <VCol cols="12" md="8" lg="6">
-        <h1 class="product-name">{{ product?.product?.name }}</h1>
+      <VCol
+        cols="12"
+        md="8"
+        lg="6"
+      >
+        <h1 class="product-name">
+          {{ product?.product?.name }}
+        </h1>
         <div class="d-flex align-center mb-2">
           <VRating
             :model-value="1"
@@ -339,14 +387,14 @@ function onSlideChange(val) {
           />
           <span>{{ product?.product?.rating || 0 }}</span>
           ·
-          <span class="text-subtitle-1">{{summary.totalReviews}} оценки</span>
+          <span class="text-subtitle-1">{{ summary.totalReviews }} оценки</span>
         </div>
         <div class="d-flex align-center gap-2 mb-2 price-wrap">
           <div class="price-detail">
-          <span class="text-h5 product-price">{{ parseInt(product?.price_with_cashback) }} ₽</span>
-          <span class="text-body-2 text-disabled text-decoration-line-through product-price-old">
-            {{ parseInt(product?.price_without_cashback) }} ₽
-          </span>
+            <span class="text-h5 product-price">{{ parseInt(product?.price_with_cashback) }} ₽</span>
+            <span class="text-body-2 text-disabled text-decoration-line-through product-price-old">
+              {{ parseInt(product?.price_without_cashback) }} ₽
+            </span>
           </div>
           <VChip
             size="large"
@@ -371,10 +419,23 @@ function onSlideChange(val) {
           {{ isInFavorites ? 'В избранном' : 'В избранное' }}
         </VBtn>
 
-        <VBtn color="primary" class="mt-2" block @click="handleOrderClick">Заказать</VBtn>
+        <VBtn
+          color="primary"
+          class="mt-2"
+          block
+          @click="handleOrderClick"
+        >
+          Заказать
+        </VBtn>
         <div class="mt-4 shop-details">
           <strong>{{ product?.shop?.legal_name }}</strong>
-          <VBtn variant="text" class="link-button ml-5" :to="`/shop/${product?.shop?.user_id}`">Подробнее</VBtn>
+          <VBtn
+            variant="text"
+            class="link-button ml-5"
+            :to="`/shop/${product?.shop?.user_id}`"
+          >
+            Подробнее
+          </VBtn>
           <VRating
             :model-value="1"
             length="1"
@@ -390,39 +451,91 @@ function onSlideChange(val) {
     <!-- Вкладки -->
     <VRow>
       <VCol cols="12">
-        <VTabs v-model="tab" @update:modelValue="onTabChange" class="tabs-mobile-justify">
-          <VTab value="order">Условия</VTab>
-          <VTab value="description">Описание</VTab>
-          <VTab value="reviews">Отзывы</VTab>
+        <VTabs
+          v-model="tab"
+          class="tabs-mobile-justify"
+          @update:model-value="onTabChange"
+        >
+          <VTab value="order">
+            Условия
+          </VTab>
+          <VTab value="description">
+            Описание
+          </VTab>
+          <VTab value="reviews">
+            Отзывы
+          </VTab>
         </VTabs>
-        <VWindow v-model="tab" class="product-tab-content">
+        <VWindow
+          v-model="tab"
+          class="product-tab-content"
+        >
           <VWindowItem value="order">
-            <div v-if="product?.order_conditions" v-html="product.order_conditions"></div>
-            <div v-else class="text-caption">Условия заказа не указаны</div>
+            <div
+              v-if="product?.order_conditions"
+              v-html="product.order_conditions"
+            />
+            <div
+              v-else
+              class="text-caption"
+            >
+              Условия заказа не указаны
+            </div>
           </VWindowItem>
           <VWindowItem value="description">
-            <div v-if="product?.product?.description" v-html="product?.product?.description"></div>
-            <div v-else class="text-caption">Описание отсутствует</div>
+            <div
+              v-if="product?.product?.description"
+              v-html="product?.product?.description"
+            />
+            <div
+              v-else
+              class="text-caption"
+            >
+              Описание отсутствует
+            </div>
           </VWindowItem>
           <VWindowItem value="reviews">
             <div v-if="reviews.length">
-              <div v-for="review in reviews" :key="review.id" class="mb-4">
+              <div
+                v-for="review in reviews"
+                :key="review.id"
+                class="mb-4"
+              >
                 <p><strong>{{ review.user }}</strong> ({{ formatDate(review.createdDate) }})</p>
-                <VRating :model-value="review.rating" readonly density="compact" size="small" />
-                <p v-if="review.text">{{ review.text }}</p>
-                <p v-if="review.pros"><strong>Плюсы:</strong> {{ review.pros }}</p>
-                <p v-if="review.cons"><strong>Минусы:</strong> {{ review.cons }}</p>
-                <div v-if="review.answer" class="mt-2">
+                <VRating
+                  :model-value="review.rating"
+                  readonly
+                  density="compact"
+                  size="small"
+                />
+                <p v-if="review.text">
+                  {{ review.text }}
+                </p>
+                <p v-if="review.pros">
+                  <strong>Плюсы:</strong> {{ review.pros }}
+                </p>
+                <p v-if="review.cons">
+                  <strong>Минусы:</strong> {{ review.cons }}
+                </p>
+                <div
+                  v-if="review.answer"
+                  class="mt-2"
+                >
                   <p><strong>Ответ продавца ({{ formatDate(review.answer.createDate) }}):</strong></p>
                   <p>{{ review.answer.text }}</p>
                 </div>
               </div>
             </div>
-            <div v-else class="text-caption">Не удалось загрузить отзывы</div>
+            <div
+              v-else
+              class="text-caption"
+            >
+              Не удалось загрузить отзывы
+            </div>
             <VBtn
               v-if="pagination?.last_page && currentPage < pagination.last_page"
-              @click="loadMoreReviews"
               :disabled="isLoading"
+              @click="loadMoreReviews"
             >
               Загрузить еще
             </VBtn>
@@ -432,9 +545,14 @@ function onSlideChange(val) {
     </VRow>
 
     <!-- Похожие товары -->
-    <VRow v-if="relatedProducts.length" class="mt-8">
+    <VRow
+      v-if="relatedProducts.length"
+      class="mt-8"
+    >
       <VCol cols="12">
-        <h2 class="mb-4">Похожие товары</h2>
+        <h2 class="mb-4">
+          Похожие товары
+        </h2>
         <VRow>
           <ProductCard
             v-for="item in relatedProducts"
@@ -455,8 +573,8 @@ function onSlideChange(val) {
 
   <VDialog
     v-model="isLoginFormVisible"
-    @update:model-value="val => { if (!val) resetLoginForm() }"
     max-width="900"
+    @update:model-value="val => { if (!val) resetLoginForm() }"
   >
     <VCard class="share-project-dialog pa-sm-11 pa-3">
       <DialogCloseBtn
@@ -472,9 +590,9 @@ function onSlideChange(val) {
           <VCol cols="12">
             <VTextField
               v-model="phone"
+              v-mask="'+7(###)###-##-##'"
               label="Телефон"
               placeholder="+7(999)999-99-99"
-              v-mask="'+7(###)###-##-##'"
               type="text"
             />
           </VCol>
@@ -487,7 +605,10 @@ function onSlideChange(val) {
             />
           </VCol>
 
-          <VCol cols="12" class="d-flex gap-4">
+          <VCol
+            cols="12"
+            class="d-flex gap-4"
+          >
             <VBtn @click="login">
               Войти
             </VBtn>
@@ -504,20 +625,24 @@ function onSlideChange(val) {
     </VCard>
   </VDialog>
 
-  <v-dialog v-model="showPayModal" max-width="400px">
-    <v-sheet class="pa-6">
-      <h6 class="text-h6 mb-4 text-center">Перед началом оформления заказа вам необходимо заполнить платежные данные для получения кэшбека</h6>
+  <VDialog
+    v-model="showPayModal"
+    max-width="400px"
+  >
+    <VSheet class="pa-6">
+      <h6 class="text-h6 mb-4 text-center">
+        Перед началом оформления заказа вам необходимо заполнить платежные данные для получения кэшбека
+      </h6>
       <div class="text-center">
-        <v-btn
+        <VBtn
           color="primary"
           @click="$router.push('/profile')"
         >
           Перейти в профиль
-        </v-btn>
+        </VBtn>
       </div>
-    </v-sheet>
-  </v-dialog>
-
+    </VSheet>
+  </VDialog>
 </template>
 
 <style scoped lang="scss">

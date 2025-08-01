@@ -3,12 +3,15 @@ import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { computed, nextTick, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
 
 definePage({
   meta: {
     authRequired: true,
   },
 })
+
+const { mdAndUp } = useDisplay()
 
 const snackbar = useSnackbarStore()
 const router = useRouter()
@@ -18,10 +21,18 @@ const selectedRows = ref([])
 const showAddModal = ref(false)
 const articleInput = ref('')
 const loading = ref(false)
+
+
 const filters = ref({
   is_archived: null,
-  status: null
+  status: null,
 })
+
+function selectStatus(value) {
+  filters.value.status = value
+  handleFilterStatus(value)
+}
+
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 15
@@ -44,10 +55,13 @@ const userData = useCookie('userData')
 // Truncate name to 27 characters
 const truncateName = (name, lenght = 27) => {
   if (!name) return ''
+  
   return name.length > lenght ? name.slice(0, lenght) + '...' : name
 }
 
 const showTelegramModal = ref(false)
+
+
 // Load advertisements
 const loadAds = async () => {
 
@@ -65,15 +79,18 @@ const loadAds = async () => {
       status: filters.value.status !== null ? filters.value.status : undefined,
       is_archived: filters.value.is_archived !== null ? (filters.value.is_archived ? 1 : 0) : undefined,
       search: searchQuery.value || undefined,
-    };
+    }
 
     // Если есть `product_id` в URL, добавляем его в параметры запроса
     if (route.query.product_id) {
-      params.product_id = route.query.product_id;
+      params.product_id = route.query.product_id
     }
 
     const response = await api.ads.getAds(params)
+
     ads.value = response.data
+    console.log(ads.value)
+    
     totalItems.value = response.total || 0
 
     if(totalItems.value == 1 && userData.telegram_id == null){
@@ -82,34 +99,37 @@ const loadAds = async () => {
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка при загрузке объявлений',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
   }
 }
+
+
 // Initial load
 loadAds()
 
 // Toggle status using stopAds
-const toggleStatus = async (adId) => {
+const toggleStatus = async adId => {
   const ad = ads.value.find(item => item.id === adId)
   if (!ad) return
   const originalStatus = ad.status
   const newStatus = ad.status === 0 ? 1 : 0
+
   ad.status = newStatus
   try {
     await api.ads.stopAds([adId])
     snackbar.notify({
       text: 'Статус объявления изменен',
-      color: 'success'
+      color: 'success',
     })
-    loadAds();
+    loadAds()
   } catch (error) {
     ad.status = originalStatus
     snackbar.notify({
       text: 'Ошибка при изменении статуса',
-      color: 'error'
+      color: 'error',
     })
   }
 }
@@ -119,17 +139,19 @@ const loadProducts = async () => {
   try {
     loading.value = true
     await nextTick()
+
     const response = await api.products.getSellerProducts({
       page: productCurrentPage.value,
       per_page: productItemsPerPage,
-      search: productSearchQuery.value || undefined
+      search: productSearchQuery.value || undefined,
     })
+
     products.value = response
     productTotalItems.value = response.total || 0
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка при загрузке товаров',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -141,6 +163,7 @@ const openProductModal = () => {
   if (route.query.product_id != undefined) {
     showProductModal.value = false
     router.push(`/dashboard/advertisements/create/${route.query.product_id}`)
+    
     return
   }
   showAddModal.value = false
@@ -151,7 +174,7 @@ const openProductModal = () => {
 }
 
 // Select product and redirect
-const selectProduct = (productId) => {
+const selectProduct = productId => {
   showProductModal.value = false
   router.push(`/dashboard/advertisements/create/${productId}`)
 }
@@ -168,12 +191,12 @@ const stopSelected = async () => {
     selectedRows.value = []
     snackbar.notify({
       text: 'Объявления остановлены',
-      color: 'success'
+      color: 'success',
     })
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка при остановке объявлений',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -182,6 +205,7 @@ const stopSelected = async () => {
 
 // Archive selected
 const showArchiveModal = ref(false)
+
 const archiveSelected = async () => {
   if (!selectedRows.value.length) return
   showArchiveModal.value = true
@@ -197,12 +221,12 @@ const confirmArchive = async () => {
     selectedRows.value = []
     snackbar.notify({
       text: 'Объявления заархивированы',
-      color: 'success'
+      color: 'success',
     })
   } catch (error) {
     snackbar.notify({
       text: error.response?._data?.message ?? 'Ошибка при архивировании объявлений',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -210,9 +234,17 @@ const confirmArchive = async () => {
   }
 }
 
+const statusOptions = [
+  { label: 'Все', value: null },
+  { label: 'Активные', value: 1 },
+  { label: 'Неактивные', value: 0 },
+  { label: 'Архивные', value: 'archived' },
+]
+
 // Selection
 const hasSelection = computed(() => selectedRows.value.length > 0)
-const toggleSelect = (item) => {
+
+const toggleSelect = item => {
   const index = selectedRows.value.indexOf(item.id)
   if (index === -1) {
     selectedRows.value.push(item.id)
@@ -220,27 +252,32 @@ const toggleSelect = (item) => {
     selectedRows.value.splice(index, 1)
   }
 }
+
 const selectAll = computed({
   get: () => selectedRows.value.length === ads.value.length && ads.value.length > 0,
-  set: (value) => {
+  set: value => {
     selectedRows.value = value ? ads.value.map(item => item.id) : []
-  }
+  },
 })
 
 // Pagination for ads
 const paginationText = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage + 1
   const end = Math.min(currentPage.value * itemsPerPage, totalItems.value)
+  
   return `${start}-${end} из ${totalItems.value}`
 })
+
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage))
 
 // Pagination for products
 const productPaginationText = computed(() => {
   const start = (productCurrentPage.value - 1) * productItemsPerPage + 1
   const end = Math.min(productCurrentPage.value * productItemsPerPage, productTotalItems.value)
+  
   return `${start}-${end} из ${productTotalItems.value}`
 })
+
 const productTotalPages = computed(() => Math.ceil(productTotalItems.value / productItemsPerPage))
 
 // Handlers
@@ -248,29 +285,33 @@ const handleSearch = () => {
   currentPage.value = 1
   loadAds()
 }
+
 const handleFilterArchived = () => {
   currentPage.value = 1
   loadAds()
 }
+
 const handleFilterStatus = value => {
   // Архивные — отдельный флаг, но выбираются через status
   filters.value.is_archived = value === 'archived' ? true : null
   filters.value.status = value
-
+  
   currentPage.value = 1
   loadAds()
 }
+
 const handleProductSearch = () => {
   productCurrentPage.value = 1
   loadProducts()
 }
 
 // Get first image
-const getFirstImage = (images) => {
+const getFirstImage = images => {
   if (!images) return ''
   if (Array.isArray(images)) return images[0]
   try {
     const parsed = JSON.parse(images)
+    
     return Array.isArray(parsed) ? parsed[0] : ''
   } catch {
     return ''
@@ -280,7 +321,8 @@ const getFirstImage = (images) => {
 // Image modal
 const imageModal = ref(false)
 const selectedImage = ref('')
-const openImage = (url) => {
+
+const openImage = url => {
   selectedImage.value = url || 'https://via.placeholder.com/48'
   imageModal.value = true
 }
@@ -321,416 +363,731 @@ const closeTgModal = () => {
 </script>
 
 <template>
-  <v-container fluid>
-    <!-- Панель управления -->
-    <v-row class="mb-4" align="center">
-      <v-col cols="auto">
-        <v-btn
+  <VContainer fluid>
+    <!-- Панель управления --> 
+    <VRow
+      class="mb-4 md-and-up"
+      align="center"
+    >
+      <VCol cols="auto">
+        <VBtn
           color="primary"
-          @click="openProductModal"
           prepend-icon="ri-add-fill"
+          @click="openProductModal"
         >
           Создать объявление
-        </v-btn>
-      </v-col>
-      <v-col cols="auto">
-        <v-menu>
-          <template v-slot:activator="{ props }">
-            <v-btn
+        </VBtn>
+      </VCol>
+      <VCol cols="auto">
+        <VMenu>
+          <template #activator="{ props }">
+            <VBtn
               variant="outlined"
               color="secondary"
               :disabled="!hasSelection"
               v-bind="props"
             >
               Действия
-              <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
-            </v-btn>
+              <VIcon class="ml-2">
+                ri-arrow-down-s-line
+              </VIcon>
+            </VBtn>
           </template>
-          <v-list>
-            <v-list-item @click="stopSelected">
-              <v-list-item-title>Остановить/Активировать</v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="showArchiveModal = true">
-              <v-list-item-title>Архивировать</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </v-col>
-      <v-col cols="auto">
-        <v-menu close-on-content-click="false">
-          <template v-slot:activator="{ props }">
-            <v-btn
+          <VList>
+            <VListItem @click="stopSelected">
+              <VListItemTitle>Остановить/Активировать</VListItemTitle>
+            </VListItem>
+            <VListItem @click="showArchiveModal = true">
+              <VListItemTitle>Архивировать</VListItemTitle>
+            </VListItem>
+          </VList>
+        </VMenu>
+      </VCol>
+      <VCol cols="auto">
+        <VMenu close-on-content-click="false">
+          <template #activator="{ props }">
+            <VBtn
               variant="outlined"
               color="secondary"
               v-bind="props"
             >
               Сортировка
-              <v-icon class="ml-2">ri-arrow-down-s-line</v-icon>
-            </v-btn>
+              <VIcon class="ml-2">
+                ri-arrow-down-s-line
+              </VIcon>
+            </VBtn>
           </template>
-          <v-list>
-              <v-radio-group
-                v-model="filters.status"
-                @update:modelValue="handleFilterStatus"
-              >
-                <v-list-item @click.stop>
-                <v-radio
+          <VList>
+            <VRadioGroup
+              v-model="filters.status"
+              @update:model-value="handleFilterStatus"
+            >
+              <VListItem @click.stop>
+                <VRadio
                   label="Все"
                   :value="null"
-                ></v-radio>
-                </v-list-item>
-                <v-list-item @click.stop>
-                <v-radio
+                />
+              </VListItem>
+              <VListItem @click.stop>
+                <VRadio
                   label="Активные"
                   :value="1"
-                ></v-radio>
-                </v-list-item>
-                <v-list-item @click.stop>
-                <v-radio
+                />
+              </VListItem>
+              <VListItem @click.stop>
+                <VRadio
                   label="Неактивные"
                   :value="0"
-                ></v-radio>
-                </v-list-item>
-                <v-list-item @click.stop>
-                <v-radio
-                  label="Архивные"
-                  :value="'archived'"
                 />
-                </v-list-item>
-              </v-radio-group>
-          </v-list>
-        </v-menu>
-      </v-col>
-      <v-spacer></v-spacer>
-      <v-col cols="auto">
-        <v-text-field
+              </VListItem>
+              <VListItem @click.stop>
+                <VRadio
+                  label="Архивные"
+                  value="archived"
+                />
+              </VListItem>
+            </VRadioGroup>
+          </VList>
+        </VMenu>
+      </VCol>
+      <VSpacer />
+      <VCol cols="auto">
+        <VTextField
           v-model="searchQuery"
           label="Поиск"
-          prepend-inner-icon="mdi-magnify"
+          prepend-inner-icon="ri-search-line"
           clearable
-          @update:modelValue="handleSearch"
-          style="width: 300px"
-        ></v-text-field>
-      </v-col>
-    </v-row>
-
-    <!-- Таблица объявлений -->
-    <VTable class="rounded-table">
-      <thead>
-      <tr>
-        <th class="text-uppercase">
-          <v-checkbox
-            v-model="selectAll"
-            :indeterminate="selectedRows.length > 0 && selectedRows.length < ads.length"
-            hide-details
-          ></v-checkbox>
-        </th>
-        <th class="text-uppercase">Объявление</th>
-        <th class="text-uppercase">Статус</th>
-        <th class="text-uppercase">Изображение</th>
-        <th class="text-uppercase">Товар</th>
-        <th class="text-uppercase">Кэшбек</th>
-        <th class="text-uppercase">Выкупов</th>
-        <th class="text-uppercase">Просмотры</th>
-        <th class="text-uppercase">CR</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-if="loading" class="loading-row">
-        <td colspan="8" class="text-center">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-        </td>
-      </tr>
-      <template v-else>
-        <tr
+          density="compact"
+          width="300"
+          @update:model-value="handleSearch"
+        />
+      </VCol>
+    </VRow>
+    <!-- Мобильная панель управления -->
+    <VRow
+      v-if="$vuetify.display.smAndDown || !mdAndUp"
+      class="mb-4"
+      align="center"
+    >
+      <VCol cols="12">
+        <VBtn
+          color="primary"
+          prepend-icon="ri-add-fill"
+          class="mb-2 text-body-1"
+          @click="openProductModal"
+        >
+          Добавить товар
+        </VBtn>
+      </VCol>
+      <VCol cols="12">
+        <VTabs
+          color="deep-purple-accent-4"
+          align-tabs="start"
+          class="border-none"
+        >
+          <VTab
+            to="/dashboard/products"
+            class="text-secondary px-1 pb-4 text-body-1 font-weight-bold"
+          >
+            Товары <span
+              v-if="products.length"
+              class="pl-1"
+            >  ({{ products.length }})</span>
+          </VTab>
+          <VTab 
+            to="/dashboard/advertisements"         
+            class="text-primary px-1 pb-4 text-body-1 font-weight-bold mx-4"
+          >
+            Объявления
+          </VTab>
+        </VTabs>
+      </VCol>
+      <VCol
+        cols="12"
+        class="d-flex flex-wrap"
+      >
+        <VBtn
+          v-for="option in statusOptions"
+          :key="option.value ?? 'all'"
+          size="small"
+          variant="flat"
+          class="px-3 py-1 text-sm font-weight-medium rounded-xl mr-2 mb-2"
+          :color="filters.status === option.value ? 'primary' : 'transparent'"
+          :style="filters.status === option.value ? '' : 'background-color: rgba(var(--v-theme-secondary), 0.08); color: rgb(var(--v-theme-secondary));'"
+          @click="selectStatus(option.value)"
+        >
+          {{ option.label }}
+        </VBtn>
+      </VCol>
+      <VCol
+        cols="12"
+        class="d-flex flex-wrap"
+      >
+        <VCard
           v-for="item in ads"
           :key="item.id"
-          :class="{ 'selected-row': selectedRows.includes(item.id) }"
+          width="100%"
+          variant="outlined"
+          class="pa-4"
         >
-          <td>
-            <v-checkbox
-              :model-value="selectedRows.includes(item.id)"
-              @update:modelValue="() => toggleSelect(item)"
-              hide-details
-            ></v-checkbox>
-          </td>
-          <td>
-            <div class="d-flex align-center">
-              <router-link :to="`/dashboard/advertisements/edit/${item.id}`">
-                <VIcon
-                  size="16"
-                  icon="ri-pencil-fill"
-                  class="mr-2"
-                />
-                {{ item.name }}</router-link>
+          <div class="d-flex gap-3 w-100">
+            <VImg
+              :src="item.product.images[0]"
+              class="rounded"
+              cover
+              width="36"
+              height="36"
+              max-width="36"
+            />
+            <div class="flex-grow-1 d-flex flex-column justify-center">
+              <RouterLink
+                :to="'/dashboard/advertisements?product_id=' + item.id"
+                class="text-h6 font-weight-medium text-truncate d-inline-block"
+                style="max-width: 180px; font-size: 14px;"
+              >
+                {{ truncateName(item.name) }}
+              </RouterLink>
+              <span
+                class="text-secondary"
+                style="font-size: 12px;"
+              >
+                {{ item.id }}
+              </span> 
             </div>
-          </td>
-          <td>
-            <v-switch
+            <VSwitch
               :model-value="item.status === 1"
-              @update:modelValue="() => toggleStatus(item.id)"
               color="primary"
               hide-details
-            ></v-switch>
-          </td>
-          <td>
-            <v-img
-              v-if="item.product.images && getFirstImage(item.product.images)"
-              :src="getFirstImage(item.product.images)"
-              class="mr-2 rounded cursor-pointer"
-              @click="openImage(getFirstImage(item.product.images))"
-              cover
-              width="50"
-              height="50"
-            ></v-img>
-          </td>
-          <td>
-            {{ truncateName(item.product.name) }}
-          </td>
-          <td>{{ parseInt(item.cashback_percentage) }}%</td>
-          <td v-if="item.keywords == null">{{item.completed_buybacks_count}} из {{ item.redemption_count }}</td>
-          <td v-else>
-            {{ item.completed_buybacks_count }} из {{ item.keywords.reduce((sum, kw) => sum + (kw.redemption_count || 0), 0) }}
-          </td>
-          <td>{{ item.views_count }}</td>
-          <td>{{ item.cr }}</td>
+              density="comfortable"
+              style="scale: 1.3;"
+              @update:model-value="() => toggleStatus(item.id)"
+            />
+          </div>
+          <div class="d-flex justify-between mt-3 !font-weight-medium">
+            <ul class="w-50">
+              <li class="list-none">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Кэшбэк
+                </p>
+                <span
+                  class="text-primary text-body-2"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ parseInt(item.cashback_percentage) }}% / {{ Math.floor(item.price_without_cashback - Number(item.price_with_cashback)) }} Р</span>
+              </li>
+              <li class="list-none my-1">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  CR (Переход/Заказ)
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.cr }}</span>
+              </li>
+              <li class="list-none my-1">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Выкупают
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.completed_buybacks_count }}</span>
+              </li>
+            </ul>
+            <ul class="w-50">
+              <li class="list-none">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Просмотры
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.views_count || 0 }}</span>
+              </li>
+              <li class="list-none my-1">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Переходы
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.cr }}</span>
+              </li>
+              <li class="list-none">
+                <p
+                  class="text-overline ma-0 text-medium-emphasis"
+                  style="font-size: 10px !important; font-weight: 500 !important;"
+                >
+                  Выкупили
+                </p>
+                <span
+                  class="text-high-emphasis"
+                  style="font-size: 16px !important; font-weight: 500 !important"
+                >{{ item.completed_buybacks_count }}</span>
+              </li>
+            </ul>
+          </div>
+          <div class="d-flex justify-space-between align-center w-100">
+            <VBtn
+              variant="flat"
+              :color="item.message_count ? 'primary' : 'rgba(var(--v-theme-secondary), 0.08)'"
+              class="mt-3"
+              :class="item.message_count ? '' : 'text-primary'"
+              @click="() => item.message_count && router.push(`/dashboard/advertisements/messages/${item.id}`)"
+            >
+              <span v-if="item.message_count">
+                Сообщения ({{ item.message_count }})
+              </span> 
+              <span v-else>
+                Нет сообщений
+              </span>
+            </VBtn>
+            <VMenu>
+              <template #activator="{ props }">
+                <IconBtn
+                  icon
+                  color="secondary"
+                  v-bind="props"
+                >
+                  <VIcon>
+                    ri-more-line
+                  </VIcon>
+                </IconBtn>
+              </template>
+              <VList>
+                <VListItem @click="stopSelected">
+                  <VListItemTitle>
+                    {{ item.status === 1 ? 'Остановить' : 'Активировать' }}
+                  </VListItemTitle>
+                </VListItem>
+                <VListItem @click="showArchiveModal = true">
+                  <VListItemTitle>Архивировать</VListItemTitle>
+                </VListItem>
+              </VList>
+            </VMenu>
+          </div>
+        </VCard>
+      </VCol>
+    </VRow>
+    <!-- Таблица объявлений -->
+    <VTable
+      v-if="$vuetify.display.mdAndUp || mdAndUp"
+      class="rounded-table md-and-up"
+    >
+      <thead>
+        <tr>
+          <th class="text-uppercase">
+            <VCheckbox
+              v-model="selectAll"
+              :indeterminate="selectedRows.length > 0 && selectedRows.length < ads.length"
+              hide-details
+            />
+          </th>
+          <th class="text-uppercase">
+            Объявление
+          </th>
+          <th class="text-uppercase">
+            Статус
+          </th>
+          <th class="text-uppercase">
+            Изображение
+          </th>
+          <th class="text-uppercase">
+            Товар
+          </th>
+          <th class="text-uppercase">
+            Кэшбек
+          </th>
+          <th class="text-uppercase">
+            Выкупов
+          </th>
+          <th class="text-uppercase">
+            Просмотры
+          </th>
+          <th class="text-uppercase">
+            CR
+          </th>
         </tr>
-        <tr v-if="!ads.length">
-          <td colspan="8" class="text-center pt-10">
-            <span v-if="!filters.is_archived">Объявлений нет</span>
-            <span v-else>Архивных объявлений нет</span>
-            <br>
-            <v-btn v-if="!filters.is_archived" class="mt-7 mb-7" prepend-icon="ri-add-fill" @click="openProductModal">Создать объявление</v-btn>
+      </thead>
+      <tbody>
+        <tr
+          v-if="loading"
+          class="loading-row"
+        >
+          <td
+            colspan="8"
+            class="text-center"
+          >
+            <VProgressCircular
+              indeterminate
+              color="primary"
+            />
           </td>
         </tr>
-      </template>
+        <template v-else>
+          <tr
+            v-for="item in ads"
+            :key="item.id"
+            :class="{ 'selected-row': selectedRows.includes(item.id) }"
+          >
+            <td>
+              <VCheckbox
+                :model-value="selectedRows.includes(item.id)"
+                hide-details
+                @update:model-value="() => toggleSelect(item)"
+              />
+            </td>
+            <td>
+              <div class="d-flex align-center">
+                <RouterLink :to="`/dashboard/advertisements/edit/${item.id}`">
+                  <VIcon
+                    size="16"
+                    icon="ri-pencil-fill"
+                    class="mr-2"
+                  />
+                  {{ item.name }}
+                </RouterLink>
+              </div>
+            </td>
+            <td>
+              <VSwitch
+                :model-value="item.status === 1"
+                color="primary"
+                hide-details
+                @update:model-value="() => toggleStatus(item.id)"
+              />
+            </td>
+            <td>
+              <VImg
+                v-if="item.product.images && getFirstImage(item.product.images)"
+                :src="getFirstImage(item.product.images)"
+                class="mr-2 rounded cursor-pointer"
+                cover
+                width="50"
+                height="50"
+                @click="openImage(getFirstImage(item.product.images))"
+              />
+            </td>
+            <td>
+              {{ truncateName(item.product.name) }}
+            </td>
+            <td>{{ parseInt(item.cashback_percentage) }}%</td>
+            <td v-if="item.keywords == null">
+              {{ item.completed_buybacks_count }} из {{ item.redemption_count }}
+            </td>
+            <td v-else>
+              {{ item.completed_buybacks_count }} из {{ item.keywords.reduce((sum, kw) => sum + (kw.redemption_count || 0), 0) }}
+            </td>
+            <td>{{ item.views_count }}</td>
+            <td>{{ item.cr }}</td>
+          </tr>
+          <tr v-if="!ads.length">
+            <td
+              colspan="8"
+              class="text-center pt-10"
+            >
+              <span v-if="!filters.is_archived">Объявлений нет</span>
+              <span v-else>Архивных объявлений нет</span>
+              <br>
+              <VBtn
+                v-if="!filters.is_archived"
+                class="mt-7 mb-7"
+                prepend-icon="ri-add-fill"
+                @click="openProductModal"
+              >
+                Создать объявление
+              </VBtn>
+            </td>
+          </tr>
+        </template>
       </tbody>
     </VTable>
 
     <!-- Пагинация -->
-    <div class="text-center mt-4" v-if="ads.length && !loading && totalItems > itemsPerPage">
+    <div
+      v-if="ads.length && !loading && totalItems > itemsPerPage"
+      class="text-center mt-4"
+    >
       <div>{{ paginationText }}</div>
-      <v-pagination
+      <VPagination
         v-model="currentPage"
         :length="totalPages"
         :total-visible="7"
-        @update:modelValue="loadAds"
-      ></v-pagination>
+        @update:model-value="loadAds"
+      />
     </div>
 
     <!-- Модальное окно для создания объявления -->
-    <v-dialog
+    <VDialog
       v-model="showAddModal"
       max-width="500"
     >
-      <v-card>
-        <v-card-title>Создать объявление</v-card-title>
-        <v-card-text>
-          <v-text-field
+      <VCard>
+        <VCardTitle>Создать объявление</VCardTitle>
+        <VCardText>
+          <VTextField
             v-model="articleInput"
             label="Артикул WB (опционально)"
             hint="Оставьте пустым для перехода к выбору товара"
-          ></v-text-field>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
+          />
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
             color="primary"
             @click="openProductModal"
           >
             Выбрать товар
-          </v-btn>
-          <v-btn
-            @click="showAddModal = false"
-          >
+          </VBtn>
+          <VBtn @click="showAddModal = false">
             Отмена
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- Модальное окно для выбора товара -->
-    <v-dialog
+    <VDialog
       v-model="showProductModal"
       max-width="800"
     >
-      <v-card>
-        <v-card-title>Выберите товар</v-card-title>
-        <v-card-text>
-          <v-text-field
+      <VCard>
+        <VCardTitle>Выберите товар</VCardTitle>
+        <VCardText>
+          <VTextField
             v-model="productSearchQuery"
-            label="Поиск товаров"
-            prepend-inner-icon="mdi-magnify"
+            label="Поиск"
+            prepend-inner-icon="ri-search-line"
             clearable
-            @update:modelValue="handleProductSearch"
+            density="compact"
             class="mb-4"
-          ></v-text-field>
+            @update:model-value="handleProductSearch"
+          />
           <VTable style="background: none">
             <thead>
-            <tr>
-              <th class="text-uppercase">Товар</th>
-              <th class="text-uppercase">Рейтинг</th>
-              <th class="text-uppercase">Цена</th>
-            </tr>
+              <tr>
+                <th class="text-uppercase">
+                  Товар
+                </th>
+                <th class="text-uppercase">
+                  Рейтинг
+                </th>
+                <th class="text-uppercase">
+                  Цена
+                </th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-if="loading" class="loading-row">
-              <td colspan="3" class="text-center">
-                <v-progress-circular indeterminate color="primary"></v-progress-circular>
-              </td>
-            </tr>
-            <template v-else>
               <tr
-                v-for="product in products.data"
-                :key="product.id"
-                @click="selectProduct(product.id)"
-                style="cursor: pointer;"
+                v-if="loading"
+                class="loading-row"
               >
-                <td>
-                  <div class="d-flex align-center">
-                    <v-img
-                      v-if="product.images && getFirstImage(product.images)"
-                      :src="getFirstImage(product.images)"
-                      max-width="50"
-                      max-height="66"
-                      class="mr-2"
-                    ></v-img>
-                    <span>{{ truncateName(product.name) }}</span>
-                  </div>
-                </td>
-                <td>{{ product.rating }}</td>
-                <td>{{ product.price }}</td>
-              </tr>
-              <tr v-if="!products.data?.length">
-                <td colspan="3" class="text-center">
-                  <v-alert icon="$warning" type="primary" class="ma-4">Товары не найдены</v-alert>
+                <td
+                  colspan="3"
+                  class="text-center"
+                >
+                  <VProgressCircular
+                    indeterminate
+                    color="primary"
+                  />
                 </td>
               </tr>
-            </template>
+              <template v-else>
+                <tr
+                  v-for="product in products.data"
+                  :key="product.id"
+                  style="cursor: pointer;"
+                  @click="selectProduct(product.id)"
+                >
+                  <td>
+                    <div class="d-flex align-center">
+                      <VImg
+                        v-if="product.images && getFirstImage(product.images)"
+                        :src="getFirstImage(product.images)"
+                        max-width="50"
+                        max-height="66"
+                        class="mr-2"
+                      />
+                      <span>{{ truncateName(product.name) }}</span>
+                    </div>
+                  </td>
+                  <td>{{ product.rating }}</td>
+                  <td>{{ product.price }}</td>
+                </tr>
+                <tr v-if="!products.data?.length">
+                  <td
+                    colspan="3"
+                    class="text-center"
+                  >
+                    <VAlert
+                      icon="$warning"
+                      type="primary"
+                      class="ma-4"
+                    >
+                      Товары не найдены
+                    </VAlert>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </VTable>
-          <div class="text-center mt-4" v-if="products.data?.length && !loading">
+          <div
+            v-if="products.data?.length && !loading"
+            class="text-center mt-4"
+          >
             <div>{{ productPaginationText }}</div>
-            <v-pagination
+            <VPagination
               v-model="productCurrentPage"
               :length="productTotalPages"
               :total-visible="7"
-              @update:modelValue="loadProducts"
-            ></v-pagination>
+              @update:model-value="loadProducts"
+            />
           </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            @click="showProductModal = false"
-          >
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn @click="showProductModal = false">
             Отмена
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- Архивация -->
-    <v-dialog
+    <VDialog
       v-model="showArchiveModal"
       max-width="500"
     >
-      <v-card>
-        <v-card-title>Архивировать объявления?</v-card-title>
-        <v-card-text>
+      <VCard>
+        <VCardTitle>Архивировать объявления?</VCardTitle>
+        <VCardText>
           После архивации объявлений запустить их будет невозможно.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
             color="primary"
             @click="confirmArchive"
           >
             Подтвердить
-          </v-btn>
-          <v-btn
-            @click="showArchiveModal = false"
-          >
+          </VBtn>
+          <VBtn @click="showArchiveModal = false">
             Отменить
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Модальное окно для подтверждения добавления магазина (оставлено для совместимости) -->
-    <v-dialog
-      v-model="showShopConfirmModal"
-      max-width="600"
-    >
-      <v-card>
-        <v-card-title>Добавление магазина</v-card-title>
-        <v-card-text>
-          <p>Этот функционал не применим к объявлениям.</p>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            @click="showShopConfirmModal = false"
-            :disabled="loading"
-          >
-            Закрыть
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Image Modal -->
-    <v-dialog v-model="imageModal" max-width="800">
-      <v-card>
-        <v-img :src="selectedImage" contain max-height="600" />
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="secondary" @click="imageModal = false">Закрыть</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <VDialog
-      v-model="showTelegramModal"
-      persistent
-      max-width="500"
-    >
-      <VCard>
-        <VCardTitle class="d-flex justify-space-between align-center font-weight-bold">
-          <span class="w-100 text-center mt-6 mb-6">Подключите Telegram бота</span>
-        </VCardTitle>
-
-        <div class="d-flex justify-center">
-          <img
-            :src="qrCodeSrc"
-            alt="Telegram QR Code"
-            width="150"
-            height="150"
-            class="cursor-pointer"
-            @click="connectTelegram"
-          />
-        </div>
-        <div class="text-center mt-6">
-          <VBtn color="#29A9EB" style="border-color: #29A9EB" variant="outlined" @click="connectTelegram" append-icon="ri-telegram-2-fill">Подключить</VBtn>
-        </div>
-        <p class="text-center mt-4 pl-3 pr-3 pt-3 pb-0">Подключите телеграм бота, чтобы получать уведомления о ваших заказах, а так же статусах этих выкупов</p>
-
-        <VBtn
-          color="primary"
-          @click="closeTgModal"
-          class="text-center mb-6"
-          variant="text"
-        >
-          Закрыть
-        </VBtn>
-<!--        <VCardActions>-->
-<!--          <VSpacer />-->
-<!--          -->
-<!--        </VCardActions>-->
+          </VBtn>
+        </VCardActions>
       </VCard>
     </VDialog>
 
-  </v-container>
+    <!-- Модальное окно для подтверждения добавления магазина (оставлено для совместимости) -->
+    <VDialog
+      v-model="showShopConfirmModal"
+      max-width="600"
+    >
+      <VCard>
+        <VCardTitle>Добавление магазина</VCardTitle>
+        <VCardText>
+          <p>Этот функционал не применим к объявлениям.</p>
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            :disabled="loading"
+            @click="showShopConfirmModal = false"
+          >
+            Закрыть
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Image Modal -->
+    <VDialog
+      v-model="imageModal"
+      max-width="800"
+    >
+      <VCard>
+        <VImg
+          :src="selectedImage"
+          contain
+          max-height="600"
+        />
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="secondary"
+            @click="imageModal = false"
+          >
+            Закрыть
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!--
+      <VDialog
+      v-model="showTelegramModal"
+      persistent
+      max-width="500"
+      >
+      <VCard>
+      <VCardTitle class="d-flex justify-space-between align-center font-weight-bold">
+      <span class="w-100 text-center mt-6 mb-6">Подключите Telegram бота</span>
+      </VCardTitle>
+
+      <div class="d-flex justify-center">
+      <img
+      :src="qrCodeSrc"
+      alt="Telegram QR Code"
+      width="150"
+      height="150"
+      class="cursor-pointer"
+      @click="connectTelegram"
+      >
+      </div>
+      <div class="text-center mt-6">
+      <VBtn
+      color="#29A9EB"
+      style="border-color: #29A9EB"
+      variant="outlined"
+      append-icon="ri-telegram-2-fill"
+      @click="connectTelegram"
+      >
+      Подключить
+      </VBtn>
+      </div>
+      <p class="text-center mt-4 pl-3 pr-3 pt-3 pb-0">
+      Подключите телеграм бота, чтобы получать уведомления о ваших заказах, а так же статусах этих выкупов
+      </p>
+
+      <VBtn
+      color="primary"
+      class="text-center mb-6"
+      variant="text"
+      @click="closeTgModal"
+      >
+      Закрыть
+      </VBtn>
+      <VCardActions>
+      <VSpacer /> 
+      </VCardActions> 
+    -->
+    <!-- </VCard> -->
+    <!--   </VDialog> -->
+  </VContainer>
 </template>
 
 <style scoped lang="scss">
@@ -759,5 +1116,16 @@ const closeTgModal = () => {
   border-spacing: 0;
   border-radius: 0.5rem;
   overflow: hidden; /* Обрезает углы у внутренних элементов */
+}
+
+
+
+@media screen and (max-width: 800px) {
+  .rounded-table {
+    display: none;
+  }
+  .md-and-up {
+    display: none;
+  }  
 }
 </style>

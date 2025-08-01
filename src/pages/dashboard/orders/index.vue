@@ -1,6 +1,6 @@
 <script setup>
 import { useSnackbarStore } from '@/stores/snackbar'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { useDisplay } from 'vuetify'
@@ -21,12 +21,10 @@ const route = useRoute()
 const router = useRouter()
 const chatStore = useChatStore()
 const snackbar = useSnackbarStore()
-
 const chatLogPS = ref(null)
 const { updateStatusTimer, timer } = useTimer()
-const { fetchChats, selectStatus, selectChat, setupNotificationChannel, cleanupPusher, scrollToBottom } = useChat(chatLogPS, updateStatusTimer) // Передаем updateStatusTimer
+const { fetchChats, selectStatus, selectChat, setupNotificationChannel, cleanupPusher, scrollToBottom } = useChat(chatLogPS, updateStatusTimer)
 const { sendMessage, messageInput, fileInput, sendingMessage } = useMessages()
-
 const { generatePreview, uploadPendingFile, uploadConfirmationFiles, pendingFile, barcodeFile, reviewFile, pendingPreview, barcodePreview, reviewPreview } = useFiles()
 const { submitReview, reviewText, reviewRating } = useReviews()
 const { cancelOrder } = useOrders()
@@ -47,17 +45,14 @@ const infoProduct = ref(false)
 
 function formatTimeAgo(dateString) {
   if (!dateString) return 'давно'
-
   const date = new Date(dateString)
   if (isNaN(date)) return 'Неверная дата'
-
   const now = new Date()
   const diff = now - date
   const seconds = Math.floor(diff / 1000)
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
   const days = Math.floor(hours / 24)
-
   if (seconds < 60) return 'только что'
   if (minutes < 60) return `${minutes} мин назад`
   if (days === 0)
@@ -67,7 +62,7 @@ function formatTimeAgo(dateString) {
     })
   if (days === 1) return 'вчера'
   if (days < 7) return `${days} дн. назад`
-
+  
   return date.toLocaleDateString('ru-RU', {
     day: '2-digit',
     month: '2-digit',
@@ -99,19 +94,14 @@ const getBuybackDeclension = count => {
 
 const statusInfo = computed(() => {
   const chat = chatStore.activeChat
-
-  console.log(chat)
-  
   if (!chat) return { title: '', text: '' }
-
   const status = chat.status
   const info = statusMessages[status] || { title: '', text: '' }
-
   let text = info.text
   if (status === 'cashback_received') {
     text = text.replace('{{price}}', Math.round(chat.product_price - chat.price_with_cashback))
   }
-
+  
   return { title: info.title, text }
 })
 
@@ -213,17 +203,57 @@ onMounted(async () => {
     await fetchChats(chatStore.selectedStatus)
     setupNotificationChannel()
 
-    const chatId = route.query.chatId
-    if (chatId) {
-      const chat = await api.buyback.getBuybackById(chatId)
+    const chatId = parseInt(route.query.chatId, 10)
+    if (chatId && !isNaN(chatId)) {
+      let chat = Object.values(chatStore.chatsByStatus)
+        .flat()
+        .find(c => c.id === chatId)
+
+      if (!chat) {
+        chat = await api.buyback.getBuybackById(chatId)
+      }
+
       if (chat) {
         console.log('Selecting chat:', chat)
+        if (chat.status !== chatStore.selectedStatus) {
+          chatStore.selectedStatus = chat.status
+          await fetchChats(chat.status)
+        }
         await selectChat(chat)
+        scrollToBottom()
+      } else {
+        snackbar.notify({ text: 'Чат не найден', color: 'error' })
       }
     }
   } catch (error) {
     console.error('Error on mount:', error)
-    snackbar.notify({ text: 'Ошибка загрузки данных', color: 'error' })
+    console.log({ text: 'Ошибка загрузки данных', color: 'error' })
+  }
+})
+
+watch(() => route.query.chatId, async newChatId => {
+  if (newChatId) {
+    const chatId = parseInt(newChatId, 10)
+    if (!isNaN(chatId)) {
+      let chat = Object.values(chatStore.chatsByStatus)
+        .flat()
+        .find(c => c.id === chatId)
+
+      if (!chat) {
+        chat = await api.buyback.getBuybackById(chatId)
+      }
+
+      if (chat) {
+        if (chat.status !== chatStore.selectedStatus) {
+          chatStore.selectedStatus = chat.status
+          await fetchChats(chat.status)
+        }
+        await selectChat(chat)
+        scrollToBottom()
+      } else {
+        snackbar.notify({ text: 'Чат не найден', color: 'error' })
+      }
+    }
   }
 })
 
@@ -451,7 +481,6 @@ onUnmounted(() => {
                       </IconBtn>
                     </template>
                     <VList>
-                      <!-- добавить нужные ссылку -->
                       <VListItem @click="openInfo">
                         <VListItemTitle>Информация о выкупе</VListItemTitle>
                       </VListItem>
@@ -470,8 +499,8 @@ onUnmounted(() => {
                 <VCard
                   :color="alertType"
                   class="d-flex w-100 top-0 left-0 right-0"
-                  :class="$vuetify.display.mdAndUp 
-                    ? 'flex-row fixed justify-between align-center py-2 px-3 rounded-0 gap-3' 
+                  :class="$vuetify.display.mdAndUp
+                    ? 'flex-row fixed justify-between align-center py-2 px-3 rounded-0 gap-3'
                     : 'flex-column relative align-center py-3 px-5 rounded-lg mx-auto mt-3 gap-0'"
                   :style="$vuetify.display.smAndDown ? { maxWidth: '90%' } : {}"
                 >
@@ -529,7 +558,7 @@ onUnmounted(() => {
                     :key="`msg-${message.id}`"
                     class="mb-4 list-none"
                   >
-                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'user'">
+                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'user' && message?.system_type === 'info'">
                       <div class="w-100 text-caption text-center text-disabled mb-2">
                         {{ new Date(message.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }} в {{ new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }}
                       </div>
@@ -538,7 +567,7 @@ onUnmounted(() => {
                         style="font-size: 12px; line-height: 1.4; border-radius: 5px"
                       >
                         <div
-                          :class="{
+                          :class="{                            
                             'success-msg': message.system_type === 'success',
                             'info-msg': message.system_type === 'info'
                           }"
@@ -633,7 +662,6 @@ onUnmounted(() => {
                               borderRadius: message.sender_id === chatStore.currentUser?.id ? '8px 0 8px 8px' : '0 8px 8px 8px'
                             }"
                           >
-                            <span v-if="message.system_type === 'send_photo' || message.system_type === 'review'">Скриншот</span>
                             <VImg
                               v-for="(file, index) in message.files"
                               :key="index"
@@ -904,8 +932,8 @@ onUnmounted(() => {
                       </p>
                     </div>
                   </div>
-                  <!-- Нужно поставить обработку и добавить функцию  -->
                   <div
+                    v-if="(chatStore.activeChat.status !== 'pending' && !chatStore.activeChat.is_order_photo_sent && !orderSend)"
                     style="max-width: 311px; margin-inline: auto"
                     сlass="my-4"
                   >
@@ -1149,7 +1177,7 @@ onUnmounted(() => {
           </VCardActions>
         </VCard>
       </VDialog>
-      <VDialog  
+      <VDialog
         v-model="examplePhoto"
         max-width="500"
       >
@@ -1207,7 +1235,7 @@ onUnmounted(() => {
               {{ chatStore?.activeChat.ad.product.name }}
             </RouterLink>
             <p class="pt-3 pb-6 text-body-2 font-weight-medium">
-              Продавец:             
+              Продавец:
               <RouterLink
                 to="#"
                 class="text-decoration-underline text-wrap text-info"
@@ -1269,7 +1297,6 @@ onUnmounted(() => {
         max-width="400"
       >
         {{ snackbar.text }}
-
         <template #actions>
           <VBtn
             icon
@@ -1292,6 +1319,7 @@ onUnmounted(() => {
 .v-img__img {
   position: relative !important;
 }
+
 ::v-deep(.custom-rating) {
   display: flex;
   gap: 8px;
@@ -1305,6 +1333,7 @@ onUnmounted(() => {
   .layout-page-content {
     margin-top: -30px;
   }
+
   html {
     overflow: hidden !important;
   }
@@ -1358,17 +1387,21 @@ onUnmounted(() => {
   .chats-container {
     overflow-x: auto !important;
   }
+
   .content-wrapper {
     overflow: hidden;
   }
+
   .chat-content {
     margin-top: 25px !important;
     min-height: 85vh !important;
   }
+
   .chat-list-sidebar {
     min-height: 91vh !important;
     margin-top: 30px !important;
   }
+
   .chat-log {
     min-height: 60vh !important;
   }
@@ -1414,11 +1447,9 @@ onUnmounted(() => {
   --chat-content-spacing-x: 12px;
   height: 100%;
   padding-block-end: 0.75rem;
-
   .chat-contact-header {
     margin: .25rem .75rem;
   }
-
   .no-chat-items-text {
     margin-inline: var(--chat-content-spacing-x);
   }
@@ -1428,21 +1459,17 @@ onUnmounted(() => {
   border-radius: 8px;
   padding-block: 8px;
   padding-inline: var(--chat-content-spacing-x);
-
   @include mixins.before-pseudo;
   @include vuetifyStates.states($active: false);
-
   &.chat-contact-active {
     @include mixins.elevation(2);
     background: rgb(var(--v-theme-primary));
     color: #fff;
     --v-theme-on-background: #fff;
-
     .v-avatar {
       background: #fff;
     }
   }
-
   .v-badge--bordered .v-badge__badge::after {
     color: #fff;
   }
