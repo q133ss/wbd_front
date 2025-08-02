@@ -19,5 +19,28 @@ export const useOrders = () => {
     }
   }
 
-  return { cancelOrder }
+  const acceptPayment = async () => {
+    if (!chatStore.activeChat) return
+
+    const chatId = chatStore.activeChat.id
+    const buybackId = chatStore.activeChat.messages[0].buyback_id
+
+    try {
+     
+      // Подтверждаем оплату
+      await api.buyback.acceptPayment(chatId, buybackId)
+
+      snackbar.notify({ text: 'Платеж принят', color: 'success' })
+      await chatStore.selectChat(chatStore.activeChat)
+    } catch (error) {
+      snackbar.notify({
+        text: error.response?._data?.message || 'Ошибка при принятии платежа',
+        color: 'error',
+      })
+    }
+  }
+
+
+
+  return { cancelOrder, acceptPayment }
 }

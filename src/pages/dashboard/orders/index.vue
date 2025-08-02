@@ -1,4 +1,5 @@
 <script setup>
+import api from '@/api/Index'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -21,13 +22,14 @@ const route = useRoute()
 const router = useRouter()
 const chatStore = useChatStore()
 const snackbar = useSnackbarStore()
+
 const chatLogPS = ref(null)
 const { updateStatusTimer, timer } = useTimer()
 const { fetchChats, selectStatus, selectChat, setupNotificationChannel, cleanupPusher, scrollToBottom } = useChat(chatLogPS, updateStatusTimer)
 const { sendMessage, messageInput, fileInput, sendingMessage } = useMessages()
 const { generatePreview, uploadPendingFile, uploadConfirmationFiles, pendingFile, barcodeFile, reviewFile, pendingPreview, barcodePreview, reviewPreview } = useFiles()
 const { submitReview, reviewText, reviewRating } = useReviews()
-const { cancelOrder } = useOrders()
+const { cancelOrder, acceptPayment } = useOrders()
 
 const imageModal = ref(false)
 const selectedImage = ref('')
@@ -42,6 +44,31 @@ const cancelItem = ref(false)
 const correctPhotos = ref(false)
 const examplePhoto = ref(false)
 const infoProduct = ref(false)
+const isPaymentAccepted = ref(true)
+const isConfirmLoading = ref(false)
+const isCancelLoading = ref(false)
+const isUploadLoading = ref(false)
+const isAcceptPaymentLoading = ref(false)
+const currentChatId = ref(null)
+
+const getPaymentAcceptedStatus = chatId => {
+  const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
+  if (acceptedStatus) {
+    const parsed = JSON.parse(acceptedStatus)
+    
+    return parsed[chatId] || false
+  }
+  
+  return false
+}
+
+const setPaymentAcceptedStatus = (chatId, status) => {
+  const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
+  const parsed = acceptedStatus ? JSON.parse(acceptedStatus) : {}
+
+  parsed[chatId] = status
+  localStorage.setItem('paymentAcceptedStatus', JSON.stringify(parsed))
+}
 
 function formatTimeAgo(dateString) {
   if (!dateString) return 'давно'
@@ -56,18 +83,11 @@ function formatTimeAgo(dateString) {
   if (seconds < 60) return 'только что'
   if (minutes < 60) return `${minutes} мин назад`
   if (days === 0)
-    return date.toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
   if (days === 1) return 'вчера'
   if (days < 7) return `${days} дн. назад`
   
-  return date.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
+  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 const getDaysWord = days => {
@@ -135,14 +155,12 @@ const shouldShowMessages = computed(() => (isMobile.value && chatStore.activeCha
 const sortedChats = computed(() => {
   const chats = chatStore.chatsByStatus[chatStore.selectedStatus] || []
   
-  return chats
-    .slice()
-    .sort((a, b) => {
-      const dateA = new Date(a.messages?.[a.messages.length - 1]?.created_at || 0).getTime()
-      const dateB = new Date(b.messages?.[b.messages.length - 1]?.created_at || 0).getTime()
-      
-      return dateB - dateA
-    })
+  return chats.slice().sort((a, b) => {
+    const dateA = new Date(a.messages?.[a.messages.length - 1]?.created_at || 0).getTime()
+    const dateB = new Date(b.messages?.[b.messages.length - 1]?.created_at || 0).getTime()
+    
+    return dateB - dateA
+  })
 })
 
 const openImage = url => {
@@ -156,6 +174,7 @@ const goToProduct = adsId => router.push(`/products/${adsId}`)
 const backToChats = () => {
   chatStore.activeChat = null
   chatStore.messages = []
+  currentChatId.value = null
 }
 
 const openSupport = () => router.push('/dashboard/support')
@@ -166,25 +185,105 @@ const cancelBuyback = () => {
 }
 
 const handleConfirm = async () => {
-  const success = await uploadPendingFile()
-
+  isConfirmLoading.value = true
   confirmModal.value = false
+  try {
+    const success = await uploadPendingFile()
+    if (success) {      
+      snackbar.notify({ text: 'Заказ подтвержден', color: 'success' })
+      await fetchChats(chatStore.selectedStatus)
+      if (currentChatId.value) {
+        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+        if (chat) await selectChat(chat)
+      }
+    }
+  } catch (error) {
+    console.error('Error confirming order:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка при подтверждении заказа',
+      color: 'error',
+    })
+  } finally {
+    isConfirmLoading.value = false
+  }
 }
 
 const handleCancel = async () => {
-  const success = await cancelOrder()
-
+  isCancelLoading.value = true
   cancelItem.value = false
+  try {
+    const success = await cancelOrder()
+    if (success) {
+      
+      snackbar.notify({ text: 'Заказ отменен', color: 'success' })
+      await fetchChats(chatStore.selectedStatus)
+      if (currentChatId.value) {
+        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+        if (chat) await selectChat(chat)
+      }
+    }
+  } catch (error) {
+    console.error('Error cancelling order:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка при отмене заказа',
+      color: 'error',
+    })
+  } finally {
+    isCancelLoading.value = false
+  }
 }
 
 const handleUpload = async () => {
-  const success = await uploadConfirmationFiles()
-
+  isUploadLoading.value = true
   correctPhotos.value = false
+  try {
+    const success = await uploadConfirmationFiles()
+    if (success) {      
+      snackbar.notify({ text: 'Файлы успешно отправлены', color: 'success' })
+      await fetchChats(chatStore.selectedStatus)
+      if (currentChatId.value) {
+        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+        if (chat) await selectChat(chat)
+      }
+    }
+  } catch (error) {
+    console.error('Error uploading files:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка при отправке файлов',
+      color: 'error',
+    })
+  } finally {
+    isUploadLoading.value = false
+  }
+}
+
+const handleAcceptPayment = async () => {
+  isAcceptPaymentLoading.value = true
+  isPaymentAccepted.value = false
+  try {
+    const success = await acceptPayment()
+    if (success) {      
+      snackbar.notify({ text: 'Оплата подтверждена', color: 'success' })
+      setPaymentAcceptedStatus(currentChatId.value, true)
+      await fetchChats(chatStore.selectedStatus)
+      if (currentChatId.value) {
+        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+        if (chat) await selectChat(chat)
+        await router.push({ path: route.path, query: { chatId: currentChatId.value } })
+      }
+    }
+  } catch (error) {
+    console.error('Error accepting payment:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка при подтверждении оплаты',
+      color: 'error',
+    })
+  } finally {
+    isAcceptPaymentLoading.value = false
+  }
 }
 
 const openInfo = () => {
-  console.log('openInfo called, infoProduct:', infoProduct.value)
   infoProduct.value = false
   confirmModal.value = false
   cancelItem.value = false
@@ -192,11 +291,24 @@ const openInfo = () => {
   imageModal.value = false
   examplePhoto.value = false
   infoProduct.value = true
-  console.log('infoProduct set to:', infoProduct.value)
 }
+
+watch(() => chatStore.activeChat?.id, newChatId => {
+  if (newChatId) {
+    currentChatId.value = newChatId
+    isPaymentAccepted.value = !getPaymentAcceptedStatus(newChatId)
+  } else {
+    currentChatId.value = null
+  }
+})
 
 onMounted(async () => {
   try {
+    if (!api.buyback) {
+      snackbar.notify({ text: 'Ошибка: API для выкупов недоступен', color: 'error' })
+      
+      return
+    }
     chatStore.resetState()
     await chatStore.fetchCurrentUser()
     await chatStore.fetchStatuses()
@@ -205,21 +317,18 @@ onMounted(async () => {
 
     const chatId = parseInt(route.query.chatId, 10)
     if (chatId && !isNaN(chatId)) {
-      let chat = Object.values(chatStore.chatsByStatus)
-        .flat()
-        .find(c => c.id === chatId)
-
-      if (!chat) {
+      let chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === chatId)
+      if (!chat && api.buyback.getBuybackById) {
         chat = await api.buyback.getBuybackById(chatId)
       }
-
       if (chat) {
-        console.log('Selecting chat:', chat)
         if (chat.status !== chatStore.selectedStatus) {
           chatStore.selectedStatus = chat.status
           await fetchChats(chat.status)
         }
         await selectChat(chat)
+        currentChatId.value = chat.id
+        isPaymentAccepted.value = !getPaymentAcceptedStatus(chatId)
         scrollToBottom()
       } else {
         snackbar.notify({ text: 'Чат не найден', color: 'error' })
@@ -227,7 +336,7 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Error on mount:', error)
-    console.log({ text: 'Ошибка загрузки данных', color: 'error' })
+    snackbar.notify({ text: 'Ошибка загрузки данных', color: 'error' })
   }
 })
 
@@ -235,20 +344,18 @@ watch(() => route.query.chatId, async newChatId => {
   if (newChatId) {
     const chatId = parseInt(newChatId, 10)
     if (!isNaN(chatId)) {
-      let chat = Object.values(chatStore.chatsByStatus)
-        .flat()
-        .find(c => c.id === chatId)
-
-      if (!chat) {
+      let chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === chatId)
+      if (!chat && api.buyback?.getBuybackById) {
         chat = await api.buyback.getBuybackById(chatId)
       }
-
       if (chat) {
         if (chat.status !== chatStore.selectedStatus) {
           chatStore.selectedStatus = chat.status
           await fetchChats(chat.status)
         }
         await selectChat(chat)
+        currentChatId.value = chat.id
+        isPaymentAccepted.value = !getPaymentAcceptedStatus(chatId)
         scrollToBottom()
       } else {
         snackbar.notify({ text: 'Чат не найден', color: 'error' })
@@ -289,6 +396,7 @@ onUnmounted(() => {
                 variant="outlined"
                 density="compact"
                 class="px-2"
+                :menu-props="{ maxHeight: 'none' }"
                 @update:model-value="selectStatus"
               >
                 <template #selection="{ item }">
@@ -350,13 +458,13 @@ onUnmounted(() => {
                     <span class="text-truncate text-base mb-0">
                       {{ chat.ad.product.name }} ({{ statusMessages[chat.status]?.title || chat.status }})
                       <VBadge
-                        v-if="chat.messages.some(m => !m.is_read && m.whoSend === 'seller')"
+                        v-if="Array.isArray(chat.messages) && chat.messages.some(m => !m.is_read && m.whoSend === 'seller')"
                         content="!"
                         color="error"
                         inline
                       />
                     </span>
-                    <span class="text-caption text-no-wrap text-sm text-disabled whitespace-no-wrap">{{ formatTimeAgo(chat.messages.at(-1).created_at) }}</span>
+                    <span class="text-caption text-no-wrap text-sm text-disabled whitespace-no-wrap">{{ formatTimeAgo(chat?.messages[chat.messages.length - 1]?.created_at) }}</span>
                   </div>
                 </VListItemTitle>
                 <VListItemSubtitle>
@@ -365,7 +473,7 @@ onUnmounted(() => {
                       class="text-truncate mr-4"
                       style="flex: 1 1 auto; overflow: hidden;"
                     >
-                      {{ chat.messages.at(-1)?.text.replace(/<br\s*\/?>/gi, '   ') }}
+                      {{ chat.messages.length ? chat.messages[chat.messages.length - 1]?.text.replace(/<br\s*\/?>/gi, '   ') : '' }}
                     </span>
                     <VBadge
                       v-if="chat.unread_messages_count"
@@ -499,8 +607,8 @@ onUnmounted(() => {
                 <VCard
                   :color="alertType"
                   class="d-flex w-100 top-0 left-0 right-0"
-                  :class="$vuetify.display.mdAndUp
-                    ? 'flex-row fixed justify-between align-center py-2 px-3 rounded-0 gap-3'
+                  :class="$vuetify.display.mdAndUp 
+                    ? 'flex-row fixed justify-between align-center py-2 px-3 rounded-0 gap-3' 
                     : 'flex-column relative align-center py-3 px-5 rounded-lg mx-auto mt-3 gap-0'"
                   :style="$vuetify.display.smAndDown ? { maxWidth: '90%' } : {}"
                 >
@@ -558,7 +666,7 @@ onUnmounted(() => {
                     :key="`msg-${message.id}`"
                     class="mb-4 list-none"
                   >
-                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'user' && message?.system_type === 'info'">
+                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'user'">
                       <div class="w-100 text-caption text-center text-disabled mb-2">
                         {{ new Date(message.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }} в {{ new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }}
                       </div>
@@ -713,6 +821,21 @@ onUnmounted(() => {
                           </div>
                         </div>
                       </template>
+                    </div>
+                    <div
+                      v-if="message.text === 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически' && isPaymentAccepted"
+                      style="max-width: 311px; margin-inline: auto"
+                      class="my-4"
+                    >
+                      <VBtn
+                        block
+                        color="primary"
+                        size="large"
+                        :loading="isAcceptPaymentLoading"
+                        @click="handleAcceptPayment"
+                      >
+                        Принят
+                      </VBtn>
                     </div>
                   </li>
                   <div
@@ -918,7 +1041,7 @@ onUnmounted(() => {
                             @click="correctPhotos = true"
                           >
                             Отправить
-                          </VBtn>
+                          </VBtn> <!-- Corrected closing tag from </V bip> to </VBtn> -->
                         </VCardActions>
                       </VCard>
                     </div>
@@ -931,19 +1054,6 @@ onUnmounted(() => {
                         Отменить заказ
                       </p>
                     </div>
-                  </div>
-                  <div
-                    v-if="(chatStore.activeChat.status !== 'pending' && !chatStore.activeChat.is_order_photo_sent && !orderSend)"
-                    style="max-width: 311px; margin-inline: auto"
-                    сlass="my-4"
-                  >
-                    <VBtn
-                      block
-                      color="primary"
-                      size="large"
-                    >
-                      Принят
-                    </VBtn>
                   </div>
                 </PerfectScrollbar>
                 <div
@@ -1065,6 +1175,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isConfirmLoading"
               @click="handleConfirm"
             >
               Подтвердить
@@ -1101,6 +1212,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isCancelLoading"
               @click="handleCancel"
             >
               Подтвердить
@@ -1137,6 +1249,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isUploadLoading"
               @click="handleUpload"
             >
               Подтвердить
@@ -1235,7 +1348,7 @@ onUnmounted(() => {
               {{ chatStore?.activeChat.ad.product.name }}
             </RouterLink>
             <p class="pt-3 pb-6 text-body-2 font-weight-medium">
-              Продавец:
+              Продавец:             
               <RouterLink
                 to="#"
                 class="text-decoration-underline text-wrap text-info"
@@ -1313,13 +1426,12 @@ onUnmounted(() => {
 
 <style>
 .custom-dashed {
-  border: 1px dashed #C2C2C2;
+  border: 1px dashed #C2C2C2 !important;
 }
 
 .v-img__img {
   position: relative !important;
 }
-
 ::v-deep(.custom-rating) {
   display: flex;
   gap: 8px;
@@ -1333,7 +1445,6 @@ onUnmounted(() => {
   .layout-page-content {
     margin-top: -30px;
   }
-
   html {
     overflow: hidden !important;
   }
@@ -1387,21 +1498,17 @@ onUnmounted(() => {
   .chats-container {
     overflow-x: auto !important;
   }
-
   .content-wrapper {
     overflow: hidden;
   }
-
   .chat-content {
     margin-top: 25px !important;
     min-height: 85vh !important;
   }
-
   .chat-list-sidebar {
     min-height: 91vh !important;
     margin-top: 30px !important;
   }
-
   .chat-log {
     min-height: 60vh !important;
   }
@@ -1447,9 +1554,11 @@ onUnmounted(() => {
   --chat-content-spacing-x: 12px;
   height: 100%;
   padding-block-end: 0.75rem;
+
   .chat-contact-header {
     margin: .25rem .75rem;
   }
+
   .no-chat-items-text {
     margin-inline: var(--chat-content-spacing-x);
   }
@@ -1459,17 +1568,21 @@ onUnmounted(() => {
   border-radius: 8px;
   padding-block: 8px;
   padding-inline: var(--chat-content-spacing-x);
+
   @include mixins.before-pseudo;
   @include vuetifyStates.states($active: false);
+
   &.chat-contact-active {
     @include mixins.elevation(2);
     background: rgb(var(--v-theme-primary));
     color: #fff;
     --v-theme-on-background: #fff;
+
     .v-avatar {
       background: #fff;
     }
   }
+
   .v-badge--bordered .v-badge__badge::after {
     color: #fff;
   }

@@ -2,6 +2,7 @@ import { useSnackbarStore } from '@/stores/snackbar'
 import Pusher from 'pusher-js'
 import { nextTick, ref } from 'vue'
 import { useChatStore } from './chat'
+import api from '@/api/index'
 
 export const useChat = (chatLogPS, updateStatusTimer) => {
   const chatStore = useChatStore()
