@@ -46,32 +46,30 @@ const examplePhoto = ref(false)
 const pendingScreen = ref(null)
 const showUploadScreen = ref(false)
 const isRejectVisible = ref(false)
+const sendReview = ref(false)
+const isSubmittingReview = ref(false) // New ref for review submission loader
 
 const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>\r\nОн проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом`
 
-
-// Функция для получения состояния отправки скриншота из localStorage
 const getScreenSentStatus = chatId => {
   const sentStatus = localStorage.getItem('screenSentStatus')
   if (sentStatus) {
     const parsed = JSON.parse(sentStatus)
     
-    return parsed[chatId] || false
+    return parsed[String(chatId)] || false
   }
   
   return false
 }
 
-// Функция для сохранения состояния отправки скриншота в localStorage
 const setScreenSentStatus = (chatId, status) => {
   const sentStatus = localStorage.getItem('screenSentStatus')
   const parsed = sentStatus ? JSON.parse(sentStatus) : {}
 
-  parsed[chatId] = status
+  parsed[String(chatId)] = status
   localStorage.setItem('screenSentStatus', JSON.stringify(parsed))
 }
 
-// Функция форматирования времени
 function formatTimeAgo(dateString) {
   if (!dateString) return 'давно'
   const date = new Date(dateString)
@@ -85,18 +83,11 @@ function formatTimeAgo(dateString) {
   if (seconds < 60) return 'только что'
   if (minutes < 60) return `${minutes} мин назад`
   if (days === 0)
-    return date.toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
   if (days === 1) return 'вчера'
   if (days < 7) return `${days} дн. назад`
   
-  return date.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
+  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 const getDaysWord = days => {
@@ -195,21 +186,27 @@ const cancelBuyback = () => {
 }
 
 const handleConfirm = async () => {
-  const success = await uploadPendingFile()
-
   confirmModal.value = false
+  const success = await uploadPendingFile()
+  if (success) {
+    snackbar.notify({ text: 'Файл успешно загружен', color: 'success' })
+  }
 }
 
 const handleCancel = async () => {
-  const success = await cancelOrder()
-
   cancelItem.value = false
+  const success = await cancelOrder()
+  if (success) {
+    snackbar.notify({ text: 'Заказ успешно отменен', color: 'success' })
+  }
 }
 
 const handleUpload = async () => {
-  const success = await uploadConfirmationFiles()
-
   correctPhotos.value = false
+  const success = await uploadConfirmationFiles()
+  if (success) {
+    snackbar.notify({ text: 'Файлы успешно загружены', color: 'success' })
+  }
 }
 
 const uploadScreen = async () => {
@@ -220,15 +217,13 @@ const uploadScreen = async () => {
   }
   try {
     console.log('Uploading screen for chat ID:', chatStore.activeChat.id)
-
     const response = await api.buyback.sendScreen(chatStore.activeChat.id, pendingScreen.value)
-
     console.log('Upload screen response:', response)
     snackbar.notify({ text: 'Скриншот заказа отправлен', color: 'success' })
-    showUploadScreen.value = false // Скрываем карточку после успешной отправки
-    setScreenSentStatus(chatStore.activeChat.id, true) // Сохраняем в localStorage
-    pendingScreen.value = null // Очищаем выбранный файл
-    await selectChat(chatStore.activeChat) // Обновляем чат
+    showUploadScreen.value = false
+    setScreenSentStatus(chatStore.activeChat.id, true)
+    pendingScreen.value = null
+    await selectChat(chatStore.activeChat)
   } catch (error) {
     console.error('Error uploading screen:', error)
     snackbar.notify({
@@ -238,8 +233,28 @@ const uploadScreen = async () => {
   }
 }
 
+const handleSubmitReview = async () => {
+  isSubmittingReview.value = true
+  try {
+    const success = await submitReview()
+    if (success) {
+      chatStore.activeChat.has_review_by_seller = true // Update the store to hide review card
+      snackbar.notify({ text: 'Отзыв успешно отправлен', color: 'success' })
+      reviewText.value = ''
+      reviewRating.value = null
+    }
+  } catch (error) {
+    console.error('Error submitting review:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка при отправке отзыва',
+      color: 'error',
+    })
+  } finally {
+    isSubmittingReview.value = false
+  }
+}
+
 const openInfo = () => {
-  console.log('openInfo called, infoProduct:', infoProduct.value)
   infoProduct.value = false
   confirmModal.value = false
   cancelItem.value = false
@@ -247,16 +262,15 @@ const openInfo = () => {
   imageModal.value = false
   examplePhoto.value = false
   infoProduct.value = true
-  console.log('infoProduct set to:', infoProduct.value)
 }
 
-// Наблюдатель за изменением активного чата
+// Следим за сменой чата
 watch(() => chatStore.activeChat?.id, newChatId => {
   if (newChatId) {
-    // Проверяем статус чата и localStorage для установки showUploadScreen
-    showUploadScreen.value = chatStore.activeChat?.status === 'on_confirmation' && !getScreenSentStatus(newChatId)
-    pendingScreen.value = null // Сбрасываем выбранный файл при смене чата
-    console.log('Chat changed, showUploadScreen:', showUploadScreen.value)
+    showUploadScreen.value =
+      chatStore.activeChat?.status === 'on_confirmation' &&
+      !getScreenSentStatus(newChatId)
+    pendingScreen.value = null
   }
 })
 
@@ -272,12 +286,10 @@ onMounted(async () => {
     if (chatId) {
       const chat = await api.buyback.getBuybackById(chatId)
       if (chat) {
-        console.log('Selecting chat:', chat)
         await selectChat(chat)
-
-        // Устанавливаем showUploadScreen на основе статуса и localStorage
-        showUploadScreen.value = chat.status === 'on_confirmation' && !getScreenSentStatus(chatId)
-        console.log('Initial showUploadScreen:', showUploadScreen.value)
+        showUploadScreen.value =
+          chat.status === 'on_confirmation' &&
+          !getScreenSentStatus(chatId)
       }
     }
   } catch (error) {
@@ -657,9 +669,10 @@ onUnmounted(() => {
                         />
                       </div>
                     </template>
-                    <div v-if="(message.type === 'system' && chatStore.activeChat.status === 'on_confirmation' && parseInt(message.color) < 5) || showOrderForm">
+                    <div v-if="message.type === 'comment' && chatStore.activeChat?.status === 'cashback_received' && parseInt(message.color) <= 5 && message.sender_id !== chatStore.currentUser?.id">
                       <VCard
-                        class="py-7 px-8 border"
+                        class="py-7 px-8 border mx-auto"
+                        max-width="372"
                         elevation="0"
                       >
                         <VRating
@@ -682,10 +695,10 @@ onUnmounted(() => {
                         </VCardText>
                       </VCard>
                     </div>
-                    <div v-if="(message.type === 'system' && chatStore.activeChat.status === 'cashback_received' && parseInt(message.color) < 5) || showOrderForm">
+                    <div v-if="message.type === 'comment' && chatStore.activeChat?.status === 'cashback_received' && parseInt(message.color) <= 5 && message.sender_id === chatStore.currentUser?.id">
                       <VCard
-                        class="py-7 px-8 border"
-                        elevation="0"
+                        class="py-7 px-8 border mx-auto"
+                        max-width="372"
                       >
                         <VRating
                           length="5"
@@ -708,7 +721,7 @@ onUnmounted(() => {
                       </VCard>
                     </div>
                     <div
-                      v-else-if="message.type !== 'system'"
+                      v-else-if="message.type !== 'system' && message.type !== 'comment'"
                       class="chat-group d-flex align-start"
                       :class="{ 'flex-row-reverse': message.sender_id === chatStore.currentUser?.id }"
                     >
@@ -744,7 +757,6 @@ onUnmounted(() => {
                               borderRadius: message.sender_id === chatStore.currentUser?.id ? '8px 0 8px 8px' : '0 8px 8px 8px'
                             }"
                           >
-                            <span v-if="message.system_type === 'send_photo' || message.system_type === 'review'">Скриншот</span>
                             <VImg
                               v-for="(file, index) in message.files"
                               :key="index"
@@ -798,8 +810,9 @@ onUnmounted(() => {
                       </template>
                     </div>
                   </li>
+                  {{ console.log(chatStore.activeChat) }}
                   <div
-                    v-if="chatStore.activeChat.status === 'cashback_received' && !chatStore.activeChat.has_review_by_buyer && !sendReview"
+                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_seller"
                     class="mt-4"
                   >
                     <VCard
@@ -841,10 +854,11 @@ onUnmounted(() => {
                         <VBtn
                           color="primary"
                           :disabled="!reviewText.trim() || reviewRating == null"
+                          :loading="isSubmittingReview"
                           variant="flat"
                           block
                           rounded
-                          @click="submitReview"
+                          @click="handleSubmitReview"
                         >
                           Отправить отзыв
                         </VBtn>
@@ -879,6 +893,7 @@ onUnmounted(() => {
                       <VCardActions class="pa-0 mt-4">
                         <VBtn
                           :disabled="!pendingScreen"
+                          :loading="isSubmittingReview"
                           variant="flat"
                           color="primary"
                           block
@@ -1011,6 +1026,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isSubmittingReview"
               @click="handleConfirm"
             >
               Подтвердить
@@ -1047,6 +1063,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isSubmittingReview"
               @click="handleCancel"
             >
               Подтвердить
@@ -1083,6 +1100,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isSubmittingReview"
               @click="handleUpload"
             >
               Подтвердить
@@ -1258,6 +1276,7 @@ onUnmounted(() => {
             <VBtn
               color="primary"
               class="w-100 mt-4"
+              :loading="isSubmittingReview"
               @click="rejectFile"
             >
               Отклонить

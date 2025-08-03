@@ -1,4 +1,5 @@
 <script setup>
+import { nextTick } from 'vue'
 import api from '@/api/Index'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -39,6 +40,7 @@ const showBarcode = ref(false)
 const showOrderForm = ref(false)
 const orderSend = ref(false)
 const receiptSent = ref(false)
+const sendReview = ref(false)
 const confirmModal = ref(false)
 const cancelItem = ref(false)
 const correctPhotos = ref(false)
@@ -55,18 +57,15 @@ const getPaymentAcceptedStatus = chatId => {
   const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
   if (acceptedStatus) {
     const parsed = JSON.parse(acceptedStatus)
-    
-    return parsed[chatId] || false
+    return parsed[String(chatId)] || false
   }
-  
   return false
 }
 
 const setPaymentAcceptedStatus = (chatId, status) => {
   const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
   const parsed = acceptedStatus ? JSON.parse(acceptedStatus) : {}
-
-  parsed[chatId] = status
+  parsed[String(chatId)] = status
   localStorage.setItem('paymentAcceptedStatus', JSON.stringify(parsed))
 }
 
@@ -86,21 +85,18 @@ function formatTimeAgo(dateString) {
     return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
   if (days === 1) return 'вчера'
   if (days < 7) return `${days} дн. назад`
-  
   return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 const getDaysWord = days => {
   if (days % 10 === 1 && days % 100 !== 11) return 'день'
   if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) return 'дня'
-  
   return 'дней'
 }
 
 const getHoursWord = hours => {
   if (hours % 10 === 1 && hours % 100 !== 11) return 'час'
   if ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100)) return 'часа'
-  
   return 'часов'
 }
 
@@ -108,7 +104,6 @@ const getBuybackDeclension = count => {
   const num = Math.abs(count)
   if (num % 10 === 1 && num % 100 !== 11) return 'выкуп'
   if ([2, 3, 4].includes(num % 10) && ![12, 13, 14].includes(num % 100)) return 'выкупа'
-  
   return 'выкупов'
 }
 
@@ -121,7 +116,6 @@ const statusInfo = computed(() => {
   if (status === 'cashback_received') {
     text = text.replace('{{price}}', Math.round(chat.product_price - chat.price_with_cashback))
   }
-  
   return { title: info.title, text }
 })
 
@@ -131,9 +125,8 @@ const step = computed(() => {
   if (status === 'pending') return 1
   if (status === 'awaiting_receipt') return 2
   if (status === 'on_confirmation') return 3
-  if (status === 'cashback_received') return 4
+  if (status === 'cashback_received' || status === 'awaiting_payment_confirmation') return 4
   if (['completed', 'order_expired', 'cancelled'].includes(status)) return 5
-  
   return ''
 })
 
@@ -143,9 +136,9 @@ const alertType = computed(() => {
   if (status === 'pending') return '#6941C6'
   if (status === 'awaiting_receipt') return '#4F91FF'
   if (status === 'on_confirmation') return '#DC6803'
+  if (status === 'awaiting_payment_confirmation') return '#12B76A'
   if (['cashback_received', 'completed'].includes(status)) return '#12B76A'
   if (['cancelled', 'order_expired'].includes(status)) return '#344054'
-  
   return ''
 })
 
@@ -154,11 +147,9 @@ const shouldShowMessages = computed(() => (isMobile.value && chatStore.activeCha
 
 const sortedChats = computed(() => {
   const chats = chatStore.chatsByStatus[chatStore.selectedStatus] || []
-  
   return chats.slice().sort((a, b) => {
     const dateA = new Date(a.messages?.[a.messages.length - 1]?.created_at || 0).getTime()
     const dateB = new Date(b.messages?.[b.messages.length - 1]?.created_at || 0).getTime()
-    
     return dateB - dateA
   })
 })
@@ -189,8 +180,9 @@ const handleConfirm = async () => {
   confirmModal.value = false
   try {
     const success = await uploadPendingFile()
-    if (success) {      
+    if (success) {
       snackbar.notify({ text: 'Заказ подтвержден', color: 'success' })
+      orderSend.value = true
       await fetchChats(chatStore.selectedStatus)
       if (currentChatId.value) {
         const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
@@ -214,7 +206,6 @@ const handleCancel = async () => {
   try {
     const success = await cancelOrder()
     if (success) {
-      
       snackbar.notify({ text: 'Заказ отменен', color: 'success' })
       await fetchChats(chatStore.selectedStatus)
       if (currentChatId.value) {
@@ -238,12 +229,22 @@ const handleUpload = async () => {
   correctPhotos.value = false
   try {
     const success = await uploadConfirmationFiles()
-    if (success) {      
+    if (success) {
       snackbar.notify({ text: 'Файлы успешно отправлены', color: 'success' })
+      receiptSent.value = true
+      barcodeFile.value = null
+      reviewFile.value = null
       await fetchChats(chatStore.selectedStatus)
       if (currentChatId.value) {
         const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
-        if (chat) await selectChat(chat)
+        if (chat) {
+          await selectChat(chat)
+          if (!chat.is_review_photo_sent) {
+            console.warn('Warning: is_review_photo_sent is still false after upload. Check server response.')
+          }
+        } else {
+          console.error('Chat not found for ID:', currentChatId.value)
+        }
       }
     }
   } catch (error) {
@@ -258,18 +259,29 @@ const handleUpload = async () => {
 }
 
 const handleAcceptPayment = async () => {
+  if (!currentChatId.value) {
+    snackbar.notify({ text: 'Чат не выбран', color: 'error' })
+    return
+  }
   isAcceptPaymentLoading.value = true
-  isPaymentAccepted.value = false
   try {
     const success = await acceptPayment()
-    if (success) {      
+    console.log('acceptPayment response:', success, 'Chat status:', chatStore.activeChat?.status)
+    if (success) {
       snackbar.notify({ text: 'Оплата подтверждена', color: 'success' })
       setPaymentAcceptedStatus(currentChatId.value, true)
+      console.log('localStorage after set:', localStorage.getItem('paymentAcceptedStatus'))
       await fetchChats(chatStore.selectedStatus)
       if (currentChatId.value) {
         const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
-        if (chat) await selectChat(chat)
+        if (chat) {
+          await selectChat(chat)
+        } else {
+          console.error('Chat not found after fetchChats:', currentChatId.value)
+          snackbar.notify({ text: 'Чат не найден после обновления', color: 'error' })
+        }
         await router.push({ path: route.path, query: { chatId: currentChatId.value } })
+        await nextTick()
       }
     }
   } catch (error) {
@@ -283,22 +295,49 @@ const handleAcceptPayment = async () => {
   }
 }
 
+const handleSubmitReview = async () => {
+  isConfirmLoading.value = true
+  try {
+    const success = await submitReview()
+    if (success) {
+      snackbar.notify({ text: 'Отзыв успешно отправлен', color: 'success' })
+      sendReview.value = true
+      reviewText.value = ''
+      reviewRating.value = null
+      await fetchChats(chatStore.selectedStatus)
+      if (currentChatId.value) {
+        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+        if (chat) await selectChat(chat)
+      }
+    }
+  } catch (error) {
+    console.error('Error submitting review:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка при отправке отзыва',
+      color: 'error',
+    })
+  } finally {
+    isConfirmLoading.value = false
+  }
+}
+
 const openInfo = () => {
-  infoProduct.value = false
+  infoProduct.value = true
   confirmModal.value = false
   cancelItem.value = false
   correctPhotos.value = false
   imageModal.value = false
   examplePhoto.value = false
-  infoProduct.value = true
 }
 
 watch(() => chatStore.activeChat?.id, newChatId => {
+  console.log('Active chat ID:', newChatId, 'Current chat ID:', currentChatId.value)
   if (newChatId) {
     currentChatId.value = newChatId
     isPaymentAccepted.value = !getPaymentAcceptedStatus(newChatId)
   } else {
     currentChatId.value = null
+    isPaymentAccepted.value = true
   }
 })
 
@@ -306,7 +345,6 @@ onMounted(async () => {
   try {
     if (!api.buyback) {
       snackbar.notify({ text: 'Ошибка: API для выкупов недоступен', color: 'error' })
-      
       return
     }
     chatStore.resetState()
@@ -316,10 +354,12 @@ onMounted(async () => {
     setupNotificationChannel()
 
     const chatId = parseInt(route.query.chatId, 10)
+    console.log('Chat ID from route:', chatId)
     if (chatId && !isNaN(chatId)) {
       let chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === chatId)
-      if (!chat && api.buyback.getBuybackById) {
+      if (!chat && api.buyback?.getBuybackById) {
         chat = await api.buyback.getBuybackById(chatId)
+        console.log('Fetched chat by ID:', chat)
       }
       if (chat) {
         if (chat.status !== chatStore.selectedStatus) {
@@ -329,6 +369,7 @@ onMounted(async () => {
         await selectChat(chat)
         currentChatId.value = chat.id
         isPaymentAccepted.value = !getPaymentAcceptedStatus(chatId)
+        console.log('Active chat set:', chatStore.activeChat)
         scrollToBottom()
       } else {
         snackbar.notify({ text: 'Чат не найден', color: 'error' })
@@ -343,10 +384,12 @@ onMounted(async () => {
 watch(() => route.query.chatId, async newChatId => {
   if (newChatId) {
     const chatId = parseInt(newChatId, 10)
+    console.log('Watch chatId:', chatId)
     if (!isNaN(chatId)) {
       let chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === chatId)
       if (!chat && api.buyback?.getBuybackById) {
         chat = await api.buyback.getBuybackById(chatId)
+        console.log('Fetched chat by ID in watch:', chat)
       }
       if (chat) {
         if (chat.status !== chatStore.selectedStatus) {
@@ -529,24 +572,24 @@ onUnmounted(() => {
                       size="40"
                       class="mr-1 cursor-pointer"
                       color="primary"
-                      @click="goToUserProfile(chatStore.activeChat.user.id)"
+                      @click="goToUserProfile(chatStore.activeChat?.user?.id)"
                     >
                       <VImg
-                        v-if="chatStore.activeChat.user.avatar"
+                        v-if="chatStore.activeChat?.user?.avatar"
                         :src="chatStore.activeChat.user.avatar"
                         :alt="chatStore.activeChat.user.name"
                       />
-                      <span v-else>{{ chatStore.activeChat.user.name[0] }}</span>
+                      <span v-else>{{ chatStore.activeChat?.user?.name?.[0] || '' }}</span>
                     </VAvatar>
                     <VAvatar
                       size="40"
                       class="cursor-pointer"
                       style="position: relative; left: -20px;"
-                      @click="goToProduct(chatStore.activeChat.ad.id)"
+                      @click="goToProduct(chatStore.activeChat?.ad?.id)"
                     >
                       <VImg
-                        :src="chatStore.activeChat.ad.product.images[0] || 'https://via.placeholder.com/48'"
-                        :alt="chatStore.activeChat.ad.name"
+                        :src="chatStore.activeChat?.ad?.product?.images?.[0] || 'https://via.placeholder.com/48'"
+                        :alt="chatStore.activeChat?.ad?.name"
                       />
                     </VAvatar>
                     <div style="line-height: 1.2">
@@ -558,7 +601,7 @@ onUnmounted(() => {
                       </span>
                       <div class="d-flex align-center gap-1">
                         <h3 class="text-h6 font-weight-bold mb-0">
-                          {{ chatStore.activeChat.user?.name }}
+                          {{ chatStore.activeChat?.user?.name }}
                         </h3>
                         <div class="d-flex align-center">
                           <VIcon
@@ -567,14 +610,14 @@ onUnmounted(() => {
                             color="#FF9900"
                             class="mr-1"
                           />
-                          <span style="font-size: 12px; line-height: 1;">{{ chatStore.activeChat.user.rating }}</span>
+                          <span style="font-size: 12px; line-height: 1;">{{ chatStore.activeChat?.user?.rating }}</span>
                         </div>
                       </div>
                       <p
                         style="font-size: 12px"
                         class="ma-0"
                       >
-                        {{ chatStore.activeChat.ad.product.name }}
+                        {{ chatStore.activeChat?.ad?.product?.name }}
                       </p>
                     </div>
                   </div>
@@ -623,7 +666,7 @@ onUnmounted(() => {
                         class="timer ml-2"
                       >{{ timer }}</span>
                       <span
-                        v-if="chatStore.activeChat.status === 'pending' && !timer"
+                        v-if="chatStore.activeChat?.status === 'pending' && !timer"
                         class="timer ml-2 text-warning"
                       >Ожидание таймера...</span>
                     </span>
@@ -683,10 +726,10 @@ onUnmounted(() => {
                         />
                       </div>
                     </template>
-                    <div v-if="(message.type === 'system' && chatStore.activeChat.status === 'on_confirmation' && parseInt(message.color) < 5) || showOrderForm">
+                    <div v-if="message.type === 'comment' && chatStore.activeChat?.status === 'cashback_received' && parseInt(message.color) <= 5 && message.sender_id === chatStore.currentUser?.id">
                       <VCard
-                        class="py-7 px-8 border"
-                        elevation="0"
+                        class="py-7 px-8 border mx-auto"
+                        max-width="372"
                       >
                         <VRating
                           length="5"
@@ -708,10 +751,10 @@ onUnmounted(() => {
                         </VCardText>
                       </VCard>
                     </div>
-                    <div v-if="(message.type === 'system' && chatStore.activeChat.status === 'cashback_received' && parseInt(message.color) < 5) || showOrderForm">
+                    <div v-if="message.type === 'comment' && chatStore.activeChat?.status === 'cashback_received' && parseInt(message.color) <= 5 && message.sender_id !== chatStore.currentUser?.id">
                       <VCard
-                        class="py-7 px-8 border"
-                        elevation="0"
+                        class="py-7 px-8 border mx-auto"
+                        max-width="372"
                       >
                         <VRating
                           length="5"
@@ -734,7 +777,7 @@ onUnmounted(() => {
                       </VCard>
                     </div>
                     <div
-                      v-else-if="message.type !== 'system'"
+                      v-else-if="message.type !== 'system' && message.type !== 'comment'"
                       class="chat-group d-flex align-start"
                       :class="{ 'flex-row-reverse': message.sender_id === chatStore.currentUser?.id }"
                     >
@@ -748,12 +791,12 @@ onUnmounted(() => {
                         >
                           <VImg
                             v-if="message.sender_id !== chatStore.currentUser?.id"
-                            :src="chatStore.activeChat.ad.product?.images?.[0] || 'https://via.placeholder.com/48'"
-                            :alt="chatStore.activeChat.user.name"
+                            :src="chatStore.activeChat?.ad?.product?.images?.[0] || 'https://via.placeholder.com/48'"
+                            :alt="chatStore.activeChat?.user?.name"
                             alt="avatar"
                             cover
                           />
-                          <span v-else>{{ chatStore.activeChat.user.name[0] }}</span>
+                          <span v-else>{{ chatStore.activeChat?.user?.name?.[0] || '' }}</span>
                         </VAvatar>
                       </div>
                       <template v-if="message.type === 'image' && message.files && message.files.length > 0">
@@ -823,7 +866,7 @@ onUnmounted(() => {
                       </template>
                     </div>
                     <div
-                      v-if="message.text === 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически' && isPaymentAccepted"
+                      v-if="chatStore.activeChat && message.text === 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически' && !getPaymentAcceptedStatus(chatStore.activeChat?.id) && chatStore.activeChat?.status === 'awaiting_payment_confirmation' && message.id === chatStore.messages.filter(m => m.text === message.text).slice(-1)[0]?.id"
                       style="max-width: 311px; margin-inline: auto"
                       class="my-4"
                     >
@@ -839,7 +882,7 @@ onUnmounted(() => {
                     </div>
                   </li>
                   <div
-                    v-if="chatStore.activeChat.status === 'cashback_received' && !chatStore.activeChat.has_review_by_buyer && !sendReview"
+                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_buyer && !sendReview"
                     class="mt-4"
                   >
                     <VCard
@@ -884,7 +927,8 @@ onUnmounted(() => {
                           variant="flat"
                           block
                           rounded
-                          @click="submitReview"
+                          :loading="isConfirmLoading"
+                          @click="handleSubmitReview"
                         >
                           Отправить отзыв
                         </VBtn>
@@ -892,7 +936,7 @@ onUnmounted(() => {
                     </VCard>
                   </div>
                   <div
-                    v-if="(chatStore.activeChat.status === 'pending' && !chatStore.activeChat.is_order_photo_sent && !orderSend) || showOrderForm"
+                    v-if="(chatStore.activeChat?.status === 'pending' && !chatStore.activeChat?.is_order_photo_sent && !orderSend) || showOrderForm"
                     class="mt-4"
                   >
                     <VCard
@@ -932,6 +976,7 @@ onUnmounted(() => {
                             block
                             size="large"
                             rounded
+                            :loading="isConfirmLoading"
                             @click="confirmModal = true"
                           >
                             Отправить
@@ -949,7 +994,7 @@ onUnmounted(() => {
                       </p>
                     </div>
                   </div>
-                  <div v-if="(chatStore.activeChat.status === 'awaiting_receipt' && !chatStore.activeChat.is_review_photo_sent && !receiptSent) || showBarcode">
+                  <div v-if="(chatStore.activeChat?.status === 'awaiting_receipt' && !chatStore.activeChat?.is_review_photo_sent && !receiptSent) || showBarcode">
                     <div
                       class="mt-4 custom-dashed rounded-lg py-4 px-6 mx-auto"
                       style="max-width: 345px"
@@ -1038,10 +1083,11 @@ onUnmounted(() => {
                             height="44"
                             size="large"
                             block
+                            :loading="isUploadLoading"
                             @click="correctPhotos = true"
                           >
                             Отправить
-                          </VBtn> <!-- Corrected closing tag from </V bip> to </VBtn> -->
+                          </VBtn>
                         </VCardActions>
                       </VCard>
                     </div>
@@ -1067,7 +1113,7 @@ onUnmounted(() => {
                 </div>
               </div>
               <VForm
-                v-if="chatStore.activeChat && (chatStore.activeChat.status === 'pending' && chatStore.activeChat.is_order_photo_sent || chatStore.activeChat.status === 'on_confirmation' && chatStore.activeChat.is_review_photo_sent || chatStore.activeChat.status === 'cashback_received' || (chatStore.activeChat.status === 'awaiting_receipt' && chatStore.activeChat.is_review_photo_sent) || receiptSent || orderSend)"
+                v-if="chatStore.activeChat && (chatStore.activeChat?.status !== 'pending')"
                 class="pt-4 px-5 border-t gap-3 d-flex justify-between align-center"
                 :class="$vuetify.display.smAndDown ? 'pb-4' : 'pb-11'"
                 @submit.prevent="sendMessage"
@@ -1345,7 +1391,7 @@ onUnmounted(() => {
               to="#"
               class="text-decoration-underline text-wrap text-info"
             >
-              {{ chatStore?.activeChat.ad.product.name }}
+              {{ chatStore?.activeChat?.ad?.product?.name }}
             </RouterLink>
             <p class="pt-3 pb-6 text-body-2 font-weight-medium">
               Продавец:             
@@ -1353,7 +1399,7 @@ onUnmounted(() => {
                 to="#"
                 class="text-decoration-underline text-wrap text-info"
               >
-                {{ chatStore?.activeChat.ad.shop.wb_name }}
+                {{ chatStore?.activeChat?.ad?.shop?.wb_name }}
               </RouterLink>
             </p>
             <div class="d-flex text-body-2 justify-between gap-2 ">
@@ -1362,19 +1408,19 @@ onUnmounted(() => {
                 color="error"
                 class="px-0"
               >
-                {{ chatStore?.activeChat.cashback_percentage }}%
+                {{ chatStore?.activeChat?.cashback_percentage }}%
               </VChip>
             </div>
             <div class="d-flex text-body-2 justify-between gap-2 mt-3 mr-3  mb-2">
               <span>Цена на Wildberries:</span>
               <p class="text-secondary text-decoration-line-through">
-                {{ chatStore?.activeChat.product_price }}₽
+                {{ chatStore?.activeChat?.product_price }}₽
               </p>
             </div>
             <div class="d-flex text-body-2 justify-between gap-2 mr-3 mb-5">
               <span>Размер скидки:</span>
               <p class="text-primary">
-                {{ Math.round(chatStore?.activeChat.product_price - chatStore?.activeChat.price_with_cashback) }}₽
+                {{ Math.round(chatStore?.activeChat?.product_price - chatStore?.activeChat?.price_with_cashback) }}₽
               </p>
             </div>
           </VCardText>

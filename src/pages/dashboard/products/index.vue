@@ -372,9 +372,9 @@ const loadRelated = ref(false)
         class="text-primary px-1 pb-4 text-body-2 font-weight-bold"
       >
         Товары <span
-          v-if="products.length"
+          v-if="products?.length"
           class="pl-1"
-        >  ({{ products.length }})</span>
+        >  ({{ products?.length }})</span>
       </VTab>
       <VTab 
         to="/dashboard/advertisements"         

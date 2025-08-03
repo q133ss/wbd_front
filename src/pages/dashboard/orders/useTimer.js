@@ -12,16 +12,17 @@ export const useTimer = () => {
     if (!chatStore.activeChat) return
 
     const status = chatStore.activeChat.status
-    if (!['pending', 'awaiting_receipt', 'on_confirmation'].includes(status)) return
+    if (!['pending', 'awaiting_receipt', 'on_confirmation', 'awaiting_payment_confirmation'].includes(status)) return
 
     const startTime = chatStore.activeChat.updated_at || chatStore.activeChat.created_at
     const start = new Date(startTime).getTime()
     if (isNaN(start)) return
 
     const durations = {
-      pending: 30 * 60 * 1000,
-      awaiting_receipt: 10 * 24 * 60 * 60 * 1000,
-      on_confirmation: 24 * 60 * 60 * 1000,
+      pending: 30 * 60 * 1000, // 30 minutes
+      awaiting_receipt: 10 * 24 * 60 * 60 * 1000, // 10 days
+      on_confirmation: 24 * 60 * 60 * 1000, // 24 hours
+      awaiting_payment_confirmation: 24 * 60 * 60 * 1000, // 24 hours
     }
 
     const duration = durations[status]
@@ -31,7 +32,6 @@ export const useTimer = () => {
       if (remaining <= 0) {
         timer.value = 'Истек'
         clearInterval(timerInterval.value)
-        
         return
       }
       const seconds = Math.floor((remaining / 1000) % 60)
@@ -44,7 +44,7 @@ export const useTimer = () => {
           ? `${days} д : ${hours} ч : ${minutes} м`
           : hours > 0
             ? `${hours} ч : ${minutes} м : ${seconds} с`
-            : `${minutes} : ${seconds} `
+            : `${minutes} м : ${seconds} с`
     }
 
     update()
