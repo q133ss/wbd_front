@@ -131,7 +131,7 @@ const step = computed(() => {
   if (status === 'pending') return 1
   if (status === 'awaiting_receipt') return 2
   if (status === 'on_confirmation') return 3
-  if (status === 'cashback_received') return 4
+  if (status === 'cashback_received' || status === 'awaiting_payment_confirmation') return 4
   if (['completed', 'order_expired', 'cancelled'].includes(status)) return 5
   
   return ''
@@ -143,6 +143,7 @@ const alertType = computed(() => {
   if (status === 'pending') return '#6941C6'
   if (status === 'awaiting_receipt') return '#4F91FF'
   if (status === 'on_confirmation') return '#DC6803'
+  if (status === 'awaiting_payment_confirmation') return '#12B76A'
   if (['cashback_received', 'completed'].includes(status)) return '#12B76A'
   if (['cancelled', 'order_expired'].includes(status)) return '#344054'
   
@@ -187,6 +188,7 @@ const cancelBuyback = () => {
 
 const handleConfirm = async () => {
   confirmModal.value = false
+
   const success = await uploadPendingFile()
   if (success) {
     snackbar.notify({ text: 'Файл успешно загружен', color: 'success' })
@@ -195,6 +197,7 @@ const handleConfirm = async () => {
 
 const handleCancel = async () => {
   cancelItem.value = false
+
   const success = await cancelOrder()
   if (success) {
     snackbar.notify({ text: 'Заказ успешно отменен', color: 'success' })
@@ -203,6 +206,7 @@ const handleCancel = async () => {
 
 const handleUpload = async () => {
   correctPhotos.value = false
+
   const success = await uploadConfirmationFiles()
   if (success) {
     snackbar.notify({ text: 'Файлы успешно загружены', color: 'success' })
@@ -217,7 +221,9 @@ const uploadScreen = async () => {
   }
   try {
     console.log('Uploading screen for chat ID:', chatStore.activeChat.id)
+
     const response = await api.buyback.sendScreen(chatStore.activeChat.id, pendingScreen.value)
+
     console.log('Upload screen response:', response)
     snackbar.notify({ text: 'Скриншот заказа отправлен', color: 'success' })
     showUploadScreen.value = false
@@ -237,7 +243,7 @@ const handleSubmitReview = async () => {
   try {
     const success = await submitReview()
     if (success) {
-      hasSubmittedReview.value = true // Устанавливаем локальное состояние
+      hasSubmittedReview.value = true 
       snackbar.notify({ text: 'Отзыв успешно отправлен', color: 'success' })
       reviewText.value = ''
       reviewRating.value = null
@@ -550,7 +556,7 @@ onUnmounted(() => {
                       <VListItem @click="openSupport">
                         <VListItemTitle>Поддержка</VListItemTitle>
                       </VListItem>
-                      <VListItem @click="cancelBuyback">
+                      <VListItem @click="cancelItem = true">
                         <VListItemTitle>Отменить заказ</VListItemTitle>
                       </VListItem>
                     </VList>
@@ -915,7 +921,7 @@ onUnmounted(() => {
                 </div>
               </div>
               <VForm
-                v-if="chatStore.activeChat && (chatStore.activeChat.status === 'pending' && chatStore.activeChat.is_order_photo_sent || chatStore.activeChat.status === 'on_confirmation' && chatStore.activeChat.is_review_photo_sent || chatStore.activeChat.status === 'cashback_received' || (chatStore.activeChat.status === 'awaiting_receipt' && chatStore.activeChat.is_review_photo_sent) || receiptSent || orderSend)"
+                v-if="chatStore.activeChat"
                 class="pt-4 px-5 border-t gap-3 d-flex justify-between align-center"
                 :class="$vuetify.display.smAndDown ? 'pb-4' : 'pb-11'"
                 @submit.prevent="sendMessage"
@@ -1051,7 +1057,7 @@ onUnmounted(() => {
             Отмена заказа
           </VCardTitle>
           <VCardText class="pa-0">
-            Нажимая кнопку ниже, вы подтверждаете, что отменяете заказ
+            Вы можете отменить заказ по любой причине, где покупатель нарушает правила исполнения заказа. В случае выявления неправомерной отмены заказа в процессе выкупа товара покупателем, на ваш аккаунт могут быть наложены ограничения.  
           </VCardText>
           <VCardActions class="d-flex flex-column pa-0">
             <VBtn
