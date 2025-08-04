@@ -77,6 +77,9 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
   }
 
   const selectStatus = async status => {
+    if(status === 'awaiting_payment_confirmation') {
+      status = 'Ожидание подтверждения кэшбэка'
+    }
     chatStore.selectedStatus = status
     if (!chatStore.chatsByStatus[status]) await fetchChats(status)
   }

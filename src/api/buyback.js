@@ -98,7 +98,8 @@ export default {
   async acceptPayment(chatId, buybackId) {
     const token = useCookie('accessToken').value
     if (!token) return null
-
+    console.log('Ну бля до сюда зашел');
+    
     return await $api(`/chat/${chatId}/accept/payment?buyback.id=${buybackId}`, {
       method: 'POST',
       headers: {

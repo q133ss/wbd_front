@@ -19,15 +19,11 @@ export const useOrders = () => {
     }
   }
 
-  const acceptPayment = async () => {
-    if (!chatStore.activeChat) return
+  const acceptPayment = async (chatId, buybackId) => {
+    if (!chatId || !buybackId) return
 
-    const chatId = chatStore.activeChat.id
-    const buybackId = chatStore.activeChat.messages[0].buyback_id
-
-    try {
-     
-      // Подтверждаем оплату
+    try {     
+      console.log('2222222222')
       await api.buyback.acceptPayment(chatId, buybackId)
 
       snackbar.notify({ text: 'Платеж принят', color: 'success' })

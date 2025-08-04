@@ -47,7 +47,7 @@ const pendingScreen = ref(null)
 const showUploadScreen = ref(false)
 const isRejectVisible = ref(false)
 const sendReview = ref(false)
-const isSubmittingReview = ref(false) // New ref for review submission loader
+const hasSubmittedReview = ref(false)
 
 const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>\r\nОн проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом`
 
@@ -238,7 +238,7 @@ const handleSubmitReview = async () => {
   try {
     const success = await submitReview()
     if (success) {
-      chatStore.activeChat.has_review_by_seller = true // Update the store to hide review card
+      hasSubmittedReview.value = true // Устанавливаем локальное состояние
       snackbar.notify({ text: 'Отзыв успешно отправлен', color: 'success' })
       reviewText.value = ''
       reviewRating.value = null
@@ -271,6 +271,7 @@ watch(() => chatStore.activeChat?.id, newChatId => {
       chatStore.activeChat?.status === 'on_confirmation' &&
       !getScreenSentStatus(newChatId)
     pendingScreen.value = null
+    hasSubmittedReview.value = false
   }
 })
 
@@ -812,7 +813,7 @@ onUnmounted(() => {
                   </li>
                   {{ console.log(chatStore.activeChat) }}
                   <div
-                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_seller"
+                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_seller && !hasSubmittedReview"
                     class="mt-4"
                   >
                     <VCard

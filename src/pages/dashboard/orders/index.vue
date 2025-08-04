@@ -1,8 +1,8 @@
 <script setup>
-import { nextTick } from 'vue'
 import api from '@/api/Index'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+
 import { useRoute, useRouter } from 'vue-router'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { useDisplay } from 'vuetify'
@@ -52,21 +52,28 @@ const isCancelLoading = ref(false)
 const isUploadLoading = ref(false)
 const isAcceptPaymentLoading = ref(false)
 const currentChatId = ref(null)
+const hasSubmittedReview = ref(false)
 
 const getPaymentAcceptedStatus = chatId => {
   const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
+
+  console.log('getPaymentAcceptedStatus:', { chatId, acceptedStatus })
   if (acceptedStatus) {
     const parsed = JSON.parse(acceptedStatus)
+    
     return parsed[String(chatId)] || false
   }
+  
   return false
 }
 
 const setPaymentAcceptedStatus = (chatId, status) => {
   const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
   const parsed = acceptedStatus ? JSON.parse(acceptedStatus) : {}
+
   parsed[String(chatId)] = status
   localStorage.setItem('paymentAcceptedStatus', JSON.stringify(parsed))
+  console.log('setPaymentAcceptedStatus:', { chatId, status, parsed })
 }
 
 function formatTimeAgo(dateString) {
@@ -85,18 +92,21 @@ function formatTimeAgo(dateString) {
     return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
   if (days === 1) return 'вчера'
   if (days < 7) return `${days} дн. назад`
+  
   return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 const getDaysWord = days => {
   if (days % 10 === 1 && days % 100 !== 11) return 'день'
   if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) return 'дня'
+  
   return 'дней'
 }
 
 const getHoursWord = hours => {
   if (hours % 10 === 1 && hours % 100 !== 11) return 'час'
   if ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100)) return 'часа'
+  
   return 'часов'
 }
 
@@ -104,6 +114,7 @@ const getBuybackDeclension = count => {
   const num = Math.abs(count)
   if (num % 10 === 1 && num % 100 !== 11) return 'выкуп'
   if ([2, 3, 4].includes(num % 10) && ![12, 13, 14].includes(num % 100)) return 'выкупа'
+  
   return 'выкупов'
 }
 
@@ -116,6 +127,7 @@ const statusInfo = computed(() => {
   if (status === 'cashback_received') {
     text = text.replace('{{price}}', Math.round(chat.product_price - chat.price_with_cashback))
   }
+  
   return { title: info.title, text }
 })
 
@@ -127,6 +139,7 @@ const step = computed(() => {
   if (status === 'on_confirmation') return 3
   if (status === 'cashback_received' || status === 'awaiting_payment_confirmation') return 4
   if (['completed', 'order_expired', 'cancelled'].includes(status)) return 5
+  
   return ''
 })
 
@@ -139,6 +152,7 @@ const alertType = computed(() => {
   if (status === 'awaiting_payment_confirmation') return '#12B76A'
   if (['cashback_received', 'completed'].includes(status)) return '#12B76A'
   if (['cancelled', 'order_expired'].includes(status)) return '#344054'
+  
   return ''
 })
 
@@ -147,9 +161,11 @@ const shouldShowMessages = computed(() => (isMobile.value && chatStore.activeCha
 
 const sortedChats = computed(() => {
   const chats = chatStore.chatsByStatus[chatStore.selectedStatus] || []
+  
   return chats.slice().sort((a, b) => {
     const dateA = new Date(a.messages?.[a.messages.length - 1]?.created_at || 0).getTime()
     const dateB = new Date(b.messages?.[b.messages.length - 1]?.created_at || 0).getTime()
+    
     return dateB - dateA
   })
 })
@@ -258,30 +274,41 @@ const handleUpload = async () => {
   }
 }
 
-const handleAcceptPayment = async () => {
-  if (!currentChatId.value) {
+const handleAcceptPayment = async (chatId, buybackId) => {
+  console.log(chatId, buybackId)
+  if (!chatId || !buybackId) {
     snackbar.notify({ text: 'Чат не выбран', color: 'error' })
     return
   }
   isAcceptPaymentLoading.value = true
   try {
-    const success = await acceptPayment()
-    console.log('acceptPayment response:', success, 'Chat status:', chatStore.activeChat?.status)
+    console.log('11111');
+    
+    const success = await acceptPayment(chatId, buybackId)
     if (success) {
       snackbar.notify({ text: 'Оплата подтверждена', color: 'success' })
       setPaymentAcceptedStatus(currentChatId.value, true)
-      console.log('localStorage after set:', localStorage.getItem('paymentAcceptedStatus'))
+      isPaymentAccepted.value = false // Отключаем кнопку "Принят"
+
+      const updatedChat = await api.buyback.getBuybackById(currentChatId.value)
+      if (updatedChat) {
+        chatStore.updateChat(updatedChat)
+        if (chatStore.activeChat?.id === currentChatId.value) {
+          chatStore.activeChat = { ...updatedChat }
+        }
+      }
       await fetchChats(chatStore.selectedStatus)
       if (currentChatId.value) {
-        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+        const chat = Object.values(chatStore.chatsByStatus)
+          .flat()
+          .find(c => c.id === currentChatId.value)
+
         if (chat) {
           await selectChat(chat)
+          scrollToBottom()
         } else {
-          console.error('Chat not found after fetchChats:', currentChatId.value)
           snackbar.notify({ text: 'Чат не найден после обновления', color: 'error' })
         }
-        await router.push({ path: route.path, query: { chatId: currentChatId.value } })
-        await nextTick()
       }
     }
   } catch (error) {
@@ -298,16 +325,38 @@ const handleAcceptPayment = async () => {
 const handleSubmitReview = async () => {
   isConfirmLoading.value = true
   try {
+    console.log('Before submitReview:', { 
+      chatId: currentChatId.value,
+      hasReview: chatStore.activeChat?.has_review_by_buyer, 
+      reviewText: reviewText.value, 
+      reviewRating: reviewRating.value 
+    })
     const success = await submitReview()
     if (success) {
       snackbar.notify({ text: 'Отзыв успешно отправлен', color: 'success' })
-      sendReview.value = true
+      hasSubmittedReview.value = true 
       reviewText.value = ''
       reviewRating.value = null
+      const updatedChat = await api.buyback.getBuybackById(currentChatId.value)
+      console.log('After submitReview, fetched chat:', { 
+        updatedChat, 
+        hasReviewByBuyer: updatedChat?.has_review_by_buyer 
+      })
+      if (updatedChat) {
+        chatStore.updateChat(updatedChat)
+        if (chatStore.activeChat?.id === currentChatId.value) {
+          chatStore.activeChat = { ...updatedChat }
+        }
+      }
       await fetchChats(chatStore.selectedStatus)
       if (currentChatId.value) {
         const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
-        if (chat) await selectChat(chat)
+        if (chat) {
+          await selectChat(chat)
+          console.log('After selectChat, activeChat:', { 
+            hasReview: chatStore.activeChat?.has_review_by_buyer 
+          })
+        }
       }
     }
   } catch (error) {
@@ -330,21 +379,32 @@ const openInfo = () => {
   examplePhoto.value = false
 }
 
-watch(() => chatStore.activeChat?.id, newChatId => {
-  console.log('Active chat ID:', newChatId, 'Current chat ID:', currentChatId.value)
-  if (newChatId) {
-    currentChatId.value = newChatId
-    isPaymentAccepted.value = !getPaymentAcceptedStatus(newChatId)
-  } else {
-    currentChatId.value = null
-    isPaymentAccepted.value = true
-  }
+const activeBuybackId = computed(() => {
+  const messages = chatStore.activeChat?.messages?.data || chatStore.activeChat?.messages
+  return messages?.[0]?.buyback_id || null
 })
+
+watch(
+  () => chatStore.activeChat?.id,
+  newChatId => {
+    console.log('Active chat ID:', newChatId, 'Current chat ID:', currentChatId.value)
+    if (newChatId) {
+      currentChatId.value = newChatId
+      isPaymentAccepted.value = !getPaymentAcceptedStatus(newChatId)
+      hasSubmittedReview.value = false
+    } else {
+      currentChatId.value = null
+      isPaymentAccepted.value = true
+      hasSubmittedReview.value = false
+    }
+  },
+)
 
 onMounted(async () => {
   try {
     if (!api.buyback) {
       snackbar.notify({ text: 'Ошибка: API для выкупов недоступен', color: 'error' })
+      
       return
     }
     chatStore.resetState()
@@ -354,6 +414,7 @@ onMounted(async () => {
     setupNotificationChannel()
 
     const chatId = parseInt(route.query.chatId, 10)
+
     console.log('Chat ID from route:', chatId)
     if (chatId && !isNaN(chatId)) {
       let chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === chatId)
@@ -369,7 +430,6 @@ onMounted(async () => {
         await selectChat(chat)
         currentChatId.value = chat.id
         isPaymentAccepted.value = !getPaymentAcceptedStatus(chatId)
-        console.log('Active chat set:', chatStore.activeChat)
         scrollToBottom()
       } else {
         snackbar.notify({ text: 'Чат не найден', color: 'error' })
@@ -381,31 +441,35 @@ onMounted(async () => {
   }
 })
 
-watch(() => route.query.chatId, async newChatId => {
-  if (newChatId) {
-    const chatId = parseInt(newChatId, 10)
-    console.log('Watch chatId:', chatId)
-    if (!isNaN(chatId)) {
-      let chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === chatId)
-      if (!chat && api.buyback?.getBuybackById) {
-        chat = await api.buyback.getBuybackById(chatId)
-        console.log('Fetched chat by ID in watch:', chat)
-      }
-      if (chat) {
-        if (chat.status !== chatStore.selectedStatus) {
-          chatStore.selectedStatus = chat.status
-          await fetchChats(chat.status)
+watch(
+  () => route.query.chatId,
+  async newChatId => {
+    if (newChatId) {
+      const chatId = parseInt(newChatId, 10)
+
+      console.log('Watch chatId:', chatId)
+      if (!isNaN(chatId)) {
+        let chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === chatId)
+        if (!chat && api.buyback?.getBuybackById) {
+          chat = await api.buyback.getBuybackById(chatId)
+          console.log('Fetched chat by ID in watch:', chat)
         }
-        await selectChat(chat)
-        currentChatId.value = chat.id
-        isPaymentAccepted.value = !getPaymentAcceptedStatus(chatId)
-        scrollToBottom()
-      } else {
-        snackbar.notify({ text: 'Чат не найден', color: 'error' })
+        if (chat) {
+          if (chat.status !== chatStore.selectedStatus) {
+            chatStore.selectedStatus = chat.status
+            await fetchChats(chat.status)
+          }
+          await selectChat(chat)
+          currentChatId.value = chat.id
+          isPaymentAccepted.value = !getPaymentAcceptedStatus(chatId)
+          scrollToBottom()
+        } else {
+          snackbar.notify({ text: 'Чат не найден', color: 'error' })
+        }
       }
     }
-  }
-})
+  },
+)
 
 onUnmounted(() => {
   cleanupPusher()
@@ -869,20 +933,20 @@ onUnmounted(() => {
                       v-if="chatStore.activeChat && message.text === 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически' && !getPaymentAcceptedStatus(chatStore.activeChat?.id) && chatStore.activeChat?.status === 'awaiting_payment_confirmation' && message.id === chatStore.messages.filter(m => m.text === message.text).slice(-1)[0]?.id"
                       style="max-width: 311px; margin-inline: auto"
                       class="my-4"
-                    >
+                    > {{ console.log(chatStore.activeChat) }}
                       <VBtn
                         block
                         color="primary"
                         size="large"
                         :loading="isAcceptPaymentLoading"
-                        @click="handleAcceptPayment"
+                        @click="handleAcceptPayment(chatStore.activeChat.id, activeBuybackId)"
                       >
                         Принят
                       </VBtn>
                     </div>
                   </li>
                   <div
-                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_buyer && !sendReview"
+                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_buyer && !hasSubmittedReview"
                     class="mt-4"
                   >
                     <VCard
