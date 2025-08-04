@@ -250,7 +250,7 @@ const handleSubmitReview = async () => {
       color: 'error',
     })
   } finally {
-    isSubmittingReview.value = false
+    hasSubmittedReview.value = false
   }
 }
 
@@ -855,7 +855,6 @@ onUnmounted(() => {
                         <VBtn
                           color="primary"
                           :disabled="!reviewText.trim() || reviewRating == null"
-                          :loading="isSubmittingReview"
                           variant="flat"
                           block
                           rounded
