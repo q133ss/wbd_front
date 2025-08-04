@@ -234,7 +234,6 @@ const uploadScreen = async () => {
 }
 
 const handleSubmitReview = async () => {
-  isSubmittingReview.value = true
   try {
     const success = await submitReview()
     if (success) {
@@ -249,8 +248,6 @@ const handleSubmitReview = async () => {
       text: error.response?._data?.message || 'Ошибка при отправке отзыва',
       color: 'error',
     })
-  } finally {
-    hasSubmittedReview.value = false
   }
 }
 
