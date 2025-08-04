@@ -2,6 +2,7 @@ import { useSnackbarStore } from '@/stores/snackbar'
 import Pusher from 'pusher-js'
 import { nextTick, ref } from 'vue'
 import { useChatStore } from './chat'
+import api from '@/api/index'
 
 export const useChat = (chatLogPS, updateStatusTimer) => {
   const chatStore = useChatStore()
@@ -76,6 +77,9 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
   }
 
   const selectStatus = async status => {
+    if(status === 'awaiting_payment_confirmation') {
+      status = 'Ожидание подтверждения кэшбэка'
+    }
     chatStore.selectedStatus = status
     if (!chatStore.chatsByStatus[status]) await fetchChats(status)
   }

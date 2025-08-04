@@ -1,3 +1,4 @@
+import api from '@/api/index.js'
 import { useSnackbarStore } from '@/stores/snackbar'
 import Pusher from 'pusher-js'
 import { nextTick, ref } from 'vue'
@@ -102,7 +103,8 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
       if (chat) {
         chatStore.updateChat(chat)
         if (chatStore.activeChat?.id === chatId) {
-          await selectChat(chat)
+          chatStore.activeChat = { ...chat } 
+          await chatStore.selectChat(chat) 
         }
       }
     } catch (error) {

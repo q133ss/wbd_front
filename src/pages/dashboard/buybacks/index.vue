@@ -1,7 +1,7 @@
 <script setup>
 import api from '@/api/Index'
 import { useSnackbarStore } from '@/stores/snackbar'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { useDisplay } from 'vuetify'
@@ -25,9 +25,8 @@ const snackbar = useSnackbarStore()
 
 const chatLogPS = ref(null)
 const { updateStatusTimer, timer } = useTimer()
-const { fetchChats, selectStatus, selectChat, setupNotificationChannel, cleanupPusher, scrollToBottom } = useChat(chatLogPS, updateStatusTimer) // Передаем updateStatusTimer
+const { fetchChats, selectStatus, selectChat, setupNotificationChannel, cleanupPusher, scrollToBottom } = useChat(chatLogPS, updateStatusTimer)
 const { sendMessage, messageInput, fileInput, sendingMessage } = useMessages()
-
 const { generatePreview, uploadPendingFile, uploadConfirmationFiles, pendingFile, barcodeFile, reviewFile, pendingPreview, barcodePreview, reviewPreview } = useFiles()
 const { submitReview, reviewText, reviewRating } = useReviews()
 const { cancelOrder } = useOrders()
@@ -44,38 +43,51 @@ const confirmModal = ref(false)
 const cancelItem = ref(false)
 const correctPhotos = ref(false)
 const examplePhoto = ref(false)
-const pendingScreen = ref(false)
-const showUploadScreen = ref(true)
+const pendingScreen = ref(null)
+const showUploadScreen = ref(false)
 const isRejectVisible = ref(false)
+const sendReview = ref(false)
+const hasSubmittedReview = ref(false)
+
+const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>\r\nОн проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом`
+
+const getScreenSentStatus = chatId => {
+  const sentStatus = localStorage.getItem('screenSentStatus')
+  if (sentStatus) {
+    const parsed = JSON.parse(sentStatus)
+    
+    return parsed[String(chatId)] || false
+  }
+  
+  return false
+}
+
+const setScreenSentStatus = (chatId, status) => {
+  const sentStatus = localStorage.getItem('screenSentStatus')
+  const parsed = sentStatus ? JSON.parse(sentStatus) : {}
+
+  parsed[String(chatId)] = status
+  localStorage.setItem('screenSentStatus', JSON.stringify(parsed))
+}
 
 function formatTimeAgo(dateString) {
   if (!dateString) return 'давно'
-
   const date = new Date(dateString)
   if (isNaN(date)) return 'Неверная дата'
-
   const now = new Date()
   const diff = now - date
   const seconds = Math.floor(diff / 1000)
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
   const days = Math.floor(hours / 24)
-
   if (seconds < 60) return 'только что'
   if (minutes < 60) return `${minutes} мин назад`
   if (days === 0)
-    return date.toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
   if (days === 1) return 'вчера'
   if (days < 7) return `${days} дн. назад`
-
-  return date.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
+  
+  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 const getDaysWord = days => {
@@ -102,19 +114,14 @@ const getBuybackDeclension = count => {
 
 const statusInfo = computed(() => {
   const chat = chatStore.activeChat
-
-  console.log(chat)
-  
   if (!chat) return { title: '', text: '' }
-
   const status = chat.status
   const info = statusMessages[status] || { title: '', text: '' }
-
   let text = info.text
   if (status === 'cashback_received') {
     text = text.replace('{{price}}', Math.round(chat.product_price - chat.price_with_cashback))
   }
-
+  
   return { title: info.title, text }
 })
 
@@ -179,33 +186,72 @@ const cancelBuyback = () => {
 }
 
 const handleConfirm = async () => {
-  const success = await uploadPendingFile()
-
   confirmModal.value = false
+  const success = await uploadPendingFile()
+  if (success) {
+    snackbar.notify({ text: 'Файл успешно загружен', color: 'success' })
+  }
 }
 
 const handleCancel = async () => {
-  const success = await cancelOrder()
-
   cancelItem.value = false
+  const success = await cancelOrder()
+  if (success) {
+    snackbar.notify({ text: 'Заказ успешно отменен', color: 'success' })
+  }
 }
 
 const handleUpload = async () => {
-  const success = await uploadConfirmationFiles()
-
   correctPhotos.value = false
+  const success = await uploadConfirmationFiles()
+  if (success) {
+    snackbar.notify({ text: 'Файлы успешно загружены', color: 'success' })
+  }
 }
 
 const uploadScreen = async () => {
-  const response = await api.buyback.sendScreen(chatStore.activeChat.id, pendingScreen.value)
+  if (!pendingScreen.value) {
+    snackbar.notify({ text: 'Пожалуйста, выберите файл для загрузки', color: 'error' })
+    
+    return
+  }
+  try {
+    console.log('Uploading screen for chat ID:', chatStore.activeChat.id)
+    const response = await api.buyback.sendScreen(chatStore.activeChat.id, pendingScreen.value)
+    console.log('Upload screen response:', response)
+    snackbar.notify({ text: 'Скриншот заказа отправлен', color: 'success' })
+    showUploadScreen.value = false
+    setScreenSentStatus(chatStore.activeChat.id, true)
+    pendingScreen.value = null
+    await selectChat(chatStore.activeChat)
+  } catch (error) {
+    console.error('Error uploading screen:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка при отправке скриншота',
+      color: 'error',
+    })
+  }
+}
 
-  snackbar.notify({ text: 'Скриншот заказа отправлен', color: 'success' })
-  await selectChat(chatStore.activeChat)
-  showUploadScreen.value = false
+const handleSubmitReview = async () => {
+  try {
+    const success = await submitReview()
+    if (success) {
+      hasSubmittedReview.value = true // Устанавливаем локальное состояние
+      snackbar.notify({ text: 'Отзыв успешно отправлен', color: 'success' })
+      reviewText.value = ''
+      reviewRating.value = null
+    }
+  } catch (error) {
+    console.error('Error submitting review:', error)
+    snackbar.notify({
+      text: error.response?._data?.message || 'Ошибка при отправке отзыва',
+      color: 'error',
+    })
+  }
 }
 
 const openInfo = () => {
-  console.log('openInfo called, infoProduct:', infoProduct.value)
   infoProduct.value = false
   confirmModal.value = false
   cancelItem.value = false
@@ -213,9 +259,18 @@ const openInfo = () => {
   imageModal.value = false
   examplePhoto.value = false
   infoProduct.value = true
-  console.log('infoProduct set to:', infoProduct.value)
 }
 
+// Следим за сменой чата
+watch(() => chatStore.activeChat?.id, newChatId => {
+  if (newChatId) {
+    showUploadScreen.value =
+      chatStore.activeChat?.status === 'on_confirmation' &&
+      !getScreenSentStatus(newChatId)
+    pendingScreen.value = null
+    hasSubmittedReview.value = false
+  }
+})
 
 onMounted(async () => {
   try {
@@ -229,8 +284,10 @@ onMounted(async () => {
     if (chatId) {
       const chat = await api.buyback.getBuybackById(chatId)
       if (chat) {
-        console.log('Selecting chat:', chat)
         await selectChat(chat)
+        showUploadScreen.value =
+          chat.status === 'on_confirmation' &&
+          !getScreenSentStatus(chatId)
       }
     }
   } catch (error) {
@@ -271,6 +328,7 @@ onUnmounted(() => {
                 variant="outlined"
                 density="compact"
                 class="px-2"
+                :menu-props="{ maxHeight: 'none' }"
                 @update:model-value="selectStatus"
               >
                 <template #selection="{ item }">
@@ -293,6 +351,7 @@ onUnmounted(() => {
                 variant="outlined"
                 density="compact"
                 class="px-2 mt-3"
+                :menu-props="{ maxHeight: 'none' }"
                 @update:model-value="selectStatus"
               >
                 <template #selection="{ item }">
@@ -485,7 +544,6 @@ onUnmounted(() => {
                       </IconBtn>
                     </template>
                     <VList>
-                      <!-- добавить нужные ссылку -->
                       <VListItem @click="openInfo">
                         <VListItemTitle>Информация о выкупе</VListItemTitle>
                       </VListItem>
@@ -568,6 +626,35 @@ onUnmounted(() => {
                         {{ new Date(message.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }} в {{ new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }}
                       </div>
                       <div
+                        v-if="message.text === 'Подтвердите получение кэшбека. Если вы не получили кэшбек, свяжитесь с продавцом в этом чате. Если возник спор или продавец не отвечает, напишите в поддержку и мы решим вопрос'"
+                        class="w-100 text-center d-flex justify-center"
+                        style="font-size: 12px; line-height: 1.4; border-radius: 5px"
+                      >
+                        <div class="info-msg">
+                          У покупателя есть 24 часа чтобы подтвердить получение кэшбека. Если покупатель не подтвердит получение в течение установленного срока, то сделка будет завершена автоматически
+                        </div>
+                      </div>
+                      <div
+                        v-else-if="message.text === 'У продавца есть 24 часа чтобы проверить ваши материалы и подтвердить получение кэшбека. Если по истечению времени перевод не будет получен, свяжитесь с продавцом в этом чате, а так же с поддержкой через три точки в верхнем меню чата'"
+                        class="w-100 text-center d-flex justify-center"
+                        style="font-size: 12px; line-height: 1.4; border-radius: 5px"
+                      >
+                        <div class="info-msg">
+                          У вас есть 24 часа чтобы проверить материалы покупателя (порезанный ШК + скрин отзыва) и отправить кэшбек покупателю по реквизитам в чате. Просим соблюсти установленные сроки выплаты кэшбека.
+                        </div>
+                      </div>
+                      <div
+                        v-else-if="message.text === confirmationMessage"
+                        class="w-100 text-center d-flex justify-center"
+                        style="font-size: 12px; line-height: 1.4; border-radius: 5px"
+                      >
+                        <div class="info-msg">
+                          Покупатель прислал скрин из ЛК WB c подтверждение заказа вашего товара. <br>
+                          Если все в порядке, то просто игнорируйте это сообщение, и сделка продолжится автоматически. Если покупатель загрузил некорректную фотографию или заказал не ваш товар, то вы вправе отменить заказ
+                        </div>
+                      </div>
+                      <div
+                        v-else
                         class="w-100 text-center d-flex justify-center"
                         style="font-size: 12px; line-height: 1.4; border-radius: 5px"
                       >
@@ -580,9 +667,10 @@ onUnmounted(() => {
                         />
                       </div>
                     </template>
-                    <div v-if="(message.type === 'system' && chatStore.activeChat.status === 'on_confirmation' && parseInt(message.color) < 5) || showOrderForm">
+                    <div v-if="message.type === 'comment' && chatStore.activeChat?.status === 'cashback_received' && parseInt(message.color) <= 5 && message.sender_id !== chatStore.currentUser?.id">
                       <VCard
-                        class="py-7 px-8 border"
+                        class="py-7 px-8 border mx-auto"
+                        max-width="372"
                         elevation="0"
                       >
                         <VRating
@@ -605,10 +693,10 @@ onUnmounted(() => {
                         </VCardText>
                       </VCard>
                     </div>
-                    <div v-if="(message.type === 'system' && chatStore.activeChat.status === 'cashback_received' && parseInt(message.color) < 5) || showOrderForm">
+                    <div v-if="message.type === 'comment' && chatStore.activeChat?.status === 'cashback_received' && parseInt(message.color) <= 5 && message.sender_id === chatStore.currentUser?.id">
                       <VCard
-                        class="py-7 px-8 border"
-                        elevation="0"
+                        class="py-7 px-8 border mx-auto"
+                        max-width="372"
                       >
                         <VRating
                           length="5"
@@ -631,7 +719,7 @@ onUnmounted(() => {
                       </VCard>
                     </div>
                     <div
-                      v-else-if="message.type !== 'system'"
+                      v-else-if="message.type !== 'system' && message.type !== 'comment'"
                       class="chat-group d-flex align-start"
                       :class="{ 'flex-row-reverse': message.sender_id === chatStore.currentUser?.id }"
                     >
@@ -667,7 +755,6 @@ onUnmounted(() => {
                               borderRadius: message.sender_id === chatStore.currentUser?.id ? '8px 0 8px 8px' : '0 8px 8px 8px'
                             }"
                           >
-                            <span v-if="message.system_type === 'send_photo' || message.system_type === 'review'">Скриншот</span>
                             <VImg
                               v-for="(file, index) in message.files"
                               :key="index"
@@ -721,8 +808,9 @@ onUnmounted(() => {
                       </template>
                     </div>
                   </li>
+                  {{ console.log(chatStore.activeChat) }}
                   <div
-                    v-if="chatStore.activeChat.status === 'cashback_received' && !chatStore.activeChat.has_review_by_buyer && !sendReview"
+                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_seller && !hasSubmittedReview"
                     class="mt-4"
                   >
                     <VCard
@@ -767,34 +855,12 @@ onUnmounted(() => {
                           variant="flat"
                           block
                           rounded
-                          @click="submitReview"
+                          @click="handleSubmitReview"
                         >
                           Отправить отзыв
                         </VBtn>
                       </VCardActions>
                     </VCard>
-                  </div>
-                  <!-- TODO Нужно поставить обработку и добавить функцию -->
-                  <div
-                    style="max-width: 311px; margin-inline: auto"
-                    сlass="my-4"
-                  >
-                    <VBtn
-                      block
-                      color="primary"
-                      size="large"
-                    >
-                      Принят
-                    </VBtn>
-                    <VBtn
-                      block
-                      color="secondary"
-                      variant="outlined"
-                      class="mt-3"
-                      size="large"
-                    >
-                      Отменить
-                    </VBtn>
                   </div>
                   <div
                     v-if="chatStore.activeChat.status === 'on_confirmation' && showUploadScreen"
@@ -824,6 +890,7 @@ onUnmounted(() => {
                       <VCardActions class="pa-0 mt-4">
                         <VBtn
                           :disabled="!pendingScreen"
+                          :loading="isSubmittingReview"
                           variant="flat"
                           color="primary"
                           block
@@ -956,6 +1023,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isSubmittingReview"
               @click="handleConfirm"
             >
               Подтвердить
@@ -992,6 +1060,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isSubmittingReview"
               @click="handleCancel"
             >
               Подтвердить
@@ -1028,6 +1097,7 @@ onUnmounted(() => {
               variant="flat"
               class="mt-6"
               size="large"
+              :loading="isSubmittingReview"
               @click="handleUpload"
             >
               Подтвердить
@@ -1203,6 +1273,7 @@ onUnmounted(() => {
             <VBtn
               color="primary"
               class="w-100 mt-4"
+              :loading="isSubmittingReview"
               @click="rejectFile"
             >
               Отклонить
@@ -1338,7 +1409,6 @@ onUnmounted(() => {
   padding: 10px 15px;
   margin-bottom: 10px;
 }
-
 
 .justify-between {
   justify-content: space-between;

@@ -482,7 +482,7 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Error initializing:', error)
-    snackbar.notify({ text: 'Ошибка загрузки данных', color: 'error' })
+    console.log({ text: 'Ошибка загрузки данных', color: 'error' })
   } finally {
     loadingStatuses.value = false
   }

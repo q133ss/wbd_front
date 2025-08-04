@@ -81,7 +81,6 @@ declare module 'vue-router/auto-routes' {
     'dashboard-orders': RouteRecordInfo<'dashboard-orders', '/dashboard/orders', Record<never, never>, Record<never, never>>,
     'dashboard-orders-custom-file-input': RouteRecordInfo<'dashboard-orders-custom-file-input', '/dashboard/orders/CustomFileInput', Record<never, never>, Record<never, never>>,
     'dashboard-orders-index copy': RouteRecordInfo<'dashboard-orders-index copy', '/dashboard/orders/index copy', Record<never, never>, Record<never, never>>,
-    'dashboard-orders-oldindex': RouteRecordInfo<'dashboard-orders-oldindex', '/dashboard/orders/OLDindex', Record<never, never>, Record<never, never>>,
     'dashboard-partners': RouteRecordInfo<'dashboard-partners', '/dashboard/partners', Record<never, never>, Record<never, never>>,
     'dashboard-partners-list': RouteRecordInfo<'dashboard-partners-list', '/dashboard/partners/list', Record<never, never>, Record<never, never>>,
     'dashboard-products': RouteRecordInfo<'dashboard-products', '/dashboard/products', Record<never, never>, Record<never, never>>,

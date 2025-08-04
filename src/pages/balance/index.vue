@@ -1,13 +1,13 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useSnackbarStore } from '@/stores/snackbar.js'
 import api from '@/api/index.js'
+import { useSnackbarStore } from '@/stores/snackbar.js'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 definePage({
   meta: {
     layout: 'default',
-    authRequired: true
+    authRequired: true,
   },
 })
 
@@ -38,10 +38,12 @@ const promoCode = ref('')
 
 // Transaction data
 const transactions = ref([])
+
 const transactionFilters = ref({
   product_id: '',
-  ads_id: ''
+  ads_id: '',
 })
+
 const transactionPage = ref(1)
 const transactionLastPage = ref(1)
 
@@ -59,8 +61,9 @@ onMounted(async () => {
     const [balanceResponse, productsResponse, transactionsResponse] = await Promise.all([
       api.balance.getBalance(),
       api.products.getSellerProducts({ page: 1 }),
-      api.balance.getTransactions({ page: 1 })
+      api.balance.getTransactions({ page: 1 }),
     ])
+
     balance.value = balanceResponse
     products.value = productsResponse?.data || []
     productLastPage.value = productsResponse?.last_page || 1
@@ -69,7 +72,7 @@ onMounted(async () => {
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка загрузки данных',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -104,28 +107,30 @@ const spentLast7Days = computed(() => {
 const selectedProductName = computed(() => {
   if (!transactionFilters.value.product_id) return 'Выберите товар'
   const product = products.value.find(p => p.id === transactionFilters.value.product_id)
+  
   return product ? product.name : 'Выберите товар'
 })
 
 // Format transaction type
-const formatCurrencyType = (type) => {
+const formatCurrencyType = type => {
   return type === 'cash' ? 'Деньги' : type === 'buyback' ? 'Выкупы' : type
 }
 
 // Format transaction operation type
-const formatOperationType = (type) => {
+const formatOperationType = type => {
   return type === 'deposit' ? 'Пополнение' : type === 'withdraw' ? 'Списание' : type
 }
 
 // Format date
-const formatDate = (dateStr) => {
+const formatDate = dateStr => {
   const date = new Date(dateStr)
+  
   return date.toLocaleString('ru-RU', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 }
 
@@ -134,24 +139,27 @@ const topUpBalance = async () => {
   if (!topUpAmount.value || isNaN(topUpAmount.value) || topUpAmount.value <= 0) {
     snackbar.notify({
       text: 'Введите корректную сумму',
-      color: 'error'
+      color: 'error',
     })
+    
     return
   }
   try {
     await api.balance.topUpBalance(parseFloat(topUpAmount.value))
     snackbar.notify({
       text: 'Баланс успешно пополнен',
-      color: 'success'
+      color: 'success',
     })
+
     const balanceResponse = await api.balance.getBalance()
+
     balance.value = balanceResponse
     showTopUpModal.value = false
     topUpAmount.value = ''
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка при пополнении баланса',
-      color: 'error'
+      color: 'error',
     })
   }
 }
@@ -160,8 +168,9 @@ const withdraw = async () => {
   if(!cardNumber.value || !withdrawAmount.value) {
     snackbar.notify({
       text: 'Введите номер карты и сумму',
-      color: 'error'
+      color: 'error',
     })
+    
     return
   }
 
@@ -169,8 +178,9 @@ const withdraw = async () => {
   if(cardNumber.value.length < 16) {
     snackbar.notify({
       text: 'Введите корректный номер карты (16 цифр)',
-      color: 'error'
+      color: 'error',
     })
+    
     return
   }
 
@@ -178,56 +188,60 @@ const withdraw = async () => {
     // Передаём значения отдельными аргументами, а не объектом
     const response = await api.balance.withdraw(
       withdrawAmount.value,  // первый аргумент - amount
-      cardNumber.value       // второй аргумент - card_number
+      cardNumber.value,       // второй аргумент - card_number
     )
 
     if(response.status) {
       snackbar.notify({
         text: response.message,
-        color: 'success'
+        color: 'success',
       })
     }
-    location.reload();
+    location.reload()
   } catch (err) {
     console.error('Full error:', err)
     snackbar.notify({
       text: err.response?._data?.message || 'Произошла ошибка',
-      color: 'error'
+      color: 'error',
     })
   }
 }
 
 const declension = (number, titles) => {
   const cases = [2, 0, 1, 1, 1, 2]
+  
   return titles[
     number % 100 > 4 && number % 100 < 20
       ? 2
       : cases[number % 10 < 5 ? number % 10 : 5]
-    ]
+  ]
 }
 
 const applyPromoCode = async () => {
   if (!promoCode.value) {
     snackbar.notify({
       text: 'Введите промокод',
-      color: 'error'
+      color: 'error',
     })
+    
     return
   }
   try {
     await api.promocode.applyPromocode(promoCode.value)
     snackbar.notify({
       text: 'Промокод успешно применен',
-      color: 'success'
+      color: 'success',
     })
+
     const balanceResponse = await api.balance.getBalance()
+
     balance.value = balanceResponse
     showPromoModal.value = false
     promoCode.value = ''
   } catch (error) {
     snackbar.notify({
       text: error.response._data.message ?? 'Ошибка при применении промокода',
-      color: 'error'
+      color: 'error',
     })
   }
 }
@@ -236,14 +250,15 @@ const applyFilters = async () => {
   try {
     const transactionsResponse = await api.balance.getTransactions({
       ...transactionFilters.value,
-      page: transactionPage.value
+      page: transactionPage.value,
     })
+
     transactions.value = transactionsResponse?.data || []
     transactionLastPage.value = transactionsResponse?.last_page || 1
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка загрузки транзакций',
-      color: 'error'
+      color: 'error',
     })
   }
 }
@@ -252,19 +267,20 @@ const fetchProducts = async () => {
   try {
     const productsResponse = await api.products.getSellerProducts({
       page: productPage.value,
-      search: productSearch.value
+      search: productSearch.value,
     })
+
     products.value = productsResponse?.data || []
     productLastPage.value = productsResponse?.last_page || 1
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка загрузки товаров',
-      color: 'error'
+      color: 'error',
     })
   }
 }
 
-const selectProduct = (productId) => {
+const selectProduct = productId => {
   transactionFilters.value.product_id = productId
   showProductModal.value = false
   applyFilters()
@@ -274,9 +290,9 @@ const goToTariffs = () => {
   router.push('/dashboard/tariffs')
 }
 
-const selectType = (selectType) => {
+const selectType = selectType => {
   type.value = selectType
-  transactionFilters.value.type = type === '' ? '' : type
+  transactionFilters.value.type = type.value === '' ? '' : type
   transactionPage.value = 1
   applyFilters()
 }
@@ -284,7 +300,7 @@ const selectType = (selectType) => {
 const tariffs = ref([])
 
 // Declension function for "выкуп"
-const getBuybackDeclension = (count) => {
+const getBuybackDeclension = count => {
   const num = Math.abs(count)
   if (num % 10 === 1 && num % 100 !== 11) {
     return 'выкуп'
@@ -296,7 +312,8 @@ const getBuybackDeclension = (count) => {
 }
 
 const selectedTariff = ref(0)
-const selectTariff = (id) => {
+
+const selectTariff = id => {
   selectedTariff.value = id
 }
 
@@ -304,7 +321,10 @@ const selectTariff = (id) => {
 onMounted(async () => {
   try {
     const response = await api.tariff.getTariffList()
+
     tariffs.value = response || []
+    console.log(tariffs.value)
+    
     if (tariffs.value.length > 0) {
       selectedTariff.value = tariffs.value[0].id
     }
@@ -312,7 +332,7 @@ onMounted(async () => {
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка загрузки тарифов',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -324,6 +344,7 @@ const buyTariff = async (tariff, days) => {
   try {
     const response = await api.balance.topUpBuybacks(tariff.id, days)
     const url = response.invoice.Url
+
     location.href=url
 
     // snackbar.notify({
@@ -332,20 +353,23 @@ const buyTariff = async (tariff, days) => {
     // })
   } catch (error) {
     const errorMessage = error.response?._data?.message || 'Ошибка при покупке тарифа'
+
     snackbar.notify({
       text: errorMessage,
-      color: 'error'
+      color: 'error',
     })
   }
 }
 
-const getTariffEndDate = (tariff) => {
+const getTariffEndDate = tariff => {
   console.log(tariff)
+
   const createdAt = tariff.pivot?.created_at
   const durationDays = tariff.duration_days
 
   const createdDate = new Date(createdAt)
   const expirationDate = new Date(createdDate)
+
   expirationDate.setDate(expirationDate.getDate() + durationDays)
 
   const options = { year: 'numeric', month: 'long', day: 'numeric' }
@@ -361,178 +385,232 @@ const getTariffEndDate = (tariff) => {
 </script>
 
 <template>
-  <div class="balance-container">
-
-    <div class="content-wrapper">
-      <h1 class="text-h4 mb-2">Тарифы</h1>
-      <p class="text-body-1 mb-6">Управляйте тарифами и просматривайте транзакции</p>
-
-      <div v-if="loading" class="text-center">
-        <v-progress-circular indeterminate color="primary" />
+  <VContainer>
+      <h1 class="text-h3 mb-1 font-weight-bold">
+        Баланс выкупов
+      </h1>
+      <p class="text-body-1 mb-6">
+        Баланс > Тарифы
+      </p>
+      <h3 class="text-h5 font-weight-bold mb-3">
+        Ваш тариф
+      </h3>
+      <div
+        v-if="loading"
+        class="text-center"
+      >
+        <VProgressCircular
+          indeterminate
+          color="primary"
+        />
       </div>
 
       <div v-else>
         <!-- Balance and Details -->
-        <v-row class="mb-6">
-          <v-col cols="12" md="4">
-            <div class="balance-box pa-6 pb-3" v-if="isSeller">
-              <p class="text-h5">Ваш тариф:<span class="font-weight-bold h-3 access-balance d-block mt-3">{{ tariff?.name ?? 'У вас нет тарифа' }}</span>
-                <span v-if="tariff != null" class="text-subtitle-2">Действует до {{getTariffEndDate(tariff)}}</span>
+        <VRow class="mb-6">
+          <VCol
+            cols="12"
+            md="4"
+          >
+            <VCard
+              v-if="isSeller"
+              extended="2"
+              variant="text"
+              width="349"
+              class="balance-box"
+            >
+              <p class="ma-0">
+                <span class="font-weight-bold text-h6 text-primary d-block mb-2">{{ tariff?.name ?? 'Тариф не выбран' }}</span>
+                <span
+                  v-if="tariff != null"
+                  class="text-subtitle-2"
+                >Тариф действителен до {{ getTariffEndDate(tariff) }}</span>
+                <span
+                  v-else
+                  class="text-subtitle-2"
+                >
+                  Выберите тариф для начала работы
+                </span>
               </p>
-            </div>
-            <div class="buybacks-wrap" v-if="isSeller">
-              <div class="text-none buybacks-btn promo-btn"
-                   @click="showPromoModal = true">
-                Ввести промокод
-              </div>
-            </div>
+            </VCard>
+            <VBtn
+              v-if="isSeller"
+              color="primary"
+              class="mt-3 font-weight-bold"
+              @click="showPromoModal = true"
+            >
+              Ввести промокод
+            </VBtn>
+          </VCol>
+        </VRow>
 
-          </v-col>
-        </v-row>
 
-
-        <!--        Тарифы-->
+        <!--        Тарифы -->
         <div class="tariffs-container">
           <div class="content-wrapper">
-            <h1 class="text-h4 mb-2">Тарифы</h1>
-            <p class="text-body-1 mb-8">Выберите тариф исходя из количества товаров для продвижения:
+            <h1 class="text-h4 mb-2 font-weight-bold">
+              Тарифы
+            </h1>
+            <p class="text-body-1 mb-8">
+              Выберите тариф исходя из количества товаров для продвижения:
               <br><br>
-              <span class="text-primary">Lite</span> - до 10 товаров (безлимит по выкупам) <br>
-              <span class="text-primary">Pro</span> - до 50 товаров (безлимит по выкупам) <br>
-              <span class="text-primary">Superstar</span> - безлимит товаров и выкупов
+              <span class="text-primary font-weight-bold">Lite</span> - до 10 товаров (безлимит по выкупам) <br>
+              <span class="text-primary font-weight-bold">Pro</span> - до 50 товаров (безлимит по выкупам) <br>
+              <span class="text-primary font-weight-bold">Superstar</span> - безлимит товаров и выкупов
             </p>
 
-            <v-btn v-for="tariff in tariffs" variant="outlined" :active="selectedTariff == tariff.id" class="ml-1" @click="selectTariff(tariff.id)">{{tariff.name}}</v-btn>
+            <VBtn
+              v-for="tariff in tariffs"
+              :key="tariff.id"
+              variant="text"
+              :class="selectedTariff === tariff.id ? 'text-primary' : 'text-secondary'"
+              class="ml-1 py-1 px-3 mb-6"
+              rounded="lg"
+              @click="selectTariff(tariff.id)"
+            >
+              {{ tariff.name }}
+            </VBtn>
 
-            <div v-if="loading" class="text-center">
-              <v-progress-circular indeterminate color="primary" />
+
+
+            <div
+              v-if="loading"
+              class="text-center"
+            >
+              <VProgressCircular
+                indeterminate
+                color="primary"
+              />
             </div>
 
-            <v-row v-else>
-              <div class="w-100 d-flex tariff-wrap" :class="selectedTariff != tariff.id ? 'd-none' : ''" v-for="tariff in tariffs"
-                     :key="tariff.id">
-                <v-col
-                  class="mt-3"
-                  v-for="data in tariff.data"
-                  cols="12"
-                  sm="6"
-                  md="4"
-                  lg="3"
-                >
-                  <v-card class="tariff-card pa-6" min-height="400" v-if="selectedTariff == tariff.id">
-                    <div class="card-content">
-                      <div class="d-flex justify-between">
-                        <h2 class="text-h5 mb-4 font-weight-bold tariff-name">{{ data.name }}</h2>
-                        <div class="tariff-badge">Скидка 50%</div>
-                      </div>
-                      <p class="text-h6 font-weight-bold mb-2">{{ data.initial_price }} ₽</p>
-                      <p class="text-body-1 mb-4">
-                        Далее {{data.recurring_price}} ₽
-                      </p>
-                      <v-divider class="mb-4" />
-                      <div class="min-100">
-                        <div
-                          class="text-body-2 adv-item"
-                        >
-                          До {{tariff.products_count}} товаров в месяц на магазин
+            <VRow
+              v-else
+              class="mt-3 card-wrap"
+            >
+              <template
+                v-for="tariff in tariffs"
+                :key="tariff.id"
+              >
+                <template v-if="selectedTariff == tariff.id">
+                  <div
+                    v-for="(data, index) in tariff.data"
+                    :key="index"
+                    class="d-flex justify-start align-start gap-10 px-3"
+                  >
+                    <VCard
+                      class="tariff-card"
+                      width="340"
+                    >
+                      <div class="card-content">
+                        <div class="d-flex justify-between">
+                          <h2 class="text-h5 mb-4 font-weight-bold tariff-name">
+                            {{ data.name }}
+                          </h2>
+                          <div class="tariff-badge">
+                            Скидка 50%
+                          </div>
+                        </div>
+                        <div class="min-100">
+                          <div class="text-body-2 adv-item text-no-wrap">
+                            До {{ tariff.products_count }} товаров в месяц на магазин
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <v-btn
-                      color="primary"
-
-                      @click="buyTariff(tariff, data.duration_days)"
-                    >
-                      Оформить
-                    </v-btn>
-                  </v-card>
-                </v-col>
-              </div>
-            </v-row>
+                      <div class="d-flex justify-between align-center mt-4 gap-5">
+                        <VBtn
+                          color="primary"
+                          width="146"
+                          @click="buyTariff(tariff, data.duration_days)"
+                        >
+                          Оформить
+                        </VBtn>
+                        <div class="text-left w-100">
+                          <p class="text-h6 font-weight-bold ma-0">
+                            {{ data.initial_price }} ₽
+                            <span v-if="index === 0">в месяц</span>
+                            <span v-else-if="index === 1">в 3 мес.</span>
+                            <span v-else-if="index === 2">в год</span>
+                          </p>
+                          <p
+                            class="ma-0"
+                            style="font-size: 10px;"
+                          >
+                            Далее {{ data.recurring_price }} ₽
+                            <span v-if="index === 0">/месяц</span>
+                            <span v-else-if="index === 1">/ 3 месяца</span>
+                            <span v-else-if="index === 2">/ в год</span>
+                          </p>
+                        </div>
+                      </div>
+                    </VCard>
+                  </div>
+                </template>
+              </template>
+            </VRow>
           </div>
         </div>
         <!--        / Тарифы -->
 
         <!-- Transaction Filters -->
         <div class="filters-box mt-10 mb-6">
-          <h1 class="text-h4 mb-4">Фильтры транзакций</h1>
-
-          <div class="filter-group mb-2">
-            <v-btn variant="text" @click="selectType('')" :active="type == 'all'" :class="{ 'active-tab': type === 'all' }">Все транзакции</v-btn>
-            <v-btn variant="text" @click="selectType('deposit')" :active="type == 'deposit'" :class="{ 'active-tab': type === 'deposit' }">Пополнения</v-btn>
-            <v-btn variant="text" @click="selectType('withdraw')" :active="type == 'withdraw'" :class="{ 'active-tab': type === 'withdraw' }">Списания</v-btn>
-          </div>
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-btn
-                color="primary"
-                size="large"
-                block
-                @click="showProductModal = true; fetchProducts()"
-              >
-                {{ selectedProductName }}
-              </v-btn>
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="transactionFilters.ads_id"
-                label="ID объявления"
-                type="number"
-                @input="applyFilters"
-              />
-            </v-col>
-          </v-row>
+          <h1 class="text-h4 mb-4  font-weight-bold">
+            Транзакций
+          </h1>
         </div>
 
         <!-- Transactions Table -->
-        <div class="transactions-box pa-4">
-          <h3 class="text-h6 mb-4">Детализация</h3>
-          <v-table>
+        <div class="transactions-box py-4">
+          <h3 class="text-h6 mb-4">
+            Детализация
+          </h3>
+          <VTable class="mt-5">
             <thead>
-            <tr>
-              <th>ID</th>
-              <th>Сумма</th>
-              <th>Тип</th>
-              <th>Тип операции</th>
-              <th>Дата и время</th>
-              <th>Описание</th>
-              <th>ID объявления</th>
-            </tr>
+              <tr>
+                <th>ID</th>
+                <th>Сумма</th>
+                <th>Тип</th>
+                <th>Тип операции</th>
+                <th>Дата и время</th>
+                <th>Описание</th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-for="transaction in transactions" :key="transaction.id">
-              <td>{{ transaction.id }}</td>
-              <td>
-                {{ Math.floor(parseFloat(transaction.amount)) }}
-                {{ transaction.currency_type === 'cash' ?  '₽' : '' }}
-              </td>
-              <td>{{ formatCurrencyType(transaction.currency_type) }}</td>
-              <td :class="{
-                  'success--text': transaction.transaction_type === 'deposit',
-                  'error--text': transaction.transaction_type === 'withdraw'
-                }">
-                {{ formatOperationType(transaction.transaction_type) }}
-              </td>
-              <td>{{ formatDate(transaction.created_at) }}</td>
-              <td>{{ transaction.description }}</td>
-              <td>{{ transaction.ads_id || '-' }}</td>
-            </tr>
+              <tr
+                v-for="transaction in transactions"
+                :key="transaction.id"
+              >
+                <td>{{ transaction.id }}</td>
+                <td>
+                  {{ Math.floor(+transaction.amount) }}
+                  <span v-if="transaction.currency_type === 'cash'">₽</span>
+                </td>
+                <td>{{ formatCurrencyType(transaction.currency_type) }}</td>
+                <td
+                  :class="{
+                    'text-success': transaction.transaction_type === 'deposit',
+                    'text-error': transaction.transaction_type === 'withdraw'
+                  }"
+                >
+                  {{ formatOperationType(transaction.transaction_type) }}
+                </td>
+                <td>{{ formatDate(transaction.created_at) }}</td>
+                <td>{{ transaction.description }}</td>
+              </tr>
             </tbody>
-          </v-table>
-          <v-pagination
-            v-model="transactionPage"
-            :length="transactionLastPage"
-            class="mt-4"
-            @update:modelValue="applyFilters"
-          />
+          </VTable>
         </div>
       </div>
 
       <!-- Top-Up Modal -->
-      <v-dialog v-model="showTopUpModal" max-width="400px">
-        <v-sheet class="pa-6">
-          <h2 class="text-h5 mb-4">Пополнить баланс</h2>
-          <v-text-field
+      <VDialog
+        v-model="showTopUpModal"
+        max-width="400px"
+      >
+        <VSheet class="pa-6">
+          <h2 class="text-h5 mb-4">
+            Пополнить баланс
+          </h2>
+          <VTextField
             v-model="topUpAmount"
             label="Сумма (₽)"
             type="number"
@@ -540,140 +618,152 @@ const getTariffEndDate = (tariff) => {
             outlined
           />
           <div class="d-flex justify-end mt-4">
-            <v-btn
+            <VBtn
               color="secondary"
               class="mr-2"
               @click="showTopUpModal = false"
             >
               Отмена
-            </v-btn>
-            <v-btn
+            </VBtn>
+            <VBtn
               color="primary"
               @click="topUpBalance"
             >
               Пополнить
-            </v-btn>
+            </VBtn>
           </div>
-        </v-sheet>
-      </v-dialog>
+        </VSheet>
+      </VDialog>
 
-<!--      Вывод средств-->
-      <v-dialog v-model="showWithdrawModal" max-width="400px">
-        <v-sheet class="pa-6">
-          <h2 class="text-h5 mb-4">Вывести деньги</h2>
-          <v-text-field
+      <!--      Вывод средств -->
+      <VDialog
+        v-model="showWithdrawModal"
+        max-width="400px"
+      >
+        <VSheet class="pa-6">
+          <h2 class="text-h5 mb-4">
+            Вывести деньги
+          </h2>
+          <VTextField
             v-model="withdrawAmount"
             label="Сумма (₽)"
             type="number"
             min="1000"
             outlined
           />
-          <v-text-field
+          <VTextField
             v-model="cardNumber"
-            label="Номер карты"
             v-mask="'#### #### #### ####'"
+            label="Номер карты"
             class="mt-2"
             type="text"
             outlined
           />
           <div class="d-flex justify-end mt-4">
-            <v-btn
+            <VBtn
               color="secondary"
               class="mr-2"
               @click="showWithdrawModal = false"
             >
               Отмена
-            </v-btn>
-            <v-btn
+            </VBtn>
+            <VBtn
               color="primary"
               @click="withdraw"
             >
               Вывести
-            </v-btn>
+            </VBtn>
           </div>
-        </v-sheet>
-      </v-dialog>
+        </VSheet>
+      </VDialog>
 
       <!-- Promo Code Modal -->
-      <v-dialog v-model="showPromoModal" max-width="400px">
-        <v-sheet class="pa-6">
-          <h2 class="text-h5 mb-4">Ввести промокод</h2>
-          <v-text-field
+      <VDialog
+        v-model="showPromoModal"
+        max-width="400px"
+      >
+        <VSheet class="pa-6">
+          <h2 class="text-h5 mb-4">
+            Ввести промокод
+          </h2>
+          <VTextField
             v-model="promoCode"
             label="Промокод"
             outlined
           />
           <div class="d-flex justify-end mt-4">
-            <v-btn
+            <VBtn
               color="secondary"
               class="mr-2"
               @click="showPromoModal = false"
             >
               Отмена
-            </v-btn>
-            <v-btn
+            </VBtn>
+            <VBtn
               color="primary"
               @click="applyPromoCode"
             >
               Применить
-            </v-btn>
+            </VBtn>
           </div>
-        </v-sheet>
-      </v-dialog>
+        </VSheet>
+      </VDialog>
 
       <!-- Product Selection Modal -->
-      <v-dialog v-model="showProductModal" max-width="600px">
-        <v-sheet class="pa-6">
-          <h2 class="text-h5 mb-4">Выберите товар</h2>
-          <v-text-field
+      <VDialog
+        v-model="showProductModal"
+        max-width="600px"
+      >
+        <VSheet class="pa-6">
+          <h2 class="text-h5 mb-4">
+            Выберите товар
+          </h2>
+          <VTextField
             v-model="productSearch"
             label="Поиск по названию"
             outlined
             class="mb-4"
             @input="productPage = 1; fetchProducts()"
           />
-          <v-list>
-            <v-list-item
+          <VList>
+            <VListItem
               v-for="product in products"
               :key="product.id"
-              @click="selectProduct(product.id)"
               class="product-item"
+              @click="selectProduct(product.id)"
             >
-              <v-list-item-title>{{ product.name }}</v-list-item-title>
-              <v-list-item-subtitle>ID: {{ product.id }}</v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
-          <v-pagination
+              <VListItemTitle>{{ product.name }}</VListItemTitle>
+              <VListItemSubtitle>ID: {{ product.id }}</VListItemSubtitle>
+            </VListItem>
+          </VList>
+          <VPagination
             v-model="productPage"
             :length="productLastPage"
             class="mt-4"
-            @update:modelValue="fetchProducts"
+            @update:model-value="fetchProducts"
           />
           <div class="d-flex justify-end mt-4">
-            <v-btn
+            <VBtn
               color="secondary"
               @click="showProductModal = false"
             >
               Закрыть
-            </v-btn>
+            </VBtn>
           </div>
-        </v-sheet>
-      </v-dialog>
-    </div>
-  </div>
+        </VSheet>
+      </VDialog>
+  </VContainer>
 </template>
 
 <style scoped lang="scss">
 .balance-box{
   display: flex;
   gap: 30px;
+  padding: 11px 17px;
   border: 1px solid #D0D5DD;
   border-radius: 15px;
   align-items: center;
   justify-content: space-between;
-}
-.access-balance{
-  font-size: 26px;
 }
 
 .on-confimation{
@@ -733,24 +823,19 @@ const getTariffEndDate = (tariff) => {
   }
 }
 
-.content-wrapper {
-  max-width: 1200px;
-  margin-left: 0;
-}
-
 .tariff-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  padding: 18px 13px;
 }
 
 .card-content {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
 }
 
 .advantages-list {
@@ -812,9 +897,6 @@ const getTariffEndDate = (tariff) => {
   border-radius: 35px;
 }
 
-.min-100{
-  min-height: 100px;
-}
 
 .d-none{
   display: none!important;
@@ -823,6 +905,12 @@ const getTariffEndDate = (tariff) => {
 @media screen and (max-width: 960px){
   .tariff-wrap{
     flex-wrap: wrap;
+  }
+}
+
+@media screen and (max-width: 804px){
+  .card-wrap {
+    justify-content: center;
   }
 }
 </style>
