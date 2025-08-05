@@ -223,8 +223,8 @@ onUnmounted(() => {
                   v-model="filters.price"
                   label="Цена"
                   :min="0"
-                  :max="1000"
-                  :step="10"
+                  :max="100000"
+                  :step="1000"
                   thumb-label="always"
                 />
               </VCardText>

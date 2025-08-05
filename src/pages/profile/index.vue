@@ -37,7 +37,6 @@ statistics.value = statisticsResponse
 const telegramLinkCookie = useCookie('telegramBotLink')
 const qrCodeLink = ref(null)
 const qrCodeSrc = ref('')
-
 const openBot = async () => {
   if (telegramLinkCookie.value) {
     window.open(telegramLinkCookie.value, '_blank')
@@ -146,6 +145,8 @@ const getPayments = async () => {
   })
 }
 getPayments()
+
+const openBotText = userData.value.telegram_id == undefined ? 'Подключить' : 'Перейти'
 </script>
 
 <template>
@@ -195,7 +196,6 @@ getPayments()
                   ID: {{ userData.id }}
                 </div>
               </div>
-
               <div class="d-flex align-center gap-x-2">
                 <VIcon
                   size="24"
@@ -521,7 +521,7 @@ getPayments()
             </div>
             <p class="text-center mt-4">Отсканируйте QR-код для подключения к Telegram-боту</p>
             <div class="text-center">
-              <VBtn variant="outlined" @click="openBot" color="" append-icon="ri-telegram-2-fill">Подключить</VBtn>
+              <VBtn variant="outlined" @click="openBot" color="" append-icon="ri-telegram-2-fill">{{openBotText}}</VBtn>
             </div>
           </VCardText>
         </VCard>

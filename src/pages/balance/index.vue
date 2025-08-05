@@ -361,27 +361,37 @@ const buyTariff = async (tariff, days) => {
   }
 }
 
-const getTariffEndDate = tariff => {
-  console.log(tariff)
+const getTariffEndDate = (tariff) => {
+  const pivot = tariff.pivot;
 
-  const createdAt = tariff.pivot?.created_at
-  const durationDays = tariff.duration_days
+  if (!pivot) return 'Нет данных';
 
-  const createdDate = new Date(createdAt)
-  const expirationDate = new Date(createdDate)
+  // Если есть точная дата окончания — используем её
+  const endDate = pivot.end_date ? new Date(pivot.end_date) : null;
 
-  expirationDate.setDate(expirationDate.getDate() + durationDays)
-
-  const options = { year: 'numeric', month: 'long', day: 'numeric' }
-  const expirationDateString = expirationDate.toLocaleDateString('ru-RU', options)
-
-  const now = new Date()
-  if (now > expirationDate) {
-    return 'Тариф истёк'
+  // Если нет, рассчитываем по created_at + duration_days
+  let expirationDate;
+  if (endDate) {
+    expirationDate = endDate;
+  } else {
+    const createdAt = new Date(pivot.created_at);
+    expirationDate = new Date(createdAt);
+    expirationDate.setDate(expirationDate.getDate() + (tariff.duration_days || 0));
   }
 
-  return expirationDateString
-}
+  // Локализованный формат даты
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  const expirationDateString = expirationDate.toLocaleDateString('ru-RU', options);
+
+  // Проверка, истёк ли тариф
+  const now = new Date();
+  if (now > expirationDate) {
+    return 'Тариф истёк';
+  }
+
+  return expirationDateString;
+};
+
 </script>
 
 <template>
@@ -548,8 +558,16 @@ const getTariffEndDate = tariff => {
                   </VCard>
                 </div>
               </template>
-            </template>
-          </VRow>
+            </VRow>
+          </div>
+        </div>
+        <!--        / Тарифы -->
+
+        <!-- Transaction Filters -->
+        <div class="filters-box mt-10 mb-6">
+          <h1 class="text-h4 mb-4  font-weight-bold">
+            Транзакции:
+          </h1>
         </div>
       </div>
       <!--        / Тарифы -->
