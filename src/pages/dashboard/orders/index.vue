@@ -52,7 +52,8 @@ const isCancelLoading = ref(false)
 const isUploadLoading = ref(false)
 const isAcceptPaymentLoading = ref(false)
 const currentChatId = ref(null)
-const hasSubmittedReview = ref(false)
+const isReviewSubmitted = ref(false)
+const confirmCashback = ref(false)
 
 const getPaymentAcceptedStatus = chatId => {
   const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
@@ -186,10 +187,25 @@ const backToChats = () => {
 
 const openSupport = () => router.push('/dashboard/support')
 
-const cancelBuyback = () => {
-  cancelOrder()
-  selectChat(chatStore.activeChat)
+const getReviewSubmittedStatus = chatId => {
+  const reviewStatus = localStorage.getItem('reviewSubmittedStatus')
+  if (reviewStatus) {
+    const parsed = JSON.parse(reviewStatus)
+    
+    return parsed[String(chatId)] || false
+  }
+  
+  return false
 }
+
+const setReviewSubmittedStatus = (chatId, status) => {
+  const reviewStatus = localStorage.getItem('reviewSubmittedStatus')
+  const parsed = reviewStatus ? JSON.parse(reviewStatus) : {}
+
+  parsed[String(chatId)] = status
+  localStorage.setItem('reviewSubmittedStatus', JSON.stringify(parsed))
+}
+
 
 const handleConfirm = async () => {
   isConfirmLoading.value = true
@@ -228,6 +244,7 @@ const handleCancel = async () => {
         const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
         if (chat) await selectChat(chat)
       }
+      await selectChat(chatStore.activeChat)
     }
   } catch (error) {
     console.error('Error cancelling order:', error)
@@ -250,16 +267,25 @@ const handleUpload = async () => {
       receiptSent.value = true
       barcodeFile.value = null
       reviewFile.value = null
+
+      const updatedChat = await api.buyback.getBuybackById(currentChatId.value)
+      if (updatedChat) {
+        chatStore.updateChat(updatedChat)
+        if (chatStore.activeChat?.id === currentChatId.value) {
+          chatStore.activeChat = { ...updatedChat }
+        }
+      }
       await fetchChats(chatStore.selectedStatus)
       if (currentChatId.value) {
-        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+        const chat = Object.values(chatStore.chatsByStatus)
+          .flat()
+          .find(c => c.id === currentChatId.value)
+
         if (chat) {
           await selectChat(chat)
-          if (!chat.is_review_photo_sent) {
-            console.warn('Warning: is_review_photo_sent is still false after upload. Check server response.')
-          }
+          scrollToBottom()
         } else {
-          console.error('Chat not found for ID:', currentChatId.value)
+          snackbar.notify({ text: 'Чат не найден после обновления', color: 'error' })
         }
       }
     }
@@ -278,17 +304,17 @@ const handleAcceptPayment = async (chatId, buybackId) => {
   console.log(chatId, buybackId)
   if (!chatId || !buybackId) {
     snackbar.notify({ text: 'Чат не выбран', color: 'error' })
+    
     return
   }
   isAcceptPaymentLoading.value = true
-  try {
-    console.log('11111');
-    
+  confirmCashback.value = false
+  try {  
     const success = await acceptPayment(chatId, buybackId)
     if (success) {
       snackbar.notify({ text: 'Оплата подтверждена', color: 'success' })
       setPaymentAcceptedStatus(currentChatId.value, true)
-      isPaymentAccepted.value = false // Отключаем кнопку "Принят"
+      isPaymentAccepted.value = false
 
       const updatedChat = await api.buyback.getBuybackById(currentChatId.value)
       if (updatedChat) {
@@ -325,39 +351,33 @@ const handleAcceptPayment = async (chatId, buybackId) => {
 const handleSubmitReview = async () => {
   isConfirmLoading.value = true
   try {
-    console.log('Before submitReview:', { 
-      chatId: currentChatId.value,
-      hasReview: chatStore.activeChat?.has_review_by_buyer, 
-      reviewText: reviewText.value, 
-      reviewRating: reviewRating.value 
-    })
     const success = await submitReview()
+
+    console.log('suck', success)
     if (success) {
       snackbar.notify({ text: 'Отзыв успешно отправлен', color: 'success' })
-      hasSubmittedReview.value = true 
+      setReviewSubmittedStatus(currentChatId.value, true)
+      isReviewSubmitted.value = true
+
       reviewText.value = ''
-      reviewRating.value = null
+      reviewRating.value = null  
+
+      console.log('IsReview ', isReviewSubmitted.value)
+      
       const updatedChat = await api.buyback.getBuybackById(currentChatId.value)
-      console.log('After submitReview, fetched chat:', { 
-        updatedChat, 
-        hasReviewByBuyer: updatedChat?.has_review_by_buyer 
-      })
+
+      console.log('update chat ', updatedChat)
       if (updatedChat) {
         chatStore.updateChat(updatedChat)
         if (chatStore.activeChat?.id === currentChatId.value) {
           chatStore.activeChat = { ...updatedChat }
         }
       }
+
       await fetchChats(chatStore.selectedStatus)
-      if (currentChatId.value) {
-        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
-        if (chat) {
-          await selectChat(chat)
-          console.log('After selectChat, activeChat:', { 
-            hasReview: chatStore.activeChat?.has_review_by_buyer 
-          })
-        }
-      }
+
+      const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+      if (chat) await selectChat(chat)
     }
   } catch (error) {
     console.error('Error submitting review:', error)
@@ -370,6 +390,7 @@ const handleSubmitReview = async () => {
   }
 }
 
+
 const openInfo = () => {
   infoProduct.value = true
   confirmModal.value = false
@@ -381,6 +402,7 @@ const openInfo = () => {
 
 const activeBuybackId = computed(() => {
   const messages = chatStore.activeChat?.messages?.data || chatStore.activeChat?.messages
+  
   return messages?.[0]?.buyback_id || null
 })
 
@@ -391,11 +413,11 @@ watch(
     if (newChatId) {
       currentChatId.value = newChatId
       isPaymentAccepted.value = !getPaymentAcceptedStatus(newChatId)
-      hasSubmittedReview.value = false
+      isReviewSubmitted.value = getReviewSubmittedStatus(newChatId)
     } else {
       currentChatId.value = null
       isPaymentAccepted.value = true
-      hasSubmittedReview.value = false
+      isReviewSubmitted.value = false
     }
   },
 )
@@ -702,7 +724,7 @@ onUnmounted(() => {
                       <VListItem @click="openSupport">
                         <VListItemTitle>Поддержка</VListItemTitle>
                       </VListItem>
-                      <VListItem @click="cancelBuyback">
+                      <VListItem @click="cancelItem = true">
                         <VListItemTitle>Отменить заказ</VListItemTitle>
                       </VListItem>
                     </VList>
@@ -933,20 +955,21 @@ onUnmounted(() => {
                       v-if="chatStore.activeChat && message.text === 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически' && !getPaymentAcceptedStatus(chatStore.activeChat?.id) && chatStore.activeChat?.status === 'awaiting_payment_confirmation' && message.id === chatStore.messages.filter(m => m.text === message.text).slice(-1)[0]?.id"
                       style="max-width: 311px; margin-inline: auto"
                       class="my-4"
-                    > {{ console.log(chatStore.activeChat) }}
+                    >
+                      {{ console.log(chatStore.activeChat) }}
                       <VBtn
                         block
                         color="primary"
                         size="large"
                         :loading="isAcceptPaymentLoading"
-                        @click="handleAcceptPayment(chatStore.activeChat.id, activeBuybackId)"
+                        @click="confirmCashback = true"
                       >
-                        Принят
+                        Принять
                       </VBtn>
                     </div>
                   </li>
                   <div
-                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_buyer && !hasSubmittedReview"
+                    v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_buyer && !isReviewSubmitted"
                     class="mt-4"
                   >
                     <VCard
@@ -1305,6 +1328,43 @@ onUnmounted(() => {
         </VCard>
       </VDialog>
       <VDialog
+        v-model="confirmCashback"
+        max-width="360"
+      >
+        <VCard class="py-5 px-4">
+          <VCardTitle class="pa-0 pb-2">
+            Подтверждение кэшбэка
+          </VCardTitle>
+          <VCardText class="pa-0">
+            Подтвердите получение правильной суммы кэшбека на ваши реквизиты. Сделка будет завершена.
+          </VCardText>
+          <VCardActions class="d-flex flex-column pa-0">
+            <VBtn
+              block
+              color="primary"
+              variant="flat"
+              class="mt-6"
+              size="large"
+              :loading="isConfirmLoading"
+              @click="handleAcceptPayment(chatStore.activeChat.id, activeBuybackId);"
+            >
+              Принять
+            </VBtn>
+            <VBtn
+              variant="outlined"
+              color="secondary"
+              block
+              size="large"
+              class="text-gray-900 mt-2"
+              style="color: rgb(var(--v-theme-on-surface))"
+              @click="confirmCashback = false"
+            >
+              Отмена
+            </VBtn>
+          </VCardActions>
+        </VCard>
+      </VDialog>
+      <VDialog
         v-model="cancelItem"
         max-width="360"
       >
@@ -1313,7 +1373,7 @@ onUnmounted(() => {
             Отмена заказа
           </VCardTitle>
           <VCardText class="pa-0">
-            Нажимая кнопку ниже, вы подтверждаете, что отменяете заказ
+            Вы можете отменить заказ на любом этапе, по любым причинам из за которых вы не хотите продолжать заказ. ⚠️ Не отменяйте заказ в случае, если вы уже заказали товар, в противном случае выплаты кэшбека от продавца не будет!
           </VCardText>
           <VCardActions class="d-flex flex-column pa-0">
             <VBtn

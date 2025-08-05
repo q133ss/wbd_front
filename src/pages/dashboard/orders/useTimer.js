@@ -20,7 +20,7 @@ export const useTimer = () => {
 
     const durations = {
       pending: 30 * 60 * 1000, // 30 minutes
-      awaiting_receipt: 10 * 24 * 60 * 60 * 1000, // 10 days
+      awaiting_receipt: 14 * 24 * 60 * 60 * 1000, // 14 days
       on_confirmation: 24 * 60 * 60 * 1000, // 24 hours
       awaiting_payment_confirmation: 24 * 60 * 60 * 1000, // 24 hours
     }

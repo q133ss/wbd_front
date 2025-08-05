@@ -395,166 +395,168 @@ const getTariffEndDate = (tariff) => {
 </script>
 
 <template>
-  <VContainer>
-      <h1 class="text-h3 mb-1 font-weight-bold">
-        Баланс выкупов
-      </h1>
-      <p class="text-body-1 mb-6">
-        Баланс > Тарифы
-      </p>
-      <h3 class="text-h5 font-weight-bold mb-3">
-        Ваш тариф
-      </h3>
-      <div
-        v-if="loading"
-        class="text-center"
-      >
-        <VProgressCircular
-          indeterminate
-          color="primary"
-        />
-      </div>
+  <VContainer class="ma-0 py-0">
+    <h1 class="text-h3 mb-1 font-weight-bold">
+      Баланс выкупов
+    </h1>
+    <p class="text-body-1 mb-6">
+      Баланс > Тарифы
+    </p>
+    <h3 class="text-h5 font-weight-bold mb-3">
+      Ваш тариф
+    </h3>
+    <div
+      v-if="loading"
+      class="text-center"
+    >
+      <VProgressCircular
+        indeterminate
+        color="primary"
+      />
+    </div>
 
-      <div v-else>
-        <!-- Balance and Details -->
-        <VRow class="mb-6">
-          <VCol
-            cols="12"
-            md="4"
+    <div v-else>
+      <!-- Balance and Details -->
+      <VRow class="mb-6">
+        <VCol
+          cols="12"
+          md="4"
+        >
+          <VCard
+            v-if="isSeller"
+            extended="2"
+            variant="text"
+            width="349"
+            class="balance-box"
           >
-            <VCard
-              v-if="isSeller"
-              extended="2"
-              variant="text"
-              width="349"
-              class="balance-box"
-            >
-              <p class="ma-0">
-                <span class="font-weight-bold text-h6 text-primary d-block mb-2">{{ tariff?.name ?? 'Тариф не выбран' }}</span>
-                <span
-                  v-if="tariff != null"
-                  class="text-subtitle-2"
-                >Тариф действителен до {{ getTariffEndDate(tariff) }}</span>
-                <span
-                  v-else
-                  class="text-subtitle-2"
-                >
-                  Выберите тариф для начала работы
-                </span>
-              </p>
-            </VCard>
-            <VBtn
-              v-if="isSeller"
-              color="primary"
-              class="mt-3 font-weight-bold"
-              @click="showPromoModal = true"
-            >
-              Ввести промокод
-            </VBtn>
-          </VCol>
-        </VRow>
-
-
-        <!--        Тарифы -->
-        <div class="tariffs-container">
-          <div class="content-wrapper">
-            <h1 class="text-h4 mb-2 font-weight-bold">
-              Тарифы
-            </h1>
-            <p class="text-body-1 mb-8">
-              Выберите тариф исходя из количества товаров для продвижения:
-              <br><br>
-              <span class="text-primary font-weight-bold">Lite</span> - до 10 товаров (безлимит по выкупам) <br>
-              <span class="text-primary font-weight-bold">Pro</span> - до 50 товаров (безлимит по выкупам) <br>
-              <span class="text-primary font-weight-bold">Superstar</span> - безлимит товаров и выкупов
+            <p class="ma-0">
+              <span class="font-weight-bold text-h6 text-primary d-block mb-2">{{ tariff?.name ?? 'Тариф не выбран' }}</span>
+              <span
+                v-if="tariff != null"
+                class="text-subtitle-2"
+              >Тариф действителен до {{ getTariffEndDate(tariff) }}</span>
+              <span
+                v-else
+                class="text-subtitle-2"
+              >
+                Выберите тариф для начала работы
+              </span>
             </p>
+          </VCard>
+          <VBtn
+            v-if="isSeller"
+            color="primary"
+            class="mt-3 font-weight-bold"
+            @click="showPromoModal = true"
+          >
+            Ввести промокод
+          </VBtn>
+        </VCol>
+      </VRow>
 
-            <VBtn
+
+      <!--        Тарифы -->
+      <div class="tariffs-container">
+        <div class="content-wrapper">
+          <h1 class="text-h4 mb-2 font-weight-bold">
+            Тарифы
+          </h1>
+          <p class="text-body-1 mb-8">
+            Выберите тариф исходя из количества товаров для продвижения:
+            <br><br>
+            <span class="text-primary font-weight-bold">Lite</span> - до 10 товаров (безлимит по выкупам) <br>
+            <span class="text-primary font-weight-bold">Pro</span> - до 50 товаров (безлимит по выкупам) <br>
+            <span class="text-primary font-weight-bold">Superstar</span> - безлимит товаров и выкупов
+          </p>
+
+          <VBtn
+            v-for="tariff in tariffs"
+            :key="tariff.id"
+            variant="text"
+            :class="selectedTariff === tariff.id ? 'text-primary' : 'text-secondary'"
+            class="ml-1 py-1 px-3 mb-6"
+            rounded="lg"
+            @click="selectTariff(tariff.id)"
+          >
+            {{ tariff.name }}
+          </VBtn>
+
+
+
+          <div
+            v-if="loading"
+            class="text-center"
+          >
+            <VProgressCircular
+              indeterminate
+              color="primary"
+            />
+          </div>
+
+          <VRow
+            v-else
+            class="mt-3 card-wrap"
+          >
+            <template
               v-for="tariff in tariffs"
               :key="tariff.id"
-              variant="text"
-              :class="selectedTariff === tariff.id ? 'text-primary' : 'text-secondary'"
-              class="ml-1 py-1 px-3 mb-6"
-              rounded="lg"
-              @click="selectTariff(tariff.id)"
             >
-              {{ tariff.name }}
-            </VBtn>
-
-
-
-            <div
-              v-if="loading"
-              class="text-center"
-            >
-              <VProgressCircular
-                indeterminate
-                color="primary"
-              />
-            </div>
-
-            <VRow
-              v-else
-              class="mt-3 card-wrap"
-            >
-              <template
-                v-for="tariff in tariffs"
-                :key="tariff.id"
-              >
-                <template v-if="selectedTariff == tariff.id">
-                  <div
-                    v-for="(data, index) in tariff.data"
-                    :key="index"
-                    class="d-flex justify-start align-start gap-10 px-3"
+              <template v-if="selectedTariff == tariff.id">
+                <div
+                  v-for="(data, index) in tariff.data"
+                  :key="index"
+                  class="d-flex justify-start align-start gap-10 px-3"
+                >
+                  <VCard
+                    class="tariff-card"
+                    width="340"
                   >
-                    <VCard
-                      class="tariff-card"
-                      width="340"
-                    >
-                      <div class="card-content">
-                        <div class="d-flex justify-between">
-                          <h2 class="text-h5 mb-4 font-weight-bold tariff-name">
-                            {{ data.name }}
-                          </h2>
-                          <div class="tariff-badge">
-                            Скидка 50%
-                          </div>
-                        </div>
-                        <div class="min-100">
-                          <div class="text-body-2 adv-item text-no-wrap">
-                            До {{ tariff.products_count }} товаров в месяц на магазин
-                          </div>
+                    <div class="card-content">
+                      <div class="d-flex justify-between">
+                        <h2 class="text-h5 mb-4 font-weight-bold tariff-name">
+                          {{ data.name }}
+                        </h2>
+                        <div class="tariff-badge">
+                          Скидка 50%
                         </div>
                       </div>
-                      <div class="d-flex justify-between align-center mt-4 gap-5">
-                        <VBtn
-                          color="primary"
-                          width="146"
-                          @click="buyTariff(tariff, data.duration_days)"
+                      <div class="min-100">
+                        <div class="text-body-2 adv-item text-no-wrap">
+                          До {{ tariff.products_count }} товаров в месяц на магазин
+                        </div>
+                        <div class="text-body-2 adv-item text-no-wrap">
+                          Безлимит по количеству выкупов
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-flex justify-between align-center mt-4 gap-5">
+                      <VBtn
+                        color="primary"
+                        width="146"
+                        @click="buyTariff(tariff, data.duration_days)"
+                      >
+                        Оформить
+                      </VBtn>
+                      <div class="text-left w-100">
+                        <p class="text-h6 font-weight-bold ma-0">
+                          {{ data.initial_price }} ₽
+                          <span v-if="index === 0">в месяц</span>
+                          <span v-else-if="index === 1">в 3 мес.</span>
+                          <span v-else-if="index === 2">в год</span>
+                        </p>
+                        <p
+                          class="ma-0"
+                          style="font-size: 10px;"
                         >
-                          Оформить
-                        </VBtn>
-                        <div class="text-left w-100">
-                          <p class="text-h6 font-weight-bold ma-0">
-                            {{ data.initial_price }} ₽
-                            <span v-if="index === 0">в месяц</span>
-                            <span v-else-if="index === 1">в 3 мес.</span>
-                            <span v-else-if="index === 2">в год</span>
-                          </p>
-                          <p
-                            class="ma-0"
-                            style="font-size: 10px;"
-                          >
-                            Далее {{ data.recurring_price }} ₽
-                            <span v-if="index === 0">/месяц</span>
-                            <span v-else-if="index === 1">/ 3 месяца</span>
-                            <span v-else-if="index === 2">/ в год</span>
-                          </p>
-                        </div>
+                          Далее {{ data.recurring_price }} ₽
+                          <span v-if="index === 0">/месяц</span>
+                          <span v-else-if="index === 1">/ 3 месяца</span>
+                          <span v-else-if="index === 2">/ в год</span>
+                        </p>
                       </div>
-                    </VCard>
-                  </div>
-                </template>
+                    </div>
+                  </VCard>
+                </div>
               </template>
             </VRow>
           </div>
@@ -567,201 +569,210 @@ const getTariffEndDate = (tariff) => {
             Транзакции:
           </h1>
         </div>
+      </div>
+      <!--        / Тарифы -->
 
-        <!-- Transactions Table -->
-        <div class="transactions-box py-4">
-          <h3 class="text-h6 mb-4">
-            Детализация
-          </h3>
-          <VTable class="mt-5">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Сумма</th>
-                <th>Тип</th>
-                <th>Тип операции</th>
-                <th>Дата и время</th>
-                <th>Описание</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="transaction in transactions"
-                :key="transaction.id"
-              >
-                <td>{{ transaction.id }}</td>
-                <td>
-                  {{ Math.floor(+transaction.amount) }}
-                  <span v-if="transaction.currency_type === 'cash'">₽</span>
-                </td>
-                <td>{{ formatCurrencyType(transaction.currency_type) }}</td>
-                <td
-                  :class="{
-                    'text-success': transaction.transaction_type === 'deposit',
-                    'text-error': transaction.transaction_type === 'withdraw'
-                  }"
-                >
-                  {{ formatOperationType(transaction.transaction_type) }}
-                </td>
-                <td>{{ formatDate(transaction.created_at) }}</td>
-                <td>{{ transaction.description }}</td>
-              </tr>
-            </tbody>
-          </VTable>
-        </div>
+      <!-- Transaction Filters -->
+      <div class="filters-box mt-10 mb-6">
+        <h1 class="text-h4 mb-4  font-weight-bold">
+          Транзакции:
+        </h1>
       </div>
 
-      <!-- Top-Up Modal -->
-      <VDialog
-        v-model="showTopUpModal"
-        max-width="400px"
-      >
-        <VSheet class="pa-6">
-          <h2 class="text-h5 mb-4">
-            Пополнить баланс
-          </h2>
-          <VTextField
-            v-model="topUpAmount"
-            label="Сумма (₽)"
-            type="number"
-            min="1"
-            outlined
-          />
-          <div class="d-flex justify-end mt-4">
-            <VBtn
-              color="secondary"
-              class="mr-2"
-              @click="showTopUpModal = false"
+      <!-- Transactions Table -->
+      <div class="transactions-box py-4">
+        <h3 class="text-h6 mb-4">
+          Детализация
+        </h3>
+        <VTable class="mt-5">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Сумма</th>
+              <th>Тип</th>
+              <th>Тип операции</th>
+              <th>Дата и время</th>
+              <th>Описание</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="transaction in transactions"
+              :key="transaction.id"
             >
-              Отмена
-            </VBtn>
-            <VBtn
-              color="primary"
-              @click="topUpBalance"
-            >
-              Пополнить
-            </VBtn>
-          </div>
-        </VSheet>
-      </VDialog>
+              <td>{{ transaction.id }}</td>
+              <td>
+                {{ Math.floor(+transaction.amount) }}
+                <span v-if="transaction.currency_type === 'cash'">₽</span>
+              </td>
+              <td>{{ formatCurrencyType(transaction.currency_type) }}</td>
+              <td
+                :class="{
+                  'text-success': transaction.transaction_type === 'deposit',
+                  'text-error': transaction.transaction_type === 'withdraw'
+                }"
+              >
+                {{ formatOperationType(transaction.transaction_type) }}
+              </td>
+              <td>{{ formatDate(transaction.created_at) }}</td>
+              <td>{{ transaction.description }}</td>
+            </tr>
+          </tbody>
+        </VTable>
+      </div>
+    </div>
 
-      <!--      Вывод средств -->
-      <VDialog
-        v-model="showWithdrawModal"
-        max-width="400px"
-      >
-        <VSheet class="pa-6">
-          <h2 class="text-h5 mb-4">
-            Вывести деньги
-          </h2>
-          <VTextField
-            v-model="withdrawAmount"
-            label="Сумма (₽)"
-            type="number"
-            min="1000"
-            outlined
-          />
-          <VTextField
-            v-model="cardNumber"
-            v-mask="'#### #### #### ####'"
-            label="Номер карты"
-            class="mt-2"
-            type="text"
-            outlined
-          />
-          <div class="d-flex justify-end mt-4">
-            <VBtn
-              color="secondary"
-              class="mr-2"
-              @click="showWithdrawModal = false"
-            >
-              Отмена
-            </VBtn>
-            <VBtn
-              color="primary"
-              @click="withdraw"
-            >
-              Вывести
-            </VBtn>
-          </div>
-        </VSheet>
-      </VDialog>
+    <!-- Top-Up Modal -->
+    <VDialog
+      v-model="showTopUpModal"
+      max-width="400px"
+    >
+      <VSheet class="pa-6">
+        <h2 class="text-h5 mb-4">
+          Пополнить баланс
+        </h2>
+        <VTextField
+          v-model="topUpAmount"
+          label="Сумма (₽)"
+          type="number"
+          min="1"
+          outlined
+        />
+        <div class="d-flex justify-end mt-4">
+          <VBtn
+            color="secondary"
+            class="mr-2"
+            @click="showTopUpModal = false"
+          >
+            Отмена
+          </VBtn>
+          <VBtn
+            color="primary"
+            @click="topUpBalance"
+          >
+            Пополнить
+          </VBtn>
+        </div>
+      </VSheet>
+    </VDialog>
 
-      <!-- Promo Code Modal -->
-      <VDialog
-        v-model="showPromoModal"
-        max-width="400px"
-      >
-        <VSheet class="pa-6">
-          <h2 class="text-h5 mb-4">
-            Ввести промокод
-          </h2>
-          <VTextField
-            v-model="promoCode"
-            label="Промокод"
-            outlined
-          />
-          <div class="d-flex justify-end mt-4">
-            <VBtn
-              color="secondary"
-              class="mr-2"
-              @click="showPromoModal = false"
-            >
-              Отмена
-            </VBtn>
-            <VBtn
-              color="primary"
-              @click="applyPromoCode"
-            >
-              Применить
-            </VBtn>
-          </div>
-        </VSheet>
-      </VDialog>
+    <!--      Вывод средств -->
+    <VDialog
+      v-model="showWithdrawModal"
+      max-width="400px"
+    >
+      <VSheet class="pa-6">
+        <h2 class="text-h5 mb-4">
+          Вывести деньги
+        </h2>
+        <VTextField
+          v-model="withdrawAmount"
+          label="Сумма (₽)"
+          type="number"
+          min="1000"
+          outlined
+        />
+        <VTextField
+          v-model="cardNumber"
+          v-mask="'#### #### #### ####'"
+          label="Номер карты"
+          class="mt-2"
+          type="text"
+          outlined
+        />
+        <div class="d-flex justify-end mt-4">
+          <VBtn
+            color="secondary"
+            class="mr-2"
+            @click="showWithdrawModal = false"
+          >
+            Отмена
+          </VBtn>
+          <VBtn
+            color="primary"
+            @click="withdraw"
+          >
+            Вывести
+          </VBtn>
+        </div>
+      </VSheet>
+    </VDialog>
 
-      <!-- Product Selection Modal -->
-      <VDialog
-        v-model="showProductModal"
-        max-width="600px"
-      >
-        <VSheet class="pa-6">
-          <h2 class="text-h5 mb-4">
-            Выберите товар
-          </h2>
-          <VTextField
-            v-model="productSearch"
-            label="Поиск по названию"
-            outlined
-            class="mb-4"
-            @input="productPage = 1; fetchProducts()"
-          />
-          <VList>
-            <VListItem
-              v-for="product in products"
-              :key="product.id"
-              class="product-item"
-              @click="selectProduct(product.id)"
-            >
-              <VListItemTitle>{{ product.name }}</VListItemTitle>
-              <VListItemSubtitle>ID: {{ product.id }}</VListItemSubtitle>
-            </VListItem>
-          </VList>
-          <VPagination
-            v-model="productPage"
-            :length="productLastPage"
-            class="mt-4"
-            @update:model-value="fetchProducts"
-          />
-          <div class="d-flex justify-end mt-4">
-            <VBtn
-              color="secondary"
-              @click="showProductModal = false"
-            >
-              Закрыть
-            </VBtn>
-          </div>
-        </VSheet>
-      </VDialog>
+    <!-- Promo Code Modal -->
+    <VDialog
+      v-model="showPromoModal"
+      max-width="400px"
+    >
+      <VSheet class="pa-6">
+        <h2 class="text-h5 mb-4">
+          Ввести промокод
+        </h2>
+        <VTextField
+          v-model="promoCode"
+          label="Промокод"
+          outlined
+        />
+        <div class="d-flex justify-end mt-4">
+          <VBtn
+            color="secondary"
+            class="mr-2"
+            @click="showPromoModal = false"
+          >
+            Отмена
+          </VBtn>
+          <VBtn
+            color="primary"
+            @click="applyPromoCode"
+          >
+            Применить
+          </VBtn>
+        </div>
+      </VSheet>
+    </VDialog>
+
+    <!-- Product Selection Modal -->
+    <VDialog
+      v-model="showProductModal"
+      max-width="600px"
+    >
+      <VSheet class="pa-6">
+        <h2 class="text-h5 mb-4">
+          Выберите товар
+        </h2>
+        <VTextField
+          v-model="productSearch"
+          label="Поиск по названию"
+          outlined
+          class="mb-4"
+          @input="productPage = 1; fetchProducts()"
+        />
+        <VList>
+          <VListItem
+            v-for="product in products"
+            :key="product.id"
+            class="product-item"
+            @click="selectProduct(product.id)"
+          >
+            <VListItemTitle>{{ product.name }}</VListItemTitle>
+            <VListItemSubtitle>ID: {{ product.id }}</VListItemSubtitle>
+          </VListItem>
+        </VList>
+        <VPagination
+          v-model="productPage"
+          :length="productLastPage"
+          class="mt-4"
+          @update:model-value="fetchProducts"
+        />
+        <div class="d-flex justify-end mt-4">
+          <VBtn
+            color="secondary"
+            @click="showProductModal = false"
+          >
+            Закрыть
+          </VBtn>
+        </div>
+      </VSheet>
+    </VDialog>
   </VContainer>
 </template>
 

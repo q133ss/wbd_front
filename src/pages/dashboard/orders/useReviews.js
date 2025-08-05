@@ -17,11 +17,15 @@ export const useReviews = () => {
       reviewRating.value = null
       snackbar.notify({ text: 'Отзыв отправлен', color: 'success' })
       await chatStore.selectChat(chatStore.activeChat)
+
+      return true
     } catch (error) {
       snackbar.notify({
         text: error.response?._data?.message || 'Ошибка отправки отзыва',
         color: 'error',
       })
+
+      return false
     }
   }
 
