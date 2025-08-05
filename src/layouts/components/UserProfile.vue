@@ -6,7 +6,7 @@ const ability = useAbility()
 
 // TODO: Get type from backend
 const userData = useCookie('userData')
-
+const role = computed(() => userData.value ? userData.value.role_id : null)
 const logout = async () => {
   // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
@@ -17,7 +17,12 @@ const logout = async () => {
   // Redirect to login page
   // await router.push('/login')
 
-  router.push('/login').then(() => window.location.reload())
+  if(role == 3){
+    router.push('/login').then(() => window.location.reload())
+  }else{
+    router.push('/seller/login').then(() => window.location.reload())
+  }
+
 
   // ℹ️ We had to remove abilities in then block because if we don't nav menu items mutation is visible while redirecting user to login page
 
