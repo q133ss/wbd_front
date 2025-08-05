@@ -90,9 +90,9 @@ onMounted(async () => {
       name: adResponse.name || '',
       cashback_percentage: parseFloat(adResponse.cashback_percentage) || 0,
       redemption_count: adResponse.redemption_count || 1,
-      order_conditions: adResponse.order_conditions || '',
-      redemption_instructions: adResponse.redemption_instructions || '',
-      review_criteria: adResponse.review_criteria || '',
+      order_conditions: adResponse.order_conditions.replace(/<br\s*\/?>/gi, '\n') || '',
+      redemption_instructions: adResponse.redemption_instructions.replace(/<br\s*\/?>/gi, '\n') || '',
+      review_criteria: adResponse.review_criteria.replace(/<br\s*\/?>/gi, '\n') || '',
       size: adResponse.size || '',
       color: adResponse.color || ''
     }
@@ -173,7 +173,7 @@ const insertTemplate = async (field) => {
   try {
     const template = await api.template.getTemplateByType(field)
     if (template?.text) {
-      adData.value[field] = template.text
+      adData.value[field] = template.text.replace(/<br\s*\/?>/gi, '\n')
     } else {
       snackbar.notify({
         text: 'Шаблон не найден',
@@ -214,10 +214,18 @@ const saveTemplate = async () => {
 }
 
 const submitAd = async () => {
-  try {
-    const payload = {
-      ...adData.value
+  const payload = {
+    ...adData.value
+  }
+
+  // 🔽 Замена переносов строк на <br> для полей с текстом
+  const FIELDS_WITH_TEXTAREA = ['order_conditions', 'redemption_instructions', 'review_criteria']
+  FIELDS_WITH_TEXTAREA.forEach(field => {
+    if (payload[field]) {
+      payload[field] = payload[field].replace(/\n/g, '<br>')
     }
+  })
+  try {
     if (isKeywords.value && keywords.value.length) {
       // Собираем массив для ключевых слов
       payload.keywords = keywords.value

@@ -715,8 +715,14 @@ const closeTgModal = () => {
           <th class="text-uppercase">
             Выкупов
           </th>
+          <th class="text-uppercase" style="width: 20px">
+            Выкупы в процессе
+          </th>
           <th class="text-uppercase">
             Просмотры
+          </th>
+          <th class="text-uppercase">
+            CTR
           </th>
           <th class="text-uppercase">
             CR
@@ -785,14 +791,18 @@ const closeTgModal = () => {
             <td>
               {{ truncateName(item.product.name) }}
             </td>
-            <td>{{ parseInt(item.cashback_percentage) }}%</td>
+            <td>{{ parseInt(item.cashback_percentage) }}% / {{parseInt(item.price_with_cashback)}}₽</td>
             <td v-if="item.keywords == null">
               {{ item.completed_buybacks_count }} из {{ item.redemption_count }}
             </td>
             <td v-else>
               {{ item.completed_buybacks_count }} из {{ item.keywords.reduce((sum, kw) => sum + (kw.redemption_count || 0), 0) }}
             </td>
+            <td>
+              {{ item.process_buybacks_count }}
+            </td>
             <td>{{ item.views_count }}</td>
+            <td>{{ item.ctr }}</td>
             <td>{{ item.cr }}</td>
           </tr>
           <tr v-if="!ads.length">

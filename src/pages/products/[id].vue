@@ -237,7 +237,9 @@ const handleOrderClick = async () => {
       router.push(`/dashboard/orders?chatId=${response.message?.id}`)
     }
   }catch (error){
-    if(error.response?.status){
+    console.error('Ошибка при создании заказа:', error.response)
+    if(error.response?.status == 400){
+      // TODO надо бы поменять статус на 401!!!!
       showPayModal.value = true
     }else{
       snackbar.notify({ text: error.response?._data?.message, color: "error" })
