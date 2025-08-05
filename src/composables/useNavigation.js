@@ -66,7 +66,7 @@ export function useSellerNavigation() {
       to: 'profile',
     },
     {
-      title: 'Баланс',
+      title: 'Тарифы',
       icon: { icon: 'ri-wallet-line' },
       to: 'balance',
     },

@@ -23,8 +23,8 @@ const adData = ref({
   order_conditions: '',
   redemption_instructions: '',
   review_criteria: '',
-  size: '',
-  color: '',
+  size: [],
+  color: [],
 })
 
 const balance = ref(null)
@@ -136,9 +136,7 @@ const cashbackPerRedemption = computed(() => {
 
 // Handlers
 const incrementRedemptions = () => {
-  if (adData.value.redemption_count > balance.value.redemption_count) {
-    adData.value.redemption_count++
-  }
+  adData.value.redemption_count++
 }
 
 const decrementRedemptions = () => {
@@ -151,7 +149,7 @@ const insertTemplate = async field => {
   try {
     const template = await api.template.getTemplateByType(field)
     if (template?.text) {
-      adData.value[field] = template.text
+      adData.value[field] = template.text.replace(/<br\s*\/?>/gi, '\n')
     } else {
       snackbar.notify({
         text: 'Шаблон не найден',
@@ -206,6 +204,14 @@ const submitAd = async () => {
         redemption_count: k.count || 1,
       }))
   }
+
+  // 🔽 Замена переносов строк на <br> для полей с текстом
+  const FIELDS_WITH_TEXTAREA = ['order_conditions', 'redemption_instructions', 'review_criteria']
+  FIELDS_WITH_TEXTAREA.forEach(field => {
+    if (payload[field]) {
+      payload[field] = payload[field].replace(/\n/g, '<br>')
+    }
+  })
 
   try {
     await api.ads.createAd(payload)
@@ -369,6 +375,7 @@ function decrement(idx) {
                 label="Цвет"
                 persistent-hint
                 clearable
+                multiple
                 class="mt-5"
               />
 
@@ -381,6 +388,7 @@ function decrement(idx) {
                 label="Размер"
                 persistent-hint
                 clearable
+                multiple
                 class="mt-5 mb-5"
               />
 
@@ -516,7 +524,7 @@ function decrement(idx) {
                   v-if="isKeywords"
                   class="mt-4 text-subtitle-1 grey--text"
                 >
-                  Если вы активируете эту функцию, то поиск и выкуп товаров покупателями будет происходить по этим ключевым словам. Активируйте в случае нужды продвижения карточки по ключевым запросам.
+                  Если вы активируете эту функцию, то поиск и выкуп товаров покупателями будет происходить по этим ключевым словам. В разделе "Инструкция для выкупа вставьте в нужное место {word} для отображения ключевого слова. Например: Найдите товар по ключевому слову "{word}".
                 </div>
               </div>
               <VRow
@@ -545,12 +553,10 @@ function decrement(idx) {
                       label="Количество выкупов"
                       type="number"
                       min="1"
-                      :max="availableRedemptions"
                       class="mx-2"
                       style="max-width: 120px"
                       hide-details
                       dense
-                      :rules="[v => (v >= 1 && v <= availableRedemptions) || 'Недопустимое значение']"
                     />
                     <VBtn
                       class="increment-btn ml-2"
@@ -565,13 +571,8 @@ function decrement(idx) {
                       </VIcon>
                     </VBtn>
                   </div>
-                  <p class="text-body-1 mt-2">
-                    Доступно выкупов: {{ balance.redemption_count }}
-                  </p>
                 </VCol>
               </VRow>
-
-              <hr class="total-hr">
 
               <VBtn
                 color="primary"

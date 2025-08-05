@@ -22,8 +22,8 @@ const adData = ref({
   order_conditions: '',
   redemption_instructions: '',
   review_criteria: '',
-  size: '',
-  color: ''
+  size: [],
+  color: []
 })
 const balance = ref(null)
 const loading = ref(true)
@@ -156,9 +156,7 @@ const cashbackPerRedemption = computed(() => {
 
 // Handlers
 const incrementRedemptions = () => {
-  if (adData.value.redemption_count < availableRedemptions.value) {
-    adData.value.redemption_count++
-  }
+  adData.value.redemption_count++
 }
 
 const decrementRedemptions = () => {
@@ -339,6 +337,7 @@ function decrement(idx) {
               item-value="name"
               label="Цвет"
               persistent-hint
+              multiple
               clearable
               class="mt-5"
             />
@@ -352,6 +351,7 @@ function decrement(idx) {
               label="Размер"
               persistent-hint
               clearable
+              multiple
               class="mt-5 mb-5"
             />
 
@@ -444,7 +444,7 @@ function decrement(idx) {
               </transition>
 
               <div v-if="isKeywords" class="mt-4 text-subtitle-1 grey--text">
-                Если вы активируете эту функцию, то поиск и выкуп товаров покупателями будет происходить по этим ключевым словам. Активируйте в случае нужды продвижения карточки по ключевым запросам.
+                Если вы активируете эту функцию, то поиск и выкуп товаров покупателями будет происходить по этим ключевым словам. В разделе "Инструкция для выкупа вставьте в нужное место {word} для отображения ключевого слова. Например: Найдите товар по ключевому слову "{word}".
               </div>
             </div>
             <v-row class="mb-4" v-else>
@@ -464,7 +464,6 @@ function decrement(idx) {
                     label="Количество выкупов"
                     type="number"
                     min="1"
-                    :max="availableRedemptions"
                     class="mx-2"
                     style="max-width: 150px"
                   />
@@ -479,13 +478,9 @@ function decrement(idx) {
                     </svg>
                   </button>
                 </div>
-                <p class="text-body-1 mt-2">
-                  Доступно выкупов: {{ balance.redemption_count }}
-                </p>
               </v-col>
             </v-row>
 
-            <hr class="total-hr">
             <!-- Cost Breakdown -->
             <v-btn
               color="primary"
