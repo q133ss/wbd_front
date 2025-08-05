@@ -267,16 +267,25 @@ const handleUpload = async () => {
       receiptSent.value = true
       barcodeFile.value = null
       reviewFile.value = null
+
+      const updatedChat = await api.buyback.getBuybackById(currentChatId.value)
+      if (updatedChat) {
+        chatStore.updateChat(updatedChat)
+        if (chatStore.activeChat?.id === currentChatId.value) {
+          chatStore.activeChat = { ...updatedChat }
+        }
+      }
       await fetchChats(chatStore.selectedStatus)
       if (currentChatId.value) {
-        const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
+        const chat = Object.values(chatStore.chatsByStatus)
+          .flat()
+          .find(c => c.id === currentChatId.value)
+
         if (chat) {
           await selectChat(chat)
-          if (!chat.is_review_photo_sent) {
-            console.warn('Warning: is_review_photo_sent is still false after upload. Check server response.')
-          }
+          scrollToBottom()
         } else {
-          console.error('Chat not found for ID:', currentChatId.value)
+          snackbar.notify({ text: 'Чат не найден после обновления', color: 'error' })
         }
       }
     }
@@ -343,15 +352,21 @@ const handleSubmitReview = async () => {
   isConfirmLoading.value = true
   try {
     const success = await submitReview()
+
+    console.log('suck', success)
     if (success) {
       snackbar.notify({ text: 'Отзыв успешно отправлен', color: 'success' })
       setReviewSubmittedStatus(currentChatId.value, true)
       isReviewSubmitted.value = true
 
       reviewText.value = ''
-      reviewRating.value = null
+      reviewRating.value = null  
 
+      console.log('IsReview ', isReviewSubmitted.value)
+      
       const updatedChat = await api.buyback.getBuybackById(currentChatId.value)
+
+      console.log('update chat ', updatedChat)
       if (updatedChat) {
         chatStore.updateChat(updatedChat)
         if (chatStore.activeChat?.id === currentChatId.value) {
@@ -363,8 +378,6 @@ const handleSubmitReview = async () => {
 
       const chat = Object.values(chatStore.chatsByStatus).flat().find(c => c.id === currentChatId.value)
       if (chat) await selectChat(chat)
-
-      window.reload()
     }
   } catch (error) {
     console.error('Error submitting review:', error)

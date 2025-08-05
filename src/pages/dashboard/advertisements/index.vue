@@ -523,7 +523,18 @@ const closeTgModal = () => {
         cols="12"
         class="d-flex flex-wrap"
       >
+        <div
+          v-if="loading"
+          class="w-100 d-flex justify-center my-8"
+        >
+          <VProgressCircular
+            indeterminate
+            color="primary"
+            size="40"
+          />
+        </div>
         <VCard
+          v-else-if="ads.length"
           v-for="item in ads"
           :key="item.id"
           width="100%"
@@ -681,6 +692,12 @@ const closeTgModal = () => {
             </VMenu>
           </div>
         </VCard>
+        <div
+          v-else
+          class="text-center  w-100"
+        >
+          <p>Тут пока пусто</p>
+        </div>
       </VCol>
     </VRow>
     <!-- Таблица объявлений -->

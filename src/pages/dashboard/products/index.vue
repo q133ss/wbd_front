@@ -494,7 +494,7 @@ const loadRelated = ref(false)
           prepend-icon="ri-add-fill"
           class="mb-2 !text-body-1"
           style="font-size: 14px !important"
-          @click="openProductModal"
+          @click="showAddModal = true"
         >
           Добавить товар
         </VBtn>
@@ -543,10 +543,21 @@ const loadRelated = ref(false)
       </VCol>
       <VCol
         cols="12"
-        class="d-flex flex-wrap"
+        class="d-flex flex-wrap gap-4"
       >
+        <div
+          v-if="loading"
+          class="w-100 d-flex justify-center my-8"
+        >
+          <VProgressCircular
+            indeterminate
+            color="primary"
+            size="40"
+          />
+        </div>
         <VCard
           v-for="item in products"
+          v-else-if="products.length"          
           :key="item.id"
           elevation="1"
           width="100%"
@@ -697,6 +708,12 @@ const loadRelated = ref(false)
             </VMenu>
           </div>
         </VCard>
+        <div
+          v-else
+          class="text-center  w-100"
+        >
+          <p>Тут пока пусто</p>
+        </div>
       </VCol>
     </VRow>
     <!-- Таблица товаров -->
