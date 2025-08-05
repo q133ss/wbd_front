@@ -361,37 +361,37 @@ const buyTariff = async (tariff, days) => {
   }
 }
 
-const getTariffEndDate = (tariff) => {
-  const pivot = tariff.pivot;
+const getTariffEndDate = tariff => {
+  const pivot = tariff.pivot
 
-  if (!pivot) return 'Нет данных';
+  if (!pivot) return 'Нет данных'
 
   // Если есть точная дата окончания — используем её
-  const endDate = pivot.end_date ? new Date(pivot.end_date) : null;
+  const endDate = pivot.end_date ? new Date(pivot.end_date) : null
 
   // Если нет, рассчитываем по created_at + duration_days
-  let expirationDate;
+  let expirationDate
   if (endDate) {
-    expirationDate = endDate;
+    expirationDate = endDate
   } else {
-    const createdAt = new Date(pivot.created_at);
-    expirationDate = new Date(createdAt);
-    expirationDate.setDate(expirationDate.getDate() + (tariff.duration_days || 0));
+    const createdAt = new Date(pivot.created_at)
+
+    expirationDate = new Date(createdAt)
+    expirationDate.setDate(expirationDate.getDate() + (tariff.duration_days || 0))
   }
 
   // Локализованный формат даты
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  const expirationDateString = expirationDate.toLocaleDateString('ru-RU', options);
+  const options = { year: 'numeric', month: 'long', day: 'numeric' }
+  const expirationDateString = expirationDate.toLocaleDateString('ru-RU', options)
 
   // Проверка, истёк ли тариф
-  const now = new Date();
+  const now = new Date()
   if (now > expirationDate) {
-    return 'Тариф истёк';
+    return 'Тариф истёк'
   }
 
-  return expirationDateString;
-};
-
+  return expirationDateString
+}
 </script>
 
 <template>
@@ -492,7 +492,6 @@ const getTariffEndDate = (tariff) => {
               color="primary"
             />
           </div>
-
           <VRow
             v-else
             class="mt-3 card-wrap"
@@ -558,16 +557,8 @@ const getTariffEndDate = (tariff) => {
                   </VCard>
                 </div>
               </template>
-            </VRow>
-          </div>
-        </div>
-        <!--        / Тарифы -->
-
-        <!-- Transaction Filters -->
-        <div class="filters-box mt-10 mb-6">
-          <h1 class="text-h4 mb-4  font-weight-bold">
-            Транзакции:
-          </h1>
+            </template>
+          </VRow>
         </div>
       </div>
       <!--        / Тарифы -->
@@ -578,48 +569,56 @@ const getTariffEndDate = (tariff) => {
           Транзакции:
         </h1>
       </div>
+    </div>
+    <!--        / Тарифы -->
 
-      <!-- Transactions Table -->
-      <div class="transactions-box py-4">
-        <h3 class="text-h6 mb-4">
-          Детализация
-        </h3>
-        <VTable class="mt-5">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Сумма</th>
-              <th>Тип</th>
-              <th>Тип операции</th>
-              <th>Дата и время</th>
-              <th>Описание</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="transaction in transactions"
-              :key="transaction.id"
+    <!-- Transaction Filters -->
+    <div class="filters-box mt-10 mb-6">
+      <h1 class="text-h4 mb-4  font-weight-bold">
+        Транзакции:
+      </h1>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="transactions-box py-4">
+      <h3 class="text-h6 mb-4">
+        Детализация
+      </h3>
+      <VTable class="mt-5">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Сумма</th>
+            <th>Тип</th>
+            <th>Тип операции</th>
+            <th>Дата и время</th>
+            <th>Описание</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="transaction in transactions"
+            :key="transaction.id"
+          >
+            <td>{{ transaction.id }}</td>
+            <td>
+              {{ Math.floor(+transaction.amount) }}
+              <span v-if="transaction.currency_type === 'cash'">₽</span>
+            </td>
+            <td>{{ formatCurrencyType(transaction.currency_type) }}</td>
+            <td
+              :class="{
+                'text-success': transaction.transaction_type === 'deposit',
+                'text-error': transaction.transaction_type === 'withdraw'
+              }"
             >
-              <td>{{ transaction.id }}</td>
-              <td>
-                {{ Math.floor(+transaction.amount) }}
-                <span v-if="transaction.currency_type === 'cash'">₽</span>
-              </td>
-              <td>{{ formatCurrencyType(transaction.currency_type) }}</td>
-              <td
-                :class="{
-                  'text-success': transaction.transaction_type === 'deposit',
-                  'text-error': transaction.transaction_type === 'withdraw'
-                }"
-              >
-                {{ formatOperationType(transaction.transaction_type) }}
-              </td>
-              <td>{{ formatDate(transaction.created_at) }}</td>
-              <td>{{ transaction.description }}</td>
-            </tr>
-          </tbody>
-        </VTable>
-      </div>
+              {{ formatOperationType(transaction.transaction_type) }}
+            </td>
+            <td>{{ formatDate(transaction.created_at) }}</td>
+            <td>{{ transaction.description }}</td>
+          </tr>
+        </tbody>
+      </VTable>
     </div>
 
     <!-- Top-Up Modal -->
