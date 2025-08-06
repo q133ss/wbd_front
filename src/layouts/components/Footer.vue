@@ -276,9 +276,9 @@ import { themeConfig } from '@themeConfig'
   }
 }
 
-.layout-content-wrapper{
-  padding-bottom: 500px !important;
-}
+// .layout-content-wrapper{
+//   padding-bottom: 500px !important;
+// }
 
 @media screen and (max-width: 960px) {
   .layout-content-wrapper{

@@ -24,7 +24,7 @@ export const statusMessages = {
     text: 'Ожидание подтверждения получение кэшбэка от продавца',
   },
   cashback_received: {
-    title: 'Завершено',
+    title: 'Завершен',
     text: 'Сделка успешно завершена',
   },
 }

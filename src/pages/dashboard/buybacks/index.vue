@@ -49,7 +49,8 @@ const isRejectVisible = ref(false)
 const sendReview = ref(false)
 const hasSubmittedReview = ref(false)
 
-const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>\r\nОн проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом`
+const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>
+Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом`
 
 const getScreenSentStatus = chatId => {
   const sentStatus = localStorage.getItem('screenSentStatus')
@@ -627,7 +628,7 @@ onUnmounted(() => {
                     :key="`msg-${message.id}`"
                     class="mb-4 list-none"
                   >
-                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'user'">
+                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'seller'">
                       <div class="w-100 text-caption text-center text-disabled mb-2">
                         {{ new Date(message.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }} в {{ new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }}
                       </div>
@@ -750,7 +751,7 @@ onUnmounted(() => {
                       <template v-if="message.type === 'image' && message.files && message.files.length > 0">
                         <div
                           class="chat-body d-inline-flex flex-column"
-                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-end'"
+                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-start'"
                         >
                           <div
                             class="text-body-1 py-2 px-4 elevation-2 mb-1"
