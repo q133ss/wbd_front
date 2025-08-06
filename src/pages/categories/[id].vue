@@ -14,6 +14,7 @@ const isLoadingMore = ref(false)
 const isAllLoaded = ref(false)
 const scrollObserver = ref(null)
 const scrollTrigger = ref(null)
+const hideSubCategories = ref(false)
 
 const route = useRoute()
 const router = useRouter()
@@ -23,11 +24,19 @@ const categoryId = ref(route.params.id)
 const fetchSubCategories = async () => {
   try {
     const response = await categoriesApi.getSubCategories(categoryId.value)
-    subCategories.value = response
+    // Сортировка подкатегорий по убыванию количества товаров
+    subCategories.value = response.sort((a, b) => b.product_count - a.product_count)
+    // Проверяем, есть ли подкатегории с товарами
+    if (!response.some(cat => cat.product_count > 0)) {
+      hideSubCategories.value = true
+      productsData.value = { data: [] }
+    } else {
+      hideSubCategories.value = false
+    }
   } catch (error) {
     if (error.status == 404) {
-      router.push('/not-found'); // Перенаправляем на 404 страницу
-      return;
+      router.push('/not-found')
+      return
     }
     console.error('Ошибка загрузки подкатегорий:', error)
   }
@@ -47,6 +56,7 @@ const filters = ref({
 
 // Загрузка товаров с пагинацией
 const fetchProducts = async (page = 1, reset = false) => {
+  if (hideSubCategories.value) return
   try {
     if (reset) {
       isAllLoaded.value = false
@@ -63,19 +73,16 @@ const fetchProducts = async (page = 1, reset = false) => {
       order: filters.value.order
     }
 
-    // Фильтры по цене
     if (filters.value.price.length === 2) {
       params.price_from = Math.min(...filters.value.price)
       params.price_to = Math.max(...filters.value.price)
     }
 
-    // Фильтры по кешбеку
     if (filters.value.cashback.length === 2) {
       params.cashback_from = Math.min(...filters.value.cashback)
       params.cashback_to = Math.max(...filters.value.cashback)
     }
 
-    // 🟢 Используем метод получения товаров из категории
     const response = await productApi.categories.getCategoryProducts(categoryId.value, params)
 
     if (reset || !productsData.value || !Array.isArray(productsData.value.data)) {
@@ -102,12 +109,10 @@ const fetchProducts = async (page = 1, reset = false) => {
 
 // Инициализация Intersection Observer
 const initScrollObserver = () => {
-  // Очищаем предыдущий observer
   if (scrollObserver.value) {
     scrollObserver.value.disconnect()
   }
 
-  // Создаем новый observer
   scrollObserver.value = new IntersectionObserver(
     ([entry]) => {
       if (entry.isIntersecting && !isLoadingMore.value && !isAllLoaded.value) {
@@ -117,7 +122,6 @@ const initScrollObserver = () => {
     { rootMargin: '200px' }
   )
 
-  // Начинаем наблюдение
   if (scrollTrigger.value) {
     scrollObserver.value.observe(scrollTrigger.value)
   }
@@ -152,12 +156,22 @@ watch(productsData, () => {
 // Реакция на изменение категории
 watch(() => route.params.id, (newId) => {
   categoryId.value = newId
+  hideSubCategories.value = false
+  fetchSubCategories()
   fetchProducts(1, true)
 })
 
 const goToCategory = (id) => {
-  categoryId.value = id
-  fetchSubCategories()
+  const selectedCategory = subCategories.value.find(cat => cat.category_id === id)
+  if (selectedCategory && selectedCategory.product_count === 0) {
+    hideSubCategories.value = true
+    productsData.value = { data: [] }
+  } else {
+    hideSubCategories.value = false
+    categoryId.value = id
+    fetchSubCategories()
+    fetchProducts(1, true)
+  }
   router.push(`/categories/${id}`)
 }
 
@@ -172,11 +186,10 @@ const back = () => {
 
 <template>
   <div class="landing-page-wrapper">
-
     <VContainer class="page-container">
       <VRow>
         <!-- Блок подкатегорий -->
-        <VCol cols="12" md="3">
+        <VCol v-if="!hideSubCategories" cols="12" md="3">
           <VCard class="subcategories-card">
             <VCardTitle class="text-h6">Подкатегории</VCardTitle>
             <VList v-if="subCategories.length > 0">
@@ -189,12 +202,11 @@ const back = () => {
                 <VListItemTitle>
                   {{ category.category_name }}
                 </VListItemTitle>
-                <VListItemSubtitle>
+                <VListItemSubtitle class="purple-text">
                   {{ category.product_count }} товаров
                 </VListItemSubtitle>
               </VListItem>
             </VList>
-
             <div v-else class="pa-4 text-center text-disabled">
               <VIcon icon="mdi-folder-remove-outline" size="48" class="mb-2" />
               <div>Нет подкатегорий</div>
@@ -204,7 +216,7 @@ const back = () => {
         </VCol>
 
         <!-- Блок товаров -->
-        <VCol cols="12" md="9" class="filters-block">
+        <VCol :cols="hideSubCategories ? 12 : [12, 9]" :md="hideSubCategories ? 12 : 9" class="filters-block">
           <!-- Фильтры -->
           <VCard class="mb-4" v-if="productsData?.data?.length != 0">
             <VCardText>
@@ -320,7 +332,6 @@ const back = () => {
       <div v-if="isLoadingMore" class="text-center py-4">
         <VProgressCircular indeterminate />
       </div>
-
     </VContainer>
   </div>
 </template>
@@ -331,14 +342,20 @@ const back = () => {
 }
 
 .subcategories-card {
+  overflow-y: auto;
   position: sticky;
   top: 80px;
   padding: 16px;
+  max-height: calc(100vh - 100px);
 }
 
 .active-subcategory {
   background-color: rgba(var(--v-theme-primary), 0.1);
   border-left: 3px solid rgb(var(--v-theme-primary));
+}
+
+.purple-text {
+  color: rgb(var(--v-theme-primary));
 }
 
 .product-card {
@@ -349,6 +366,13 @@ const back = () => {
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .subcategories-card {
+    max-height: 500px;
+    -webkit-overflow-scrolling: touch;
   }
 }
 </style>
