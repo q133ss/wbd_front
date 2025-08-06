@@ -63,6 +63,7 @@ const filters = ref({
 
 // Загрузка товаров
 const filterMaxPrice = ref(100000)
+const filterMinPrice = ref(0)
 const fetchProducts = async (page = 1) => {
   if (isLoading.value || (paginationInfo.value && page > paginationInfo.value.last_page)) return
 
@@ -108,6 +109,7 @@ const fetchProducts = async (page = 1) => {
     }
 
     filterMaxPrice.value = response.max_price || 100000
+    filterMinPrice.value = response.min_price || 0
   } catch (error) {
     console.error('Ошибка загрузки товаров:', error)
   } finally {
@@ -225,9 +227,9 @@ onUnmounted(() => {
                 <VRangeSlider
                   v-model="filters.price"
                   label="Цена"
-                  :min="0"
+                  :min="filterMinPrice"
                   :max="filterMaxPrice"
-                  :step="1000"
+                  :step="100"
                   thumb-label="always"
                 />
               </VCardText>
