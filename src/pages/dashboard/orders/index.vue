@@ -420,7 +420,7 @@ function parseMessage(text) {
   html = html.replace(
     /(^|\s)([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?![^<]*>)/g,
     (match, space, domain) =>
-      `${space}<a href="https://${domain}" target="_blank" rel="noopener noreferrer">${domain}</a>`,
+      `${space}<a href="https://${domain}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline">${domain}</a>`,
   )
 
   return html

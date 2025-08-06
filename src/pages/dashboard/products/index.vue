@@ -736,25 +736,22 @@ const loadRelated = ref(false)
             Выкупов
           </th>
           <th class="text-uppercase">
-            Просмотры
-          </th>
-          <th class="text-uppercase">
-            Выкупы
-          </th>
-          <th class="text-uppercase">
-            Конверсия
+            Выкупают
           </th>
           <th class="text-uppercase">
             Объявлений
+          </th>
+          <th class="text-uppercase">
+            Показы
+          </th>
+          <th class="text-uppercase">
+            Переходы
           </th>
           <th class="text-uppercase">
             CTR
           </th>
           <th class="text-uppercase">
             CR
-          </th>
-          <th class="text-uppercase">
-            Переходы
           </th>
         </tr>
       </thead>
@@ -799,7 +796,7 @@ const loadRelated = ref(false)
                 >
                   <RouterLink
                     :to="'/dashboard/advertisements?product_id='+item.id"
-                    class="text-no-wrap overflow-hidden text-body-2 font-weight-medium"
+                    class="text-no-wrap text-primary overflow-hidden text-body-2 font-weight-medium"
                   >
                     {{ truncateName(item.name) }}                    
                   </RouterLink>
@@ -815,14 +812,14 @@ const loadRelated = ref(false)
                 @update:model-value="() => toggleStatus(item.id)"
               />
             </td>
-            <td>{{ item.buybacks_progress }}</td>
-            <td>{{ item.views || 0 }}</td>
             <td>{{ item.completed_buybacks_count || 0 }}</td>
-            <td>{{ item.conversion }}</td>
-            <td>{{ item.ads_count }}</td>
+            <td>{{ item.buybacks_progress }}</td>    
+            <td>{{ item.ads_count }}</td>     
+            <td>{{ item.views || 0 }}</td> 
+            <td>{{ item.clicks }}</td>
             <td>{{ item.ctr }}</td>
             <td>{{ item.cr }}</td>
-            <td>{{ item.clicks }}</td>
+
           </tr>
           <tr v-if="!products?.length && !filters.is_archived">
             <td

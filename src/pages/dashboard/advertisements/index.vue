@@ -372,16 +372,16 @@ const closeTgModal = () => {
     >
       <VTab
         to="/dashboard/products"
-        class="text-primary px-1 pb-4 text-body-2"
+        class="text-secondary px-1 pb-4 text-body-2"
       >
         Товары <span
-        v-if="products?.length"
-        class="pl-1"
-      >  ({{ products?.length }})</span>
+          v-if="products?.length"
+          class="pl-1"
+        >  ({{ products?.length }})</span>
       </VTab>
       <VTab
         to="/dashboard/advertisements"
-        class="text-secondary px-1 pb-4 text-body-2 mx-4"
+        class="text-primary px-1 pb-4 text-body-2 mx-4"
       >
         Объявления
       </VTab>
@@ -561,8 +561,8 @@ const closeTgModal = () => {
           />
         </div>
         <VCard
-          v-else-if="ads.length"
           v-for="item in ads"
+          v-else-if="ads.length"
           :key="item.id"
           width="100%"
           variant="outlined"
@@ -748,9 +748,6 @@ const closeTgModal = () => {
             Статус
           </th>
           <th class="text-uppercase">
-            Изображение
-          </th>
-          <th class="text-uppercase">
             Товар
           </th>
           <th class="text-uppercase">
@@ -759,20 +756,100 @@ const closeTgModal = () => {
           <th class="text-uppercase">
             Выкупов
           </th>
-          <th class="text-uppercase" style="width: 20px">
-            Выкупают
+          <th>
+            <div class="inline-flex items-center">              
+              <VTooltip location="top">
+                <template #activator="{ props }">
+                  <VBadge
+                    v-bind="props"
+                    location="right center"
+                    :offset-x="-10"
+                    color="primary"
+                    dot
+                    class="ml-[2px]"
+                  >
+                    <span class="text-uppercase">Выкупают</span>
+                  </VBadge>
+                </template>
+                <span>Выкупы в процессе</span>
+              </VTooltip>
+            </div>
           </th>
-          <th class="text-uppercase">
-            Просмотры
+          <th>
+            <div class="flex items-center gap-1">              
+              <VTooltip location="top">
+                <template #activator="{ props }">
+                  <VBadge
+                    v-bind="props"
+                    location="right center"
+                    :offset-x="-10"
+                    color="primary"
+                    dot
+                    class="ml-[2px]"
+                  >
+                    <span class="text-uppercase">Показы</span>
+                  </VBadge>
+                </template>
+                <span>Сколько людей увидело карточку на главной</span>
+              </VTooltip>
+            </div>
           </th>
-          <th class="text-uppercase">
-            CTR
+          <th>
+            <div class="flex items-center gap-1">              
+              <VTooltip location="top">
+                <template #activator="{ props }">
+                  <VBadge
+                    v-bind="props"
+                    location="right center"
+                    :offset-x="-10"
+                    color="primary"
+                    dot
+                    class="ml-[2px]"
+                  >
+                    <span class="text-uppercase">Переходы</span>
+                  </VBadge>
+                </template>
+                <span>Сколько людей перешло в карточку</span>
+              </VTooltip>
+            </div>
           </th>
-          <th class="text-uppercase">
-            CR
+          <th>
+            <div class="relative inline-flex items-center">              
+              <VTooltip location="top">
+                <template #activator="{ props }">
+                  <VBadge
+                    v-bind="props"
+                    location="right center"
+                    :offset-x="-10"
+                    color="primary"
+                    dot
+                    class="ml-[2px] relative top-[1px]"
+                  >
+                    <span class="text-uppercase">CTR</span>
+                  </VBadge>
+                </template>
+                <span>Конверсия из показа в переход</span>
+              </VTooltip>
+            </div>
           </th>
-          <th class="text-uppercase">
-            Переходы
+          <th>
+            <div class="relative inline-flex items-center">
+              <VTooltip location="top">
+                <template #activator="{ props }">
+                  <VBadge
+                    v-bind="props"
+                    location="right center"
+                    :offset-x="-10"
+                    color="primary"
+                    dot
+                    class="ml-[2px] relative top-[1px]"
+                  >
+                    <span class="text-uppercase">CR</span>
+                  </VBadge>
+                </template>
+                <span>Конверсия из перехода в заказ</span>
+              </VTooltip>
+            </div>
           </th>
         </tr>
       </thead>
@@ -805,7 +882,7 @@ const closeTgModal = () => {
               />
             </td>
             <td>
-              <div class="d-flex align-center">
+              <div class="">
                 <RouterLink :to="`/dashboard/advertisements/edit/${item.id}`">
                   <VIcon
                     size="16"
@@ -824,7 +901,7 @@ const closeTgModal = () => {
                 @update:model-value="() => toggleStatus(item.id)"
               />
             </td>
-            <td>
+            <td class="d-flex flex-row align-center">
               <VImg
                 v-if="item.product.images && getFirstImage(item.product.images)"
                 :src="getFirstImage(item.product.images)"
@@ -834,11 +911,9 @@ const closeTgModal = () => {
                 height="50"
                 @click="openImage(getFirstImage(item.product.images))"
               />
+              <span class="truncate-2-lines">{{ truncateName(item.product.name) }}</span>
             </td>
-            <td>
-              {{ truncateName(item.product.name) }}
-            </td>
-            <td>{{ parseInt(item.cashback_percentage) }}% / {{parseInt(item.price_with_cashback)}}₽</td>
+            <td>{{ parseInt(item.cashback_percentage) }}% / {{ parseInt(item.price_with_cashback) }}₽</td>
             <td v-if="item.keywords == null">
               {{ item.completed_buybacks_count }} из {{ item.redemption_count }}
             </td>
@@ -849,9 +924,9 @@ const closeTgModal = () => {
               {{ item.process_buybacks_count }}
             </td>
             <td>{{ item.views_count }}</td>
+            <td>{{ item.clicks_count }}</td>
             <td>{{ item.ctr }}</td>
             <td>{{ item.cr }}</td>
-            <td>{{ item.clicks_count }}</td>
           </tr>
           <tr v-if="!ads.length">
             <td
@@ -1169,6 +1244,14 @@ const closeTgModal = () => {
   }
 }
 
+.v-table > .v-table__wrapper > table > thead > tr > th, .v-table > .v-table__wrapper > table > tfoot > tr > th {
+  padding: 0 10px !important;
+}
+
+:deep(.v-table > .v-table__wrapper > table > tbody > tr > td) {
+  padding: 0 10px !important;
+}
+
 .rounded-table {
   border-collapse: separate; /* Важно! */
   border-spacing: 0;
@@ -1176,6 +1259,12 @@ const closeTgModal = () => {
   overflow: hidden; /* Обрезает углы у внутренних элементов */
 }
 
+.truncate-2-lines {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;       /* Кол-во строк */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 
 @media screen and (max-width: 800px) {
