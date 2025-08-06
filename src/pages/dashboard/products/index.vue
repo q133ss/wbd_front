@@ -30,9 +30,8 @@ const statusOptions = [
 
 function selectStatus(value) {
   filters.value.status = value
-  handleFilterStatus(value) // вызываешь, если у тебя есть логика
+  handleFilterStatus(value)
 }
-
 
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -49,7 +48,6 @@ const userData = useCookie('userData')
 // Обрезка названия до 20 символов
 const truncateName = name => {
   if (!name) return ''
-  
   return name.length > 20 ? name.slice(0, 20) + '...' : name
 }
 
@@ -57,7 +55,7 @@ const truncateName = name => {
 const loadProducts = async () => {
   try {
     loading.value = true
-    await nextTick() // Гарантируем рендеринг индикатора загрузки
+    await nextTick()
 
     const response = await api.products.getSellerProducts({
       page: currentPage.value,
@@ -101,7 +99,7 @@ const toggleStatus = async productId => {
   if (!product) return
   const originalStatus = product.status
 
-  product.status = product.status === 0 ? 1 : 0 // Оптимистичное обновление
+  product.status = product.status === 0 ? 1 : 0
 
   try {
     await nextTick()
@@ -111,7 +109,7 @@ const toggleStatus = async productId => {
       color: 'success',
     })
   } catch (error) {
-    product.status = originalStatus // Откат при ошибке
+    product.status = originalStatus
     snackbar.notify({
       text: error.response?._data.message ?? 'Ошибка при изменении статуса',
       color: 'error',
@@ -126,42 +124,33 @@ const addProduct = async () => {
     loading.value = true
     await nextTick()
 
-    // Получение данных пользователя
     const userData = useCookie('userData')
     if (!userData.value) {
       snackbar.notify({
         text: 'Данные пользователя не найдены',
         color: 'error',
       })
-      
       return
     }
 
     if (userData.value.shop) {
-      // Если магазин есть, сразу добавляем товар
       await addProductToWb()
-      
       return
     }
 
-    // Если магазина нет, получаем данные о товаре
     const response = await api.products.fetchWbProduct(articleInput.value, loadRelated.value)
 
-    // Проверяем, что ответ содержит нужные данные
     if (!response || !response.product || !response.shop) {
       snackbar.notify({
         text: 'Неверный формат данных товара или магазина',
         color: 'error',
       })
-      
       return
     }
 
-    // Сохраняем данные о товаре и магазине
     productData.value = response.product
     shopData.value = response.shop
 
-    // Показываем модальное окно для подтверждения
     showShopConfirmModal.value = true
   } catch (error) {
     console.error('Error in addProduct:', error.message, error.stack)
@@ -191,23 +180,17 @@ const addProductToWb = async () => {
     const response = await api.products.addWbProduct(articleInput.value)
 
     if (response.code === 201) {
-      // Если товар успешно добавлен
       const userData = useCookie('userData')
 
       if (!userData.value?.shop) {
-        // Обновляем данные пользователя в куках
         const updatedUser = await api.user.profile()
-
         userData.value = updatedUser
-
-        // Перенаправляем на создание объявления
         await loadProducts()
         showAddModal.value = false
         showShopConfirmModal.value = false
         articleInput.value = ''
         router.push(`/dashboard/advertisements/create/${response.product.id}`)
       } else {
-        // Показываем уведомление об успешном добавлении
         await loadProducts()
         showAddModal.value = false
         articleInput.value = ''
@@ -232,13 +215,11 @@ const stopSelected = async () => {
   if (!selectedRows.value.length) return
   const productIds = selectedRows.value
 
-  // Оптимистичное обновление
   const originalStatuses = new Map()
-
   products.value.forEach(item => {
     if (productIds.includes(item.id)) {
       originalStatuses.set(item.id, item.status)
-      item.status = 1 // Устанавливаем неактивный статус
+      item.status = 1
     }
   })
 
@@ -253,7 +234,6 @@ const stopSelected = async () => {
       color: 'success',
     })
   } catch (error) {
-    // Откат при ошибке
     products.value.forEach(item => {
       if (productIds.includes(item.id)) {
         item.status = originalStatuses.get(item.id)
@@ -278,10 +258,7 @@ const archiveSelected = async () => {
 
 const confirmArchive = async () => {
   const productIds = selectedRows.value
-
-  // Оптимистичное обновление (удаляем из списка)
   const originalProducts = [...products.value]
-
   products.value = products.value.filter(item => !productIds.includes(item.id))
 
   try {
@@ -295,7 +272,6 @@ const confirmArchive = async () => {
       color: 'success',
     })
   } catch (error) {
-    // Откат при ошибке
     products.value = originalProducts
     snackbar.notify({
       text: 'Ошибка при архивировании товаров',
@@ -332,7 +308,6 @@ const selectAll = computed({
 const paginationText = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage + 1
   const end = Math.min(currentPage.value * itemsPerPage, totalItems.value)
-  
   return `${start}-${end} из ${totalItems.value}`
 })
 
@@ -356,9 +331,7 @@ const handleFilterStatus = value => {
   } else {
     filters.value.is_archived = null
   }
-
   filters.value.status = value
-
   currentPage.value = 1
   loadProducts()
 }
@@ -380,16 +353,16 @@ const loadRelated = ref(false)
         Товары <span
           v-if="products?.length"
           class="pl-1"
-        >  ({{ products?.length }})</span>
+        > ({{ products?.length }})</span>
       </VTab>
-      <VTab 
-        to="/dashboard/advertisements"         
+      <VTab
+        to="/dashboard/advertisements"
         class="text-secondary px-1 pb-4 text-body-2 mx-4"
       >
         Объявления
       </VTab>
-      <VTab 
-        to="/dashboard/buybacks"         
+      <VTab
+        to="/dashboard/buybacks"
         class="text-secondary px-1 pb-4 text-body-2"
       >
         Выкупы
@@ -424,7 +397,7 @@ const loadRelated = ref(false)
             <VListItem @click="stopSelected">
               <VListItemTitle>Остановить/Активировать</VListItemTitle>
             </VListItem>
-            <VListItem @click="showArchiveModal = true">
+            <VListItem @click="archiveSelected">
               <VListItemTitle>Архивировать</VListItemTitle>
             </VListItem>
           </VList>
@@ -519,10 +492,10 @@ const loadRelated = ref(false)
             Товары <span
               v-if="products.length"
               class="pl-1"
-            >  ({{ products.length }})</span>
+            > ({{ products.length }})</span>
           </VTab>
-          <VTab 
-            to="/dashboard/advertisements"         
+          <VTab
+            to="/dashboard/advertisements"
             class="text-secondary px-1 pb-4 text-body-2 font-weight-bold mx-4"
             style="font-size: 14px !important"
           >
@@ -562,8 +535,8 @@ const loadRelated = ref(false)
           />
         </div>
         <VCard
-          v-for="item in products"
-          v-else-if="products.length"          
+          v-for="(item, i) in products"
+          v-else-if="products.length"
           :key="item.id"
           elevation="1"
           width="100%"
@@ -590,8 +563,8 @@ const loadRelated = ref(false)
                 class="text-secondary"
                 style="font-size: 12px;"
               >
-                {{ item.id }}
-              </span> 
+                {{ item.wb_id }}
+              </span>
             </div>
             <VSwitch
               :model-value="item.status === 1"
@@ -602,7 +575,10 @@ const loadRelated = ref(false)
               @update:model-value="() => toggleStatus(item.id)"
             />
           </div>
-          <div class="d-flex justify-between mt-3 !font-weight-medium">
+          <div
+            class="d-flex justify-between mt-3 !font-weight-medium"
+            style="max-width: 90%"
+          >
             <ul class="w-50">
               <li class="list-none">
                 <p
@@ -621,17 +597,12 @@ const loadRelated = ref(false)
                   class="text-overline ma-0 text-medium-emphasis"
                   style="font-size: 10px !important; font-weight: 500 !important;"
                 >
-                  CR (Переход/Заказ)
+                  CR / CTR
                 </p>
                 <span
                   class="text-high-emphasis"
                   style="font-size: 16px !important; font-weight: 500 !important"
-                >
-                  {{
-                    item.conversion && item.completed_buybacks_count
-                      ? ((item.completed_buybacks_count / item.conversion) * 100).toFixed(1) + '%'
-                      : '0%'
-                  }}
+                >{{ item.cr }}% / {{ item.ctr }}%
                 </span>
               </li>
               <li class="list-none my-1">
@@ -639,12 +610,13 @@ const loadRelated = ref(false)
                   class="text-overline ma-0 text-medium-emphasis"
                   style="font-size: 10px !important; font-weight: 500 !important;"
                 >
-                  Выкупы в процессе
+                  Выкупают
                 </p>
                 <span
                   class="text-high-emphasis"
                   style="font-size: 16px !important; font-weight: 500 !important"
-                >{{ item.completed_buybacks_count }}</span>
+                >{{ item.buybacks_progress }}</span>
+                {{ console.log(item) }}
               </li>
             </ul>
             <ul class="w-50">
@@ -670,7 +642,7 @@ const loadRelated = ref(false)
                 <span
                   class="text-high-emphasis"
                   style="font-size: 16px !important; font-weight: 500 !important"
-                >{{ item.conversion }}</span>
+                >{{ item.clicks || 0 }}</span>
               </li>
               <li class="list-none">
                 <p
@@ -702,13 +674,15 @@ const loadRelated = ref(false)
                 </IconBtn>
               </template>
               <VList>
-                <VListItem @click="stopSelected">
+                <VListItem @click="selectedRows.length ? stopSelected() : toggleStatus(item.id)">
                   <VListItemTitle>
-                    {{ item.status === 1 ? 'Остановить' : 'Активировать' }}
+                    {{ selectedRows.length && selectedRows.includes(item.id) ? 'Остановить/Активировать выбранные' : item.status === 1 ? 'Остановить' : 'Активировать' }}
                   </VListItemTitle>
                 </VListItem>
-                <VListItem @click="showArchiveModal = true">
-                  <VListItemTitle>Архивировать</VListItemTitle>
+                <VListItem @click="selectedRows.length && selectedRows.includes(item.id) ? archiveSelected() : (selectedRows = [item.id], archiveSelected())">
+                  <VListItemTitle>
+                    {{ selectedRows.length && selectedRows.includes(item.id) ? 'Архивировать выбранные' : 'Архивировать' }}
+                  </VListItemTitle>
                 </VListItem>
               </VList>
             </VMenu>
@@ -716,13 +690,12 @@ const loadRelated = ref(false)
         </VCard>
         <div
           v-else
-          class="text-center  w-100"
+          class="text-center w-100"
         >
           <p>Тут пока пусто</p>
         </div>
       </VCol>
     </VRow>
-    <!-- Таблица товаров -->
     <VTable class="rounded-table md-and-up">
       <thead>
         <tr>
@@ -798,7 +771,7 @@ const loadRelated = ref(false)
                     :to="'/dashboard/advertisements?product_id='+item.id"
                     class="text-no-wrap text-primary overflow-hidden text-body-2 font-weight-medium"
                   >
-                    {{ truncateName(item.name) }}                    
+                    {{ truncateName(item.name) }}
                   </RouterLink>
                   {{ item.wb_id }}
                 </div>
@@ -813,13 +786,12 @@ const loadRelated = ref(false)
               />
             </td>
             <td>{{ item.completed_buybacks_count || 0 }}</td>
-            <td>{{ item.buybacks_progress }}</td>    
-            <td>{{ item.ads_count }}</td>     
-            <td>{{ item.views || 0 }}</td> 
+            <td>{{ item.buybacks_progress }}</td>
+            <td>{{ item.ads_count }}</td>
+            <td>{{ item.views || 0 }}</td>
             <td>{{ item.clicks }}</td>
             <td>{{ item.ctr }}</td>
             <td>{{ item.cr }}</td>
-
           </tr>
           <tr v-if="!products?.length && !filters.is_archived">
             <td
@@ -849,8 +821,6 @@ const loadRelated = ref(false)
         </template>
       </tbody>
     </VTable>
-
-    <!-- Пагинация -->
     <div
       v-if="products?.length && !loading && totalItems > itemsPerPage"
       class="text-center mt-4"
@@ -863,8 +833,6 @@ const loadRelated = ref(false)
         @update:model-value="loadProducts"
       />
     </div>
-
-    <!-- Модальное окно для добавления товара -->
     <VDialog
       v-model="showAddModal"
       max-width="500"
@@ -877,11 +845,10 @@ const loadRelated = ref(false)
             label="Артикул WB"
             required
           />
-
           <VCheckbox
             v-model="loadRelated"
             label="Загрузить связанные товары"
-            @update:model-value="loadReload = !loadReload"
+            @update:model-value="loadRelated = !loadRelated"
           />
         </VCardText>
         <VCardActions>
@@ -899,8 +866,6 @@ const loadRelated = ref(false)
         </VCardActions>
       </VCard>
     </VDialog>
-
-    <!--    Архивация -->
     <VDialog
       v-model="showArchiveModal"
       max-width="500"
@@ -924,8 +889,6 @@ const loadRelated = ref(false)
         </VCardActions>
       </VCard>
     </VDialog>
-
-    <!-- Модальное окно для подтверждения добавления магазина -->
     <VDialog
       v-model="showShopConfirmModal"
       max-width="600"
@@ -949,14 +912,12 @@ const loadRelated = ref(false)
                 readonly
                 class="mb-4"
               />
-
               <VTextField
                 v-model="productData.price"
                 label="Цена"
                 readonly
                 class="mb-4 custom-disabled-textfield"
               />
-
               <VTextField
                 v-model="productData.brand"
                 readonly
@@ -964,7 +925,6 @@ const loadRelated = ref(false)
                 class="mb-4"
               />
             </VCol>
-
             <div class="w-100 text-center d-flex">
               <VImg
                 v-if="productData.images && productData.images.length"
@@ -994,7 +954,6 @@ const loadRelated = ref(false)
         </VCardActions>
       </VCard>
     </VDialog>
-
     <VDialog
       v-model="showTestTariff"
       max-width="600"
@@ -1035,22 +994,20 @@ const loadRelated = ref(false)
   background-color: rgba(0, 0, 0, 0.05);
 }
 .loading-row {
-  height: 200px; /* Фиксированная высота для центрирования индикатора */
+  height: 200px;
   td {
     vertical-align: middle;
   }
 }
-
 .rounded-table {
-  border-collapse: separate; /* Важно! */
+  border-collapse: separate;
   border-spacing: 0;
   border-radius: 0.5rem;
-  overflow: hidden; /* Обрезает углы у внутренних элементов */
+  overflow: hidden;
 }
-
 @media screen and (max-width: 800px) {
   .md-and-up {
     display: none;
-  }  
+  }
 }
 </style>

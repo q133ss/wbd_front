@@ -1338,9 +1338,6 @@ onUnmounted(() => {
 }
 
 @media screen and (max-width: 960px) {
-  .layout-page-content {
-    margin-top: -30px;
-  }
   html {
     overflow: hidden !important;
   }
@@ -1399,7 +1396,7 @@ onUnmounted(() => {
   }
   .chat-content {
     margin-top: 25px !important;
-    min-height: 85vh !important;
+    min-height: 90vh !important;
   }
   .chat-list-sidebar {
     min-height: 91vh !important;

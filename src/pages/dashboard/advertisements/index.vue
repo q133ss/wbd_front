@@ -22,7 +22,6 @@ const showAddModal = ref(false)
 const articleInput = ref('')
 const loading = ref(false)
 
-
 const filters = ref({
   is_archived: null,
   status: null,
@@ -53,22 +52,15 @@ const shopData = ref(null)
 const userData = useCookie('userData')
 
 // Truncate name to 27 characters
-const truncateName = (name, lenght = 27) => {
+const truncateName = (name, length = 27) => {
   if (!name) return ''
-  
-  return name.length > lenght ? name.slice(0, lenght) + '...' : name
+  return name.length > length ? name.slice(0, length) + '...' : name
 }
 
 const showTelegramModal = ref(false)
 
-
 // Load advertisements
 const loadAds = async () => {
-
-  // if(route.query.ad_id){
-  //   //
-  // }
-
   try {
     loading.value = true
     await nextTick()
@@ -81,7 +73,6 @@ const loadAds = async () => {
       search: searchQuery.value || undefined,
     }
 
-    // Если есть `product_id` в URL, добавляем его в параметры запроса
     if (route.query.product_id) {
       params.product_id = route.query.product_id
     }
@@ -93,7 +84,7 @@ const loadAds = async () => {
     
     totalItems.value = response.total || 0
 
-    if(totalItems.value == 1 && userData.telegram_id == null){
+    if (totalItems.value == 1 && userData.telegram_id == null) {
       showTelegramModal.value = true
     }
   } catch (error) {
@@ -105,7 +96,6 @@ const loadAds = async () => {
     loading.value = false
   }
 }
-
 
 // Initial load
 loadAds()
@@ -163,7 +153,6 @@ const openProductModal = () => {
   if (route.query.product_id != undefined) {
     showProductModal.value = false
     router.push(`/dashboard/advertisements/create/${route.query.product_id}`)
-    
     return
   }
   showAddModal.value = false
@@ -264,7 +253,6 @@ const selectAll = computed({
 const paginationText = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage + 1
   const end = Math.min(currentPage.value * itemsPerPage, totalItems.value)
-  
   return `${start}-${end} из ${totalItems.value}`
 })
 
@@ -274,7 +262,6 @@ const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage))
 const productPaginationText = computed(() => {
   const start = (productCurrentPage.value - 1) * productItemsPerPage + 1
   const end = Math.min(productCurrentPage.value * productItemsPerPage, productTotalItems.value)
-  
   return `${start}-${end} из ${productTotalItems.value}`
 })
 
@@ -292,10 +279,8 @@ const handleFilterArchived = () => {
 }
 
 const handleFilterStatus = value => {
-  // Архивные — отдельный флаг, но выбираются через status
   filters.value.is_archived = value === 'archived' ? true : null
   filters.value.status = value
-  
   currentPage.value = 1
   loadAds()
 }
@@ -311,7 +296,6 @@ const getFirstImage = images => {
   if (Array.isArray(images)) return images[0]
   try {
     const parsed = JSON.parse(images)
-    
     return Array.isArray(parsed) ? parsed[0] : ''
   } catch {
     return ''
@@ -326,7 +310,6 @@ const openImage = url => {
   selectedImage.value = url || 'https://via.placeholder.com/48'
   imageModal.value = true
 }
-
 
 const telegramLinkCookie = useCookie('telegramBotLink')
 const qrCodeLink = ref(null)
@@ -377,7 +360,7 @@ const closeTgModal = () => {
         Товары <span
           v-if="products?.length"
           class="pl-1"
-        >  ({{ products?.length }})</span>
+        > ({{ products?.length }})</span>
       </VTab>
       <VTab
         to="/dashboard/advertisements"
@@ -519,7 +502,7 @@ const closeTgModal = () => {
             Товары <span
               v-if="products.length"
               class="pl-1"
-            >  ({{ products.length }})</span>
+            > ({{ products.length }})</span>
           </VTab>
           <VTab 
             to="/dashboard/advertisements"         
@@ -548,7 +531,7 @@ const closeTgModal = () => {
       </VCol>
       <VCol
         cols="12"
-        class="d-flex flex-wrap"
+        class="d-flex flex-wrap gap-4"
       >
         <div
           v-if="loading"
@@ -589,7 +572,7 @@ const closeTgModal = () => {
                 class="text-secondary"
                 style="font-size: 12px;"
               >
-                {{ item.id }}
+                {{ item.product.wb_id }}
               </span> 
             </div>
             <VSwitch
@@ -601,7 +584,7 @@ const closeTgModal = () => {
               @update:model-value="() => toggleStatus(item.id)"
             />
           </div>
-          <div class="d-flex justify-between mt-3 !font-weight-medium">
+          <div class="d-flex justify-between mt-3 !font-weight-medium" style="max-width: 90%">
             <ul class="w-50">
               <li class="list-none">
                 <p
@@ -620,12 +603,12 @@ const closeTgModal = () => {
                   class="text-overline ma-0 text-medium-emphasis"
                   style="font-size: 10px !important; font-weight: 500 !important;"
                 >
-                  CR (Переход/Заказ)
+                  CR / CTR
                 </p>
                 <span
                   class="text-high-emphasis"
                   style="font-size: 16px !important; font-weight: 500 !important"
-                >{{ item.cr }}</span>
+                >{{ item.cr }}% / {{ item.ctr }}%</span>
               </li>
               <li class="list-none my-1">
                 <p
@@ -637,7 +620,7 @@ const closeTgModal = () => {
                 <span
                   class="text-high-emphasis"
                   style="font-size: 16px !important; font-weight: 500 !important"
-                >{{ item.completed_buybacks_count }}</span>
+                >{{ item.process_buybacks_count }}</span>
               </li>
             </ul>
             <ul class="w-50">
@@ -663,7 +646,7 @@ const closeTgModal = () => {
                 <span
                   class="text-high-emphasis"
                   style="font-size: 16px !important; font-weight: 500 !important"
-                >{{ item.cr }}</span>
+                >{{ item.clicks_count || 0 }}</span>
               </li>
               <li class="list-none">
                 <p
@@ -675,7 +658,7 @@ const closeTgModal = () => {
                 <span
                   class="text-high-emphasis"
                   style="font-size: 16px !important; font-weight: 500 !important"
-                >{{ item.completed_buybacks_count }}</span>
+                >{{ item.completed_buybacks_count || 0 }}</span>
               </li>
             </ul>
           </div>
@@ -707,13 +690,18 @@ const closeTgModal = () => {
                 </IconBtn>
               </template>
               <VList>
-                <VListItem @click="stopSelected">
+                <VListItem @click="selectedRows.length && selectedRows.includes(item.id) ? stopSelected() : toggleStatus(item.id)">
                   <VListItemTitle>
-                    {{ item.status === 1 ? 'Остановить' : 'Активировать' }}
+                    {{ selectedRows.length && selectedRows.includes(item.id) ? 'Остановить/Активировать выбранные' : item.status === 1 ? 'Остановить' : 'Активировать' }}
                   </VListItemTitle>
                 </VListItem>
-                <VListItem @click="showArchiveModal = true">
-                  <VListItemTitle>Архивировать</VListItemTitle>
+                <VListItem @click="router.push(`/dashboard/advertisements/edit/${item.id}`)">
+                  <VListItemTitle>Редактировать</VListItemTitle>
+                </VListItem>
+                <VListItem @click="selectedRows.length && selectedRows.includes(item.id) ? archiveSelected() : (selectedRows.value = [item.id], archiveSelected())">
+                  <VListItemTitle>
+                    {{ selectedRows.length && selectedRows.includes(item.id) ? 'Архивировать выбранные' : 'Архивировать' }}
+                  </VListItemTitle>
                 </VListItem>
               </VList>
             </VMenu>
@@ -721,7 +709,7 @@ const closeTgModal = () => {
         </VCard>
         <div
           v-else
-          class="text-center  w-100"
+          class="text-center w-100"
         >
           <p>Тут пока пусто</p>
         </div>
@@ -751,7 +739,7 @@ const closeTgModal = () => {
             Товар
           </th>
           <th class="text-uppercase">
-            Кэшбек
+            Кэшбэк
           </th>
           <th class="text-uppercase">
             Выкупов
@@ -1125,7 +1113,7 @@ const closeTgModal = () => {
       </VCard>
     </VDialog>
 
-    <!-- Модальное окно для подтверждения добавления магазина (оставлено для совместимости) -->
+    <!-- Модальное окно для подтверждения добавления магазина -->
     <VDialog
       v-model="showShopConfirmModal"
       max-width="600"
@@ -1169,57 +1157,6 @@ const closeTgModal = () => {
         </VCardActions>
       </VCard>
     </VDialog>
-
-    <!--
-      <VDialog
-      v-model="showTelegramModal"
-      persistent
-      max-width="500"
-      >
-      <VCard>
-      <VCardTitle class="d-flex justify-space-between align-center font-weight-bold">
-      <span class="w-100 text-center mt-6 mb-6">Подключите Telegram бота</span>
-      </VCardTitle>
-
-      <div class="d-flex justify-center">
-      <img
-      :src="qrCodeSrc"
-      alt="Telegram QR Code"
-      width="150"
-      height="150"
-      class="cursor-pointer"
-      @click="connectTelegram"
-      >
-      </div>
-      <div class="text-center mt-6">
-      <VBtn
-      color="#29A9EB"
-      style="border-color: #29A9EB"
-      variant="outlined"
-      append-icon="ri-telegram-2-fill"
-      @click="connectTelegram"
-      >
-      Подключить
-      </VBtn>
-      </div>
-      <p class="text-center mt-4 pl-3 pr-3 pt-3 pb-0">
-      Подключите телеграм бота, чтобы получать уведомления о ваших заказах, а так же статусах этих выкупов
-      </p>
-
-      <VBtn
-      color="primary"
-      class="text-center mb-6"
-      variant="text"
-      @click="closeTgModal"
-      >
-      Закрыть
-      </VBtn>
-      <VCardActions>
-      <VSpacer /> 
-      </VCardActions> 
-    -->
-    <!-- </VCard> -->
-    <!--   </VDialog> -->
   </VContainer>
 </template>
 
@@ -1253,19 +1190,18 @@ const closeTgModal = () => {
 }
 
 .rounded-table {
-  border-collapse: separate; /* Важно! */
+  border-collapse: separate;
   border-spacing: 0;
   border-radius: 0.5rem;
-  overflow: hidden; /* Обрезает углы у внутренних элементов */
+  overflow: hidden;
 }
 
 .truncate-2-lines {
   display: -webkit-box;
-  -webkit-line-clamp: 2;       /* Кол-во строк */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 
 @media screen and (max-width: 800px) {
   .rounded-table {
