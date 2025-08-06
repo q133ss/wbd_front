@@ -733,7 +733,7 @@ const closeTgModal = () => {
             Выкупов
           </th>
           <th class="text-uppercase" style="width: 20px">
-            Выкупы в процессе
+            Выкупают
           </th>
           <th class="text-uppercase">
             Просмотры
@@ -743,6 +743,9 @@ const closeTgModal = () => {
           </th>
           <th class="text-uppercase">
             CR
+          </th>
+          <th class="text-uppercase">
+            Переходы
           </th>
         </tr>
       </thead>
@@ -821,10 +824,11 @@ const closeTgModal = () => {
             <td>{{ item.views_count }}</td>
             <td>{{ item.ctr }}</td>
             <td>{{ item.cr }}</td>
+            <td>{{ item.clicks_count }}</td>
           </tr>
           <tr v-if="!ads.length">
             <td
-              colspan="8"
+              colspan="12"
               class="text-center pt-10"
             >
               <span v-if="!filters.is_archived">Объявлений нет</span>

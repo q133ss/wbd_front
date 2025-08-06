@@ -741,6 +741,15 @@ const loadRelated = ref(false)
           <th class="text-uppercase">
             Объявлений
           </th>
+          <th class="text-uppercase">
+            CTR
+          </th>
+          <th class="text-uppercase">
+            CR
+          </th>
+          <th class="text-uppercase">
+            Переходы
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -749,7 +758,7 @@ const loadRelated = ref(false)
           class="loading-row"
         >
           <td
-            colspan="8"
+            colspan="10"
             class="text-center"
           >
             <VProgressCircular
@@ -788,7 +797,7 @@ const loadRelated = ref(false)
                   >
                     {{ truncateName(item.name) }}                    
                   </RouterLink>
-                  {{ item.id }}
+                  {{ item.wb_id }}
                 </div>
               </div>
             </td>
@@ -805,6 +814,9 @@ const loadRelated = ref(false)
             <td>{{ item.completed_buybacks_count || 0 }}</td>
             <td>{{ item.conversion }}</td>
             <td>{{ item.ads_count }}</td>
+            <td>{{ item.ctr }}</td>
+            <td>{{ item.cr }}</td>
+            <td>{{ item.clicks }}</td>
           </tr>
           <tr v-if="!products?.length && !filters.is_archived">
             <td

@@ -62,6 +62,7 @@ const filters = ref({
 })
 
 // Загрузка товаров
+const filterMaxPrice = ref(100000)
 const fetchProducts = async (page = 1) => {
   if (isLoading.value || (paginationInfo.value && page > paginationInfo.value.last_page)) return
 
@@ -105,6 +106,8 @@ const fetchProducts = async (page = 1) => {
       current_page: response.current_page,
       last_page: response.last_page
     }
+
+    filterMaxPrice.value = response.max_price || 100000
   } catch (error) {
     console.error('Ошибка загрузки товаров:', error)
   } finally {
@@ -223,7 +226,7 @@ onUnmounted(() => {
                   v-model="filters.price"
                   label="Цена"
                   :min="0"
-                  :max="100000"
+                  :max="filterMaxPrice"
                   :step="1000"
                   thumb-label="always"
                 />

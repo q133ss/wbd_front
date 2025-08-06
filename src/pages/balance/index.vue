@@ -392,6 +392,19 @@ const getTariffEndDate = tariff => {
 
   return expirationDateString
 }
+
+const translateStatus = (status) => {
+  switch (status) {
+  case 'pending':
+    return 'В ожидании'
+  case 'completed':
+    return 'Завершён'
+  case 'failed':
+    return 'Отменен'
+  default:
+    return status
+  }
+}
 </script>
 
 <template>
@@ -591,6 +604,7 @@ const getTariffEndDate = tariff => {
             <th>Сумма</th>
             <th>Тип</th>
             <th>Тип операции</th>
+            <th>Статус</th>
             <th>Дата и время</th>
             <th>Описание</th>
           </tr>
@@ -614,6 +628,7 @@ const getTariffEndDate = tariff => {
             >
               {{ formatOperationType(transaction.transaction_type) }}
             </td>
+            <td>{{ translateStatus(transaction.status) }}</td>
             <td>{{ formatDate(transaction.created_at) }}</td>
             <td>{{ transaction.description }}</td>
           </tr>
