@@ -71,6 +71,7 @@ const completeRegistration = async () => {
 const logout = async () => {
   // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
+  useCookie('telegramBotLink').value = null
 
   let roleId = userData.value?.role_id
 

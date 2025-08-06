@@ -10,6 +10,7 @@ const role = computed(() => userData.value ? userData.value.role_id : null)
 const logout = async () => {
   // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
+  useCookie('telegramBotLink').value = null
 
   let roleId = userData.value?.role_id
   // Remove "userData" from cookie
