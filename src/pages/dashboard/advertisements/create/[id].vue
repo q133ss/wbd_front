@@ -62,6 +62,8 @@ onMounted(async () => {
       api.balance.getBalaceOnly(),
       api.template.getAllTemplates(),
     ])
+    console.log('Balance: ', balanceResponse);
+    
 
     product.value = productResponse
     console.log(product.value)

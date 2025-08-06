@@ -268,6 +268,26 @@ const openInfo = () => {
   infoProduct.value = true
 }
 
+function parseMessage(text) {
+  if (!text) return ''
+
+  let html = text
+    .replace(/(\\n|\n|\r\n)/g, '<br>')
+
+  html = html.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline">${url}</a>`,
+  )
+
+  html = html.replace(
+    /(^|\s)([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?![^<]*>)/g,
+    (match, space, domain) =>
+      `${space}<a href="https://${domain}" target="_blank" rel="noopener noreferrer">${domain}</a>`,
+  )
+
+  return html
+}
+
 // Следим за сменой чата
 watch(() => chatStore.activeChat?.id, newChatId => {
   if (newChatId) {
@@ -800,7 +820,7 @@ onUnmounted(() => {
                             <p
                               class="mb-0"
                               style="word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap"
-                              v-html="message.text ? message.text.replace(/(\\n|\n|\r\n)/g, '<br>') : ''"
+                              v-html="parseMessage(message.text)"
                             />
                           </div>
                           <div class="d-flex align-center gap-2">
