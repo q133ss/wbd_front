@@ -11,13 +11,14 @@ const logout = async () => {
   // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
 
+  let roleId = userData.value?.role_id
   // Remove "userData" from cookie
   userData.value = null
 
   // Redirect to login page
   // await router.push('/login')
 
-  if(role == 3){
+  if(roleId != 3){
     router.push('/login').then(() => window.location.reload())
   }else{
     router.push('/seller/login').then(() => window.location.reload())

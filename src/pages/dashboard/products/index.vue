@@ -40,17 +40,17 @@ const itemsPerPage = 15
 const totalItems = ref(0)
 
 const showShopConfirmModal = ref(false)
+const showTestTariff = ref(false)
 const productData = ref(null)
 const shopData = ref(null)
 
 const userData = useCookie('userData')
 
-
-// Обрезка названия до 40 символов
+// Обрезка названия до 20 символов
 const truncateName = name => {
   if (!name) return ''
   
-  return name.length > 40 ? name.slice(0, 40) + '...' : name
+  return name.length > 20 ? name.slice(0, 20) + '...' : name
 }
 
 // Загрузка товаров
@@ -81,6 +81,19 @@ const loadProducts = async () => {
 
 // Инициальная загрузка
 loadProducts()
+
+// Проверка на тестовый тариф
+const createdAt = new Date(userData.value.created_at)
+const now = new Date()
+
+const diffInMs = now - createdAt
+const diffInMinutes = diffInMs / 1000 / 60
+
+const alreadyShown = localStorage.getItem('test_tariff_shown') === '1'
+if (diffInMinutes < 180 && !alreadyShown) {
+  showTestTariff.value = true
+  localStorage.setItem('test_tariff_shown', '1')
+}
 
 // Переключение статуса
 const toggleStatus = async productId => {
@@ -355,13 +368,6 @@ const loadRelated = ref(false)
 
 <template>
   <VContainer fluid>
-    <!-- Панель управления -->
-    <h1 class="text-h3 mb-1 font-weight-bold md-and-up">
-      Привет, {{ userData.name || 'Продавец' }}
-    </h1>
-    <p class="text-body-1 mb-6 md-and-up">
-      Продвижение > Товары 
-    </p>
     <VTabs
       color="deep-purple-accent-4"
       align-tabs="start"
@@ -369,7 +375,7 @@ const loadRelated = ref(false)
     >
       <VTab
         to="/dashboard/products"
-        class="text-primary px-1 pb-4 text-body-2 font-weight-bold"
+        class="text-primary px-1 pb-4 text-body-2"
       >
         Товары <span
           v-if="products?.length"
@@ -378,13 +384,13 @@ const loadRelated = ref(false)
       </VTab>
       <VTab 
         to="/dashboard/advertisements"         
-        class="text-secondary px-1 pb-4 text-body-2 font-weight-bold mx-4"
+        class="text-secondary px-1 pb-4 text-body-2 mx-4"
       >
         Объявления
       </VTab>
       <VTab 
         to="/dashboard/buybacks"         
-        class="text-secondary px-1 pb-4 text-body-2 font-weight-bold"
+        class="text-secondary px-1 pb-4 text-body-2"
       >
         Выкупы
       </VTab>
@@ -820,7 +826,7 @@ const loadRelated = ref(false)
           </tr>
           <tr v-if="!products?.length && !filters.is_archived">
             <td
-              colspan="8"
+              colspan="10"
               class="text-center pb-7"
             >
               <VBtn
@@ -837,7 +843,7 @@ const loadRelated = ref(false)
           </tr>
           <tr v-else-if="!products?.length && filters.is_archived">
             <td
-              colspan="8"
+              colspan="10"
               class="text-center pb-7 pt-3"
             >
               <span class="text-subtitle-1">Архивных товаров нет</span>
@@ -987,6 +993,29 @@ const loadRelated = ref(false)
             @click="showShopConfirmModal = false"
           >
             Отмена
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <VDialog
+      v-model="showTestTariff"
+      max-width="600"
+    >
+      <VCard>
+        <VCardTitle>Благодарим за регистрацию!</VCardTitle>
+        <VCardText>
+          <p>
+            В рамках тестового периода вы можете совершить до 10 выкупов в течение трёх дней с момента регистрации.
+          </p>
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            :disabled="loading"
+            @click="showTestTariff = false"
+          >
+            Закрыть
           </VBtn>
         </VCardActions>
       </VCard>

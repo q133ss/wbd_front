@@ -364,9 +364,36 @@ const closeTgModal = () => {
 
 <template>
   <VContainer fluid>
-    <!-- Панель управления --> 
+    <!-- Панель управления -->
+    <VTabs
+      color="deep-purple-accent-4"
+      align-tabs="start"
+      class="md-and-up"
+    >
+      <VTab
+        to="/dashboard/products"
+        class="text-primary px-1 pb-4 text-body-2"
+      >
+        Товары <span
+        v-if="products?.length"
+        class="pl-1"
+      >  ({{ products?.length }})</span>
+      </VTab>
+      <VTab
+        to="/dashboard/advertisements"
+        class="text-secondary px-1 pb-4 text-body-2 mx-4"
+      >
+        Объявления
+      </VTab>
+      <VTab
+        to="/dashboard/buybacks"
+        class="text-secondary px-1 pb-4 text-body-2"
+      >
+        Выкупы
+      </VTab>
+    </VTabs>
     <VRow
-      class="mb-4 md-and-up"
+      class="mb-4 md-and-up mt-5"
       align="center"
     >
       <VCol cols="auto">

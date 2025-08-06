@@ -67,6 +67,31 @@ const completeRegistration = async () => {
     handleError(error, 'Произошла ошибка')
   }
 }
+
+const logout = async () => {
+  // Remove "accessToken" from cookie
+  useCookie('accessToken').value = null
+
+  let roleId = userData.value?.role_id
+
+  // Remove "userData" from cookie
+  userData.value = null
+
+  if(roleId != 3){
+    router.push('/login').then(() => window.location.reload())
+  }else{
+    router.push('/seller/login').then(() => window.location.reload())
+  }
+
+
+  // ℹ️ We had to remove abilities in then block because if we don't nav menu items mutation is visible while redirecting user to login page
+
+  // Remove "userAbilities" from cookie
+  useCookie('userAbilityRules').value = null
+
+  // Reset ability to initial ability
+  ability.update([])
+}
 </script>
 
 <template>
@@ -173,7 +198,8 @@ const completeRegistration = async () => {
                 Продолжая, вы подтверждаете, что ознакоимились
                 <router-link to="/terms" target="_blank">пользовательским соглашением</router-link>
                 и
-                <router-link to="/privacy" target="_blank">политикой конфидициальности</router-link>
+                <router-link to="/privacy" target="_blank">политикой конфидициальности</router-link>.
+                Вы так же можете <span class="text-primary cursor-pointer" @click="logout">выйти</span> из аккаунта
               </VCol>
             </VRow>
           </VForm>

@@ -6,7 +6,6 @@
 // biome-ignore lint: disable
 export {}
 declare global {
-  const $api: typeof import('./src/utils/api.js')['$api']
   const COOKIE_MAX_AGE_1_YEAR: typeof import('./src/utils/constants.js')['COOKIE_MAX_AGE_1_YEAR']
   const EffectScope: typeof import('vue')['EffectScope']
   const acceptHMRUpdate: typeof import('pinia')['acceptHMRUpdate']

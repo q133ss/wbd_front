@@ -1,6 +1,5 @@
 {
   "globals": {
-    "$api": true,
     "COOKIE_MAX_AGE_1_YEAR": true,
     "Component": true,
     "ComponentPublicInstance": true,
@@ -20,6 +19,7 @@
     "acceptHMRUpdate": true,
     "alphaDashValidator": true,
     "alphaValidator": true,
+    "api": true,
     "asyncComputed": true,
     "autoResetRef": true,
     "avatarText": true,
@@ -113,6 +113,7 @@
     "paginationMeta": true,
     "passwordValidator": true,
     "pausableWatch": true,
+    "phoneValidator": true,
     "prefixWithPlus": true,
     "provide": true,
     "provideLocal": true,
@@ -299,6 +300,7 @@
     "useScriptTag": true,
     "useScroll": true,
     "useScrollLock": true,
+    "useSellerNavigation": true,
     "useSessionStorage": true,
     "useShare": true,
     "useSkins": true,
@@ -360,9 +362,6 @@
     "watchThrottled": true,
     "watchTriggerable": true,
     "watchWithFilter": true,
-    "whenever": true,
-    "api": true,
-    "phoneValidator": true,
-    "useSellerNavigation": true
+    "whenever": true
   }
 }

@@ -7,15 +7,29 @@ const route = useRoute()
 const text = ref('Загрузка...')
 const router = useRouter()
 
-onMounted(() => {
+onMounted(async () => {
   const chatId = route.query.chat_id // Получаем токен из URL
 
   try{
     if (chatId) {
       // Сохраняем чат ид!
       useCookie('chatId').value = chatId
-      // Далее на логин!
-      router.push('/telegram/auth/select?chat_id=' + chatId)
+
+      try{
+        const response = await api.telegram.getUser(chatId)
+
+        if (response && response.user) {
+          useCookie('accessToken').value = response.token
+          useCookie('userData').value = response.user
+          await nextTick(() => {
+            window.location.href = route.query.to ? String(route.query.to) : '/'
+          })
+        }
+      }catch (e) {
+        if(e.response && e.response.status === 404) {
+          router.push('/telegram/auth/select?chat_id=' + chatId)
+        }
+      }
     }else{
       text.value = 'Не удалось получить ID чата, попробуйте еще раз.'
     }
