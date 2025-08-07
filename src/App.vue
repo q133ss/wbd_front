@@ -1,5 +1,4 @@
 <script setup>
-import { useTheme } from 'vuetify'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
 import initCore from '@core/initCore'
 import {
@@ -7,6 +6,7 @@ import {
   useConfigStore,
 } from '@core/stores/config'
 import { hexToRgb } from '@core/utils/colorConverter'
+import { useTheme } from 'vuetify'
 
 const { global } = useTheme()
 
@@ -17,6 +17,7 @@ initConfigStore()
 const configStore = useConfigStore()
 
 import { useSnackbarStore } from '@/stores/snackbar'
+
 const snackbar = useSnackbarStore()
 </script>
 
@@ -27,14 +28,14 @@ const snackbar = useSnackbarStore()
       <RouterView />
       <ScrollToTop />
 
-      <v-snackbar
+      <VSnackbar
         v-model="snackbar.show"
         :color="snackbar.color"
         :timeout="snackbar.timeout"
         location="top"
       >
         {{ snackbar.text }}
-      </v-snackbar>
+      </VSnackbar>
     </VApp>
   </VLocaleProvider>
 </template>

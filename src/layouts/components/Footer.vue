@@ -4,7 +4,7 @@ import { themeConfig } from '@themeConfig'
 </script>
 
 <template>
-  <div class="footer pt-10">
+  <div class="footer pt-10 container">
     <VSheet
       class="footer-top pt-8 pb-4"
       theme="dark"
@@ -29,11 +29,19 @@ import { themeConfig } from '@themeConfig'
                 ИНН: 9722092663
               </div>
 
-              <router-link to="/terms">Пользовательское соглашение</router-link>
+              <RouterLink to="/terms">
+                Пользовательское соглашение
+              </RouterLink>
               <br>
-              <router-link to="/privacy">Политика конфидициальности</router-link>
+              <RouterLink to="/privacy">
+                Политика конфидициальности
+              </RouterLink>
               <br>
-              <a href="https://wbd-back.ru/sitemap.xml" target="_blank" rel="noopener noreferrer">Карта сайта</a>
+              <a
+                href="https://wbd-back.ru/sitemap.xml"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Карта сайта</a>
             </div>
           </VCol>
 
@@ -101,7 +109,10 @@ import { themeConfig } from '@themeConfig'
                 Продавцам
               </div>
               <ul>
-                <li class="mb-4 text-body-1" style="list-style: none;">
+                <li
+                  class="mb-4 text-body-1"
+                  style="list-style: none;"
+                >
                   <RouterLink
                     to="/seller/login"
                     class="footer-text text-no-wrap"
@@ -110,7 +121,10 @@ import { themeConfig } from '@themeConfig'
                   </RouterLink>
                 </li>
 
-                <li class="mb-4 text-body-1" style="list-style: none;">
+                <li
+                  class="mb-4 text-body-1"
+                  style="list-style: none;"
+                >
                   <RouterLink
                     target="_blank"
                     to="t.me/wbd_help"
@@ -135,21 +149,30 @@ import { themeConfig } from '@themeConfig'
               </div>
               <div>
                 <ul>
-                  <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
+                  <li
+                    class="mb-4 text-body-1"
+                    style="list-style: none; color: rgb(103,106,123)"
+                  >
                     <VIcon
                       icon="ri-mail-line"
                       size="20"
                     />
                     contact@wbdiscount.pro
                   </li>
-                  <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
+                  <li
+                    class="mb-4 text-body-1"
+                    style="list-style: none; color: rgb(103,106,123)"
+                  >
                     <VIcon
                       icon="ri-phone-line"
                       size="20"
                     />
                     +7 (977) 687 58 92
                   </li>
-                  <li class="mb-4 text-body-1" style="list-style: none; color: rgb(103,106,123)">
+                  <li
+                    class="mb-4 text-body-1"
+                    style="list-style: none; color: rgb(103,106,123)"
+                  >
                     <VIcon
                       icon="ri-map-pin-line"
                       size="20"
@@ -172,8 +195,8 @@ import { themeConfig } from '@themeConfig'
           </span>
           <div class="d-flex gap-x-1">
             <VImg
-            src="/pay.svg"
-            width="200px"
+              src="/pay.svg"
+              width="200px"
             />
             <template
               v-for="(item, index) in [
@@ -276,19 +299,16 @@ import { themeConfig } from '@themeConfig'
   }
 }
 
-// .layout-content-wrapper{
-//   padding-bottom: 500px !important;
-// }
 
 @media screen and (max-width: 960px) {
   .layout-content-wrapper{
-    padding-bottom: 800px !important;
+    padding-bottom: 0px !important;
   }
 }
 
-//@media screen and (max-width: 600px) {
+// @media screen and (max-width: 600px) {
 //  .layout-content-wrapper{
 //    padding-bottom: 1000px !important;
 //  }
-//}
+// }
 </style>

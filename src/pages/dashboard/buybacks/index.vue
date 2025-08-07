@@ -47,6 +47,7 @@ const pendingScreen = ref(null)
 const showUploadScreen = ref(false)
 const isRejectVisible = ref(false)
 const sendReview = ref(false)
+const comment = ref(null)
 const hasSubmittedReview = ref(false)
 
 const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>
@@ -196,10 +197,10 @@ const handleConfirm = async () => {
   }
 }
 
-const handleCancel = async () => {
+const handleCancel = async (com) => {
   cancelItem.value = false
 
-  const success = await cancelOrder()
+  const success = await cancelOrder(com)
   if (success) {
     snackbar.notify({ text: 'Заказ успешно отменен', color: 'success' })
   }
@@ -304,11 +305,30 @@ onMounted(async () => {
     chatStore.resetState()
     await chatStore.fetchCurrentUser()
     await chatStore.fetchStatuses()
+    
+    const productId = route.query.product // Get the product ID from query parameter
+    const chatId = route.query.chatId // Existing chatId check
+    
+    // Fetch chats for the selected status
     await fetchChats(chatStore.selectedStatus)
-    setupNotificationChannel()
 
-    const chatId = route.query.chatId
-    if (chatId) {
+    // If a product ID is provided, filter chats by product
+    if (productId) {
+      const chats = chatStore.chatsByStatus[chatStore.selectedStatus] || []
+      const productChats = chats.filter(chat => String(chat.ad?.product?.id) === String(productId))
+      
+      if (productChats.length > 0) {
+        // Select the first chat related to the product (or implement logic to choose a specific chat)
+        await selectChat(productChats[0])
+        showUploadScreen.value =
+          productChats[0].status === 'on_confirmation' &&
+          !getScreenSentStatus(productChats[0].id)
+      } else {
+        // Handle case where no chats are found for the product
+        snackbar.notify({ text: 'Чаты для данного продукта не найдены', color: 'warning' })
+      }
+    } else if (chatId) {
+      // Existing logic for chatId
       const chat = await api.buyback.getBuybackById(chatId)
       if (chat) {
         await selectChat(chat)
@@ -317,6 +337,9 @@ onMounted(async () => {
           !getScreenSentStatus(chatId)
       }
     }
+
+    // Setup notification channel
+    setupNotificationChannel()
   } catch (error) {
     console.error('Error on mount:', error)
     snackbar.notify({ text: 'Ошибка загрузки данных', color: 'error' })
@@ -648,7 +671,7 @@ onUnmounted(() => {
                     :key="`msg-${message.id}`"
                     class="mb-4 list-none"
                   >
-                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'seller'">
+                    <template v-if="message.type === 'system' && ['success', 'info', 'cancel'].includes(message.system_type) && message.hide_for !== 'seller'">
                       <div class="w-100 text-caption text-center text-disabled mb-2">
                         {{ new Date(message.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }} в {{ new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }}
                       </div>
@@ -688,7 +711,7 @@ onUnmounted(() => {
                         <div
                           :class="{
                             'success-msg': message.system_type === 'success',
-                            'info-msg': message.system_type === 'info'
+                            'info-msg': message.system_type === 'info'  || 'cancel'
                           }"
                           v-html="message.text"
                         />
@@ -1080,15 +1103,16 @@ onUnmounted(() => {
           <VCardText class="pa-0">
             Вы можете отменить заказ по любой причине, где покупатель нарушает правила исполнения заказа. В случае выявления неправомерной отмены заказа в процессе выкупа товара покупателем, на ваш аккаунт могут быть наложены ограничения.  
           </VCardText>
+          <VTextField label="Комментарий" v-model="comment" class="mt-2" required/>
           <VCardActions class="d-flex flex-column pa-0">
             <VBtn
               block
               color="primary"
               variant="flat"
-              class="mt-6"
+              class="mt-4"
               size="large"
               :loading="isSubmittingReview"
-              @click="handleCancel"
+              @click="handleCancel(comment)"
             >
               Подтвердить
             </VBtn>

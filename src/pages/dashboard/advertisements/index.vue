@@ -668,8 +668,10 @@ const closeTgModal = () => {
               :color="item.message_count ? 'primary' : 'rgba(var(--v-theme-secondary), 0.08)'"
               class="mt-3"
               :class="item.message_count ? '' : 'text-primary'"
-              @click="() => item.message_count && router.push(`/dashboard/advertisements/messages/${item.id}`)"
+              
+              @click="() => router.push(`/dashboard/buybacks?product=${item.id}`)"
             >
+            <!-- @click="() => router.push(`/dashboard/buybacks?product=${item.id}`)" -->
               <span v-if="item.message_count">
                 Сообщения ({{ item.message_count }})
               </span> 

@@ -54,6 +54,7 @@ const currentChatId = ref(null)
 const isReviewSubmitted = ref(false)
 const confirmCashback = ref(false)
 const exampleBarcode = ref(false)
+const comment = ref(null)
 
 const getPaymentAcceptedStatus = chatId => {
   const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
@@ -815,7 +816,7 @@ onUnmounted(() => {
                     :key="`msg-${message.id}`"
                     class="mb-4 list-none"
                   >
-                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'user'">
+                    <template v-if="message.type === 'system' && ['success', 'info', 'cancel'].includes(message.system_type) && message.hide_for !== 'user'">
                       <div class="w-100 text-caption text-center text-disabled mb-2">
                         {{ new Date(message.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }} в {{ new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }}
                       </div>
@@ -826,7 +827,7 @@ onUnmounted(() => {
                         <div
                           :class="{                            
                             'success-msg': message.system_type === 'success',
-                            'info-msg': message.system_type === 'info'
+                            'info-msg': message.system_type === 'info' || 'cancel'
                           }"
                           v-html="message.text"
                         />
@@ -1393,17 +1394,18 @@ onUnmounted(() => {
             Отмена заказа
           </VCardTitle>
           <VCardText class="pa-0">
-            Вы можете отменить заказ на любом этапе, по любым причинам из за которых вы не хотите продолжать заказ. ⚠️ Не отменяйте заказ в случае, если вы уже заказали товар, в противном случае выплаты кэшбека от продавца не будет!
+            Вы можете отменить заказ по любой причине, где покупатель нарушает правила исполнения заказа. В случае выявления неправомерной отмены заказа в процессе выкупа товара покупателем, на ваш аккаунт могут быть наложены ограничения.  
           </VCardText>
+          <VTextField label="Комментарий" v-model="comment" class="mt-2" required/>
           <VCardActions class="d-flex flex-column pa-0">
             <VBtn
               block
               color="primary"
               variant="flat"
-              class="mt-6"
+              class="mt-4"
               size="large"
-              :loading="isCancelLoading"
-              @click="handleCancel"
+              :loading="isSubmittingReview"
+              @click="handleCancel(comment)"
             >
               Подтвердить
             </VBtn>
