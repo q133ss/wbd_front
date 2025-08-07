@@ -6,9 +6,9 @@ export const useOrders = () => {
   const chatStore = useChatStore()
   const snackbar = useSnackbarStore()
 
-  const cancelOrder = async () => {
+  const cancelOrder = async (com) => {
     try {
-      await api.buyback.cancelOrder(chatStore.activeChat.id)
+      await api.buyback.cancelOrder(chatStore.activeChat.id, com)
       chatStore.activeChat.status = 'cancelled'
       snackbar.notify({ text: 'Заказ отменен', color: 'success' })
     } catch (error) {
