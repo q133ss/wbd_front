@@ -49,7 +49,8 @@ const isRejectVisible = ref(false)
 const sendReview = ref(false)
 const hasSubmittedReview = ref(false)
 
-const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>\r\nОн проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом`
+const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>
+Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом`
 
 const getScreenSentStatus = chatId => {
   const sentStatus = localStorage.getItem('screenSentStatus')
@@ -265,6 +266,26 @@ const openInfo = () => {
   imageModal.value = false
   examplePhoto.value = false
   infoProduct.value = true
+}
+
+function parseMessage(text) {
+  if (!text) return ''
+
+  let html = text
+    .replace(/(\\n|\n|\r\n)/g, '<br>')
+
+  html = html.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline">${url}</a>`,
+  )
+
+  html = html.replace(
+    /(^|\s)([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?![^<]*>)/g,
+    (match, space, domain) =>
+      `${space}<a href="https://${domain}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline">${domain}</a>`,
+  )
+
+  return html
 }
 
 // Следим за сменой чата
@@ -627,7 +648,7 @@ onUnmounted(() => {
                     :key="`msg-${message.id}`"
                     class="mb-4 list-none"
                   >
-                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'user'">
+                    <template v-if="message.type === 'system' && ['success', 'info'].includes(message.system_type) && message.hide_for !== 'seller'">
                       <div class="w-100 text-caption text-center text-disabled mb-2">
                         {{ new Date(message.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }} в {{ new Date(message.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }}
                       </div>
@@ -750,7 +771,7 @@ onUnmounted(() => {
                       <template v-if="message.type === 'image' && message.files && message.files.length > 0">
                         <div
                           class="chat-body d-inline-flex flex-column"
-                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-end'"
+                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-start'"
                         >
                           <div
                             class="text-body-1 py-2 px-4 elevation-2 mb-1"
@@ -799,7 +820,7 @@ onUnmounted(() => {
                             <p
                               class="mb-0"
                               style="word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap"
-                              v-html="message.text ? message.text.replace(/(\\n|\n|\r\n)/g, '<br>') : ''"
+                              v-html="parseMessage(message.text)"
                             />
                           </div>
                           <div class="d-flex align-center gap-2">
@@ -1317,9 +1338,6 @@ onUnmounted(() => {
 }
 
 @media screen and (max-width: 960px) {
-  .layout-page-content {
-    margin-top: -30px;
-  }
   html {
     overflow: hidden !important;
   }
@@ -1378,7 +1396,7 @@ onUnmounted(() => {
   }
   .chat-content {
     margin-top: 25px !important;
-    min-height: 85vh !important;
+    min-height: 90vh !important;
   }
   .chat-list-sidebar {
     min-height: 91vh !important;

@@ -2,7 +2,6 @@
 import api from '@/api/Index'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-
 import { useRoute, useRouter } from 'vue-router'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { useDisplay } from 'vuetify'
@@ -54,6 +53,7 @@ const isAcceptPaymentLoading = ref(false)
 const currentChatId = ref(null)
 const isReviewSubmitted = ref(false)
 const confirmCashback = ref(false)
+const exampleBarcode = ref(false)
 
 const getPaymentAcceptedStatus = chatId => {
   const acceptedStatus = localStorage.getItem('paymentAcceptedStatus')
@@ -405,6 +405,26 @@ const activeBuybackId = computed(() => {
   
   return messages?.[0]?.buyback_id || null
 })
+
+function parseMessage(text) {
+  if (!text) return ''
+
+  let html = text
+    .replace(/(\\n|\n|\r\n)/g, '<br>')
+
+  html = html.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline">${url}</a>`,
+  )
+
+  html = html.replace(
+    /(^|\s)([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?![^<]*>)/g,
+    (match, space, domain) =>
+      `${space}<a href="https://${domain}" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-underline">${domain}</a>`,
+  )
+
+  return html
+}
 
 watch(
   () => chatStore.activeChat?.id,
@@ -937,7 +957,7 @@ onUnmounted(() => {
                             <p
                               class="mb-0"
                               style="word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap"
-                              v-html="message.text ? message.text.replace(/(\\n|\n|\r\n)/g, '<br>') : ''"
+                              v-html="parseMessage(message.text)"
                             />
                           </div>
                           <div class="d-flex align-center gap-2">
@@ -1116,7 +1136,7 @@ onUnmounted(() => {
                             color="#005AC5"
                             class="text-decoration-underline text-none mt-2"
                             style="font-size: 12px"
-                            @click="examplePhoto = true"
+                            @click="exampleBarcode = true"
                           >
                             Пример порезанного штрихкода
                           </VBtn>
@@ -1464,14 +1484,15 @@ onUnmounted(() => {
         v-model="examplePhoto"
         max-width="500"
       >
-        <VCard>
+        <VCard class="py-5 px-4">
           <VImg
-            src="https://basket-10.wbbasket.ru/vol1408/part140851/140851046/images/big/1.webp"
+            src="/images/templates/review.jpg"
             contain
-            max-height="400"
           />
-          <VCardText>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsa cum non recusandae neque molestiae nisi quis, sapiente sunt facilis dolorum.
+          <VCardText class="pa-0 py-3">
+            1) Оставьте отзыв о товаре согласно инструкции продавца.<br>
+            2) Перейдите в "Профиль" → "Отзывы и вопросы" → "Отзывы"<br>
+            3) Сделайте скриншот отзыва и прикрепите его в это поле.<br>
           </VCardText>
           <VCardActions>
             <VSpacer />
@@ -1479,6 +1500,33 @@ onUnmounted(() => {
               color="primary px-3"
               variant="flat"
               @click="examplePhoto = false"
+            >
+              Закрыть
+            </VBtn>
+          </VCardActions>
+        </VCard>
+      </VDialog>
+      <VDialog
+        v-model="exampleBarcode"
+        max-width="500"
+      >
+        <VCard class="py-5 px-4">
+          <VImg
+            src="/images/templates/barcode.jpg"
+            contain
+            max-height="400"
+          />
+          <VCardText class="pa-0 py-3">
+            1) Найдите на упаковке QR код от ВБ как в примере на фото<br>
+            2) Испортите QR код любым способом, чтобы его нельзя было отсканировать (Замазать фломастером / Неаккуратно содрать / Порезать и тд)<br>
+            3) Сфотографируйте и прикрепите фотографию в это поле.<br>
+          </VCardText>
+          <VCardActions>
+            <VSpacer />
+            <VBtn
+              color="primary px-3"
+              variant="flat"
+              @click="exampleBarcode = false"
             >
               Закрыть
             </VBtn>
@@ -1612,16 +1660,13 @@ onUnmounted(() => {
 }
 
 @media screen and (max-width: 960px) {
-  .layout-page-content {
-    margin-top: -30px;
-  }
   html {
     overflow: hidden !important;
   }
 }
 
-.footer {
-  display: none;
+.layout-footer {
+  display: none !important;
 }
 </style>
 
@@ -1673,7 +1718,7 @@ onUnmounted(() => {
   }
   .chat-content {
     margin-top: 25px !important;
-    min-height: 85vh !important;
+    min-height: 90vh !important;
   }
   .chat-list-sidebar {
     min-height: 91vh !important;

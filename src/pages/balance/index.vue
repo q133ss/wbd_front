@@ -311,7 +311,7 @@ const getBuybackDeclension = count => {
   }
 }
 
-const selectedTariff = ref(0)
+const selectedTariff = ref(1)
 
 const selectTariff = id => {
   selectedTariff.value = id
@@ -393,7 +393,7 @@ const getTariffEndDate = tariff => {
   return expirationDateString
 }
 
-const translateStatus = (status) => {
+const translateStatus = status => {
   switch (status) {
   case 'pending':
     return 'В ожидании'
@@ -443,7 +443,7 @@ const translateStatus = (status) => {
             class="balance-box"
           >
             <p class="ma-0">
-              <span class="font-weight-bold text-h6 text-primary d-block mb-2">{{ tariff?.name ?? 'Тариф не выбран' }}</span>
+              <span class="text-h4 mb-2 font-weight-bold text-primary d-block mb-2">{{ tariff?.name ?? 'Тариф не выбран' }}</span>
               <span
                 v-if="tariff != null"
                 class="text-subtitle-2"
@@ -483,14 +483,16 @@ const translateStatus = (status) => {
           </p>
 
           <VBtn
-            v-for="tariff in tariffs"
+            v-for="(tariff, i) in tariffs"
             :key="tariff.id"
             variant="text"
-            :class="selectedTariff === tariff.id ? 'text-primary' : 'text-secondary'"
-            class="ml-1 py-1 px-3 mb-6"
+            :class="[selectedTariff === tariff.id ? 'text-primary' : 'text-secondary', i === 0 ? 'mx-0' :'ml-1']"
+            class="py-1 px-3 mb-6"
+
             rounded="lg"
             @click="selectTariff(tariff.id)"
           >
+            {{ console.log(tariff) }}
             {{ tariff.name }}
           </VBtn>
 
@@ -518,10 +520,11 @@ const translateStatus = (status) => {
                   v-for="(data, index) in tariff.data"
                   :key="index"
                   class="d-flex justify-start align-start gap-10 px-3"
+                  :style="{ width: $vuetify.display.mdAndDown ? '100%' : '340px' }"
                 >
                   <VCard
                     class="tariff-card"
-                    width="340"
+                    width="100%"
                   >
                     <div class="card-content">
                       <div class="d-flex justify-between">
@@ -541,14 +544,17 @@ const translateStatus = (status) => {
                         </div>
                       </div>
                     </div>
-                    <div class="d-flex justify-between align-center mt-4 gap-5">
-                      <VBtn
-                        color="primary"
-                        width="146"
-                        @click="buyTariff(tariff, data.duration_days)"
-                      >
-                        Оформить
-                      </VBtn>
+                    <div class="d-flex justify-space-between align-center mt-4 gap-5">
+                      <div class="w-100">
+                        <VBtn
+                          color="primary"
+                          width="146"
+                          @click="buyTariff(tariff, data.duration_days)"
+                        >
+                          Оформить
+                        </VBtn>
+                      </div>
+
                       <div class="text-left w-100">
                         <p class="text-h6 font-weight-bold ma-0">
                           {{ data.initial_price }} ₽
