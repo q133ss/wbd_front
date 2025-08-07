@@ -1,59 +1,79 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container class="pa-0">
-        <Header></Header>
-        <v-container class="px-6 py-6 mt-10">
-          <v-card class="mx-auto pa-4 rounded-xl" max-width="400" flat>
-            <v-card-text class="d-flex flex-column align-center text-left pa-0">
-              <v-avatar size="64" color="#EBE1F8" class="mb-4">
-                <v-icon size="40" color="#673AB7">
+  <VApp>
+    <VMain>
+      <VContainer class="pa-0 d-flex h-100 flex-column justify-space-between">
+        <Header />
+        <VContainer class="px-6 py-6 mt-10 flex-grow">
+          <VCard
+            class="mx-auto pt-16 rounded-xl"
+            max-width="400"
+            variant="text"
+            flat
+          >
+            <VCardText class="d-flex flex-column align-start text-left pa-0">
+              <VAvatar
+                size="48"
+                color="#EBE1F8"
+                class="mb-6"
+              >
+                <VIcon
+                  size="30"
+                  color="#673AB7"
+                >
                   ri-emotion-happy-line
-                </v-icon>
-              </v-avatar>
+                </VIcon>
+              </VAvatar>
 
-              <h2 class="text-h6 font-weight-bold mb-2">Условия использования</h2>
+              <h2 class="text-h5 font-weight-bold mb-2">
+                Условия использования
+              </h2>
 
-              <p class="text-body-2 text-grey-darken-1 mb-6 text-center">
+              <p class="text-body-1 text-grey-darken-1 mb-6">
                 Продолжая использование, вы даете согласие на обработку персональных
                 данных. Политика обработки персональных данных, а так же оферта
-                были отправлены в телеграм бот <a href="https://t.me/wbd_bot" target="_blank" class="text-decoration-none font-weight-bold" style="color: #673AB7;">@wbd_bot</a>
+                были отправлены в телеграм бот <a
+                  href="https://t.me/wbd_bot"
+                  target="_blank"
+                  class="text-decoration-none font-weight-bold"
+                  style="color: #673AB7;"
+                >@wbd_bot</a>
               </p>
 
-              <v-btn
-                color="#EBE1F8"
+              <VBtn
+                color="primary"
                 class="rounded-lg text-none mb-4"
                 elevation="0"
                 block
                 height="50"
-                @click="continueAction"
                 :disabled="!consentGiven"
+                @click="continueAction"
               >
-                <span class="text-body-1 font-weight-bold" style="color: #673AB7;">Продолжить</span>
-              </v-btn>
-
-              <v-checkbox
-                v-model="consentGiven"
-                color="#673AB7"
-                class="mt-0 pt-0"
-                hide-details
-              >
-                <template v-slot:label>
-                  <span class="text-body-2 text-grey-darken-1">Даю согласие<br> На обработку персональных данных</span>
-                </template>
-              </v-checkbox>
-            </v-card-text>
-          </v-card>
-          <Footer></Footer>
-        </v-container>
-      </v-container>
-    </v-main>
-  </v-app>
+                <span class="font-weight-bold">Продолжить</span>
+              </VBtn>
+              <div class="d-flex align-start">
+                <VCheckbox
+                  v-model="consentGiven"
+                  color="#673AB7"
+                  class="mt-0 pt-0 d-flex align-start"
+                  hide-details
+                >
+                  <template #label>
+                    <span class="text-body-2 text-grey-darken-1">Даю согласие<br> На обработку персональных данных</span>
+                  </template>
+                </VCheckbox>
+              </div>
+            </VCardText>
+          </VCard>
+        </VContainer>
+        <Footer />
+      </VContainer>
+    </VMain>
+  </VApp>
 </template>
 
 <script setup>
-import Header from '@/pages/telegram/inc/header.vue'
 import Footer from '@/pages/telegram/inc/footer.vue'
+import Header from '@/pages/telegram/inc/header.vue'
 import { useRoute, useRouter } from "vue-router"
 
 definePage({
@@ -71,7 +91,7 @@ const chatId = route.query.chat_id
 const role = route.query.role
 
 const continueAction = () => {
-  if (consentGiven) {
+  if (consentGiven.value) {
     router.push(`/telegram/auth/contact?role=${role}&chat_id=${chatId}`)
   } else {
     console.log('User has not given consent.')

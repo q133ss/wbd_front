@@ -1,55 +1,61 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container class="pa-0">
-        <Header></Header>
-        <v-container class="px-6 py-6 mt-10">
-          <h2 class="text-h5 font-weight-bold mb-6">Выберите роль:</h2>
+  <VApp>
+    <VMain>
+      <VContainer class="pa-0 d-flex h-100 flex-column justify-space-between">
+        <Header />
+        <VContainer class="px-6 py-6 mt-10 flex-grow">
+          <div>
+            <h2 class="text-lg font-weight-bold mb-6">
+              Выберите роль:
+            </h2>
 
-          <v-card
-            class="d-flex align-center pa-4 mb-4 rounded-lg elevation-0"
-            color="#5C2DC4"
-            height="150"
-            @click="selectRole('buyer')"
-            style="cursor: pointer;"
-          >
-            <div class="text-h6 font-weight-bold white--text">Я покупатель</div>
-            <v-spacer></v-spacer>
-            <img
-              src="https://placehold.co/120x100?text=Корзина"
-              alt="Shopping Basket"
-              height="100"
-              width="120"
-            />
-          </v-card>
+            <VCard
+              class="d-flex align-center pa-4 mb-4 rounded-2xl elevation-0"
+              color="#5C2DC4"
+              height="152"
+              style="cursor: pointer;"
+              @click="selectRole('buyer')"
+            >
+              <div class="text-xl font-weight-bold white--text">
+                Я покупатель
+              </div>
+              <VSpacer />
+              <VImg
+                src="/images/card.png"
+                alt="Shopping Basket"
+                height="100"
+              />
+            </VCard>
 
-          <v-card
-            class="d-flex align-center pa-4 rounded-lg elevation-0"
-            color="#5C2DC4"
-            height="150"
-            @click="selectRole('seller')"
-            style="cursor: pointer;"
-          >
-            <div class="text-h6 font-weight-bold white--text">Я продавец</div>
-            <v-spacer></v-spacer>
-            <img
-              src="https://placehold.co/120x100/A370F2/ffffff?text=Монитор"
-              alt="Website Template"
-              height="100"
-              width="120"
-            />
-          </v-card>
-          <Footer></Footer>
-        </v-container>
-      </v-container>
-    </v-main>
-  </v-app>
+            <VCard
+              class="d-flex align-center pa-4 rounded-lg elevation-0"
+              color="#5C2DC4"
+              height="152"
+              style="cursor: pointer;"
+              @click="selectRole('seller')"
+            >
+              <div class="text-xl font-weight-bold white--text">
+                Я продавец
+              </div>
+              <VSpacer />
+              <VImg
+                src="/images/monitor.png"
+                alt="Website Template"
+                height="100"
+              />
+            </VCard>
+          </div>
+        </VContainer>
+        <Footer />
+      </VContainer>
+    </VMain>
+  </VApp>
 </template>
 
 <script setup>
 import api from '@/api/index.js'
-import Header from '@/pages/telegram/inc/header.vue'
 import Footer from '@/pages/telegram/inc/footer.vue'
+import Header from '@/pages/telegram/inc/header.vue'
 import { useRoute, useRouter } from "vue-router"
 
 definePage({
@@ -69,8 +75,9 @@ if (!chatId) {
 
 const router = useRouter()
 
-const selectRole = async (role) => {
+const selectRole = async role => {
   const response = await api.telegram.sendPolicy(chatId)
+
   router.push(`/telegram/auth/conditions?role=${role}&chat_id=${chatId}`)
 }
 </script>

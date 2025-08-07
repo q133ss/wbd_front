@@ -1,44 +1,61 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container class="pa-0">
-        <Header></Header>
-        <v-container class="px-6 py-6 mt-10">
-          <v-card class="mx-auto pa-4 rounded-xl" max-width="400" flat>
-            <v-card-text class="d-flex flex-column align-center text-left pa-0">
-              <v-avatar size="64" color="#EBE1F8" class="mb-4">
-                <v-icon size="40" color="#673AB7">ri-chat-1-line</v-icon>
-              </v-avatar>
+  <VApp>
+    <VMain>
+      <VContainer class="pa-0 d-flex h-100 flex-column justify-space-between">
+        <Header />
+        <VContainer class="px-6 py-6 mt-10 flex-grow d-flex justify-center align-center">
+          <VCard
+            class="mx-auto pt-6 rounded-xl mt-16"
+            max-width="400"
+            variant="text"
+            flat
+          >
+            <VCardText class="d-flex flex-column text-left pa-0">
+              <VAvatar
+                size="48"
+                color="#EBE1F8"
+                class="mb-6"
+              >
+                <VIcon
+                  size="30"
+                  color="#673AB7"
+                >
+                  ri-chat-1-line
+                </VIcon>
+              </VAvatar>
 
-              <h2 class="text-h6 font-weight-bold mb-2">Поделитесь контактом</h2>
+              <h2 class="text-h5 font-weight-bold mb-2">
+                Поделитесь контактом
+              </h2>
 
-              <p class="text-body-2 text-grey-darken-1 mb-6 text-center">
+              <p class="text-body-1 text-grey-darken-1 mb-6">
                 Для продолжения регистрации в сервисе поделитесь номером телефона, привязанным к вашу аккаунту.
               </p>
 
-              <v-btn
-                color="#EBE1F8"
+              <VBtn
+                color="primary"
                 class="rounded-lg text-none mb-4"
                 elevation="0"
+
                 block
                 height="50"
-                @click="share()"
+                @click="share"
               >
-                <span class="text-body-1 font-weight-bold" style="color: #673AB7;">Поделиться</span>
-              </v-btn>
-            </v-card-text>
-          </v-card>
-          <Footer></Footer>
-        </v-container>
-      </v-container>
-    </v-main>
-  </v-app>
+                <span class="font-weight-bold">Поделиться</span>
+              </VBtn>
+            </VCardText>
+          </VCard>
+        </VContainer>
+        <Footer />
+      </VContainer>
+    </VMain>
+  </VApp>
 </template>
 
 <script setup>
 import api from '@/api/index.js'
-import Header from '@/pages/telegram/inc/header.vue'
 import Footer from '@/pages/telegram/inc/footer.vue'
+import Header from '@/pages/telegram/inc/header.vue'
 import { useRoute } from "vue-router"
 
 definePage({
@@ -57,12 +74,14 @@ const share = () => {
   const tg = window.Telegram?.WebApp
   if (!tg?.requestContact) {
     tg?.showAlert?.('Функция недоступна в этом окружении.')
+    
     return
   }
 
   tg.requestContact((success, info) => {
     if (!success || !info || info.status !== 'sent') {
       tg.showAlert('Не удалось получить контакт.')
+      
       return
     }
 
@@ -73,6 +92,7 @@ const share = () => {
     const userId = contact.user_id
 
     const response = api.auth.registerFromTelegram(userId, phone, role, chatId, firstName, lastName)
+
     router.push(`/telegram/auth/complete?token=${response.token}`)
   })
 }

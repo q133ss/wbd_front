@@ -3,13 +3,17 @@ import logo from '@images/logo.svg?url'
 
 const closePage = () => {
   // Logic to close the page (e.g., go back in history, close a dialog)
-  console.log('Close button clicked');
+  console.log('Close button clicked')
 }
 </script>
 
 <template>
-  <v-app-bar flat class="px-4" height="64px">
-    <v-spacer></v-spacer>
+  <VAppBar
+    flat
+    class="px-4 border-b "
+    height="64px"
+  >
+    <VSpacer />
 
     <img
       :src="logo"
@@ -17,11 +21,9 @@ const closePage = () => {
       height="40"
       width="40"
       class="rounded-lg"
-    />
-    <v-spacer></v-spacer>
-  </v-app-bar>
+    >
+    <VSpacer />
+  </VAppBar>
 </template>
 
-<style scoped lang="scss">
 
-</style>
