@@ -70,10 +70,29 @@ const loadProductData = async id => {
     errorMessage.value = null
 
     // Загружаем данные о товаре
-    product.value = await productsApi.getAdById(id)
+    let adsResponse = null
+    try {
+      adsResponse = await productsApi.getAdById(id)
+    } catch (error) {
+      if (error.response?.status === 404 ?? error.status === 404) {
+        // Вторая попытка: adByProduct
+        try {
+          adsResponse = await productsApi.adByProduct(id)
+        } catch (fallbackError) {
+          if (fallbackError.response?.status === 404) {
+            throw new Error('Товар не найден') // Прерываем выполнение
+          } else {
+            throw fallbackError // Прочие ошибки
+          }
+        }
+      } else {
+        throw error // Прочие ошибки
+      }
+    }
+    product.value = adsResponse
 
     // Загружаем первую страницу отзывов
-    const reviewsResponse = await reviewsApi.getProductReviews(id, currentPage.value)
+    const reviewsResponse = await reviewsApi.getProductReviews(product.value.id, currentPage.value)
 
     // Проверяем, что reviewsResponse содержит ожидаемые данные
     if (!reviewsResponse || typeof reviewsResponse !== 'object') {
@@ -85,7 +104,7 @@ const loadProductData = async id => {
     pagination.value = reviewsResponse.pagination || {}
 
     // Загружаем похожие товары
-    const relatedResponse = await productsApi.getRelatedProducts(id)
+    const relatedResponse = await productsApi.getRelatedProducts(product.value.id)
 
     relatedProducts.value = (relatedResponse || []).map(item => ({
       ...item,
@@ -94,11 +113,9 @@ const loadProductData = async id => {
     })).slice(0, 6)
   } catch (error) {
     // Если товар не найден, редирект на страницу 404
-    // if (error.status == 404) {
-    //   router.push('/not-found')
-    //   return
-    // }
-
+    //if (error.status == 404) {
+      // Пробуем получить объявление по ID товара!
+    //}
     console.error('Ошибка при загрузке данных:', error)
     errorMessage.value = 'Не удалось загрузить данные. Попробуйте позже.'
   } finally {

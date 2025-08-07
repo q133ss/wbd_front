@@ -161,5 +161,13 @@ export default {
     })
 
     return response
-  }
+  },
+
+  async adByProduct(productId) {
+    const response = await $api(`/ad/by-product/${productId}`, {
+      method: 'GET'
+    })
+
+    return response
+  },
 }
