@@ -73,7 +73,7 @@ const logout = async () => {
   useCookie('accessToken').value = null
   useCookie('telegramBotLink').value = null
 
-  let roleId = userData.value?.role_id
+  let roleId = userData.value?.role?.id
 
   // Remove "userData" from cookie
   userData.value = null
