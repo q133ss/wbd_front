@@ -76,7 +76,10 @@ const verticalNavAttrs = computed(() => {
         </template>
       </VerticalNav>
     </component>
-    <div class="layout-content-wrapper">
+    <div
+      class="layout-content-wrapper"
+      style="padding-bottom: 20px !important"
+    >
       <header
         class="layout-navbar"
         :class="[{ 'navbar-blur': configStore.isNavbarBlurEnabled }]"
@@ -93,11 +96,7 @@ const verticalNavAttrs = computed(() => {
           <slot />
         </div>
       </main>
-      <footer class="layout-footer">
-        <div class="footer-content-container">
-          <slot name="footer" />
-        </div>
-      </footer>
+      <slot name="footer" />
     </div>
     <div
       class="layout-overlay"
@@ -194,6 +193,7 @@ const verticalNavAttrs = computed(() => {
   &.layout-content-height-fixed {
     .layout-content-wrapper {
       max-block-size: 100dvh;
+      padding-bottom: 0 !important;
     }
 
     .layout-page-content {
