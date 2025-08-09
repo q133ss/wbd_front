@@ -972,22 +972,6 @@ onUnmounted(() => {
                         </div>
                       </template>
                     </div>
-                    <div
-                      v-if="chatStore.activeChat && message.text === 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически' && !getPaymentAcceptedStatus(chatStore.activeChat?.id) && chatStore.activeChat?.status === 'awaiting_payment_confirmation' && message.id === chatStore.messages.filter(m => m.text === message.text).slice(-1)[0]?.id"
-                      style="max-width: 311px; margin-inline: auto"
-                      class="my-4"
-                    >
-                      {{ console.log(chatStore.activeChat) }}
-                      <VBtn
-                        block
-                        color="primary"
-                        size="large"
-                        :loading="isAcceptPaymentLoading"
-                        @click="confirmCashback = true"
-                      >
-                        Принять
-                      </VBtn>
-                    </div>
                   </li>
                   <div
                     v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_buyer && !isReviewSubmitted"
@@ -1042,6 +1026,22 @@ onUnmounted(() => {
                         </VBtn>
                       </VCardActions>
                     </VCard>
+                  </div>
+                  <div
+                    v-if="chatStore.activeChat && !getPaymentAcceptedStatus(chatStore.activeChat?.id) && chatStore.activeChat?.status === 'awaiting_payment_confirmation'"
+                    style="max-width: 311px; margin-inline: auto"
+                    class="my-4"
+                  >
+                    {{ console.log(chatStore.activeChat) }}
+                    <VBtn
+                      block
+                      color="primary"
+                      size="large"
+                      :loading="isAcceptPaymentLoading"
+                      @click="confirmCashback = true"
+                    >
+                      Принять
+                    </VBtn>
                   </div>
                   <div
                     v-if="(chatStore.activeChat?.status === 'pending' && !chatStore.activeChat?.is_order_photo_sent && !orderSend) || showOrderForm"

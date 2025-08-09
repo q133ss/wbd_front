@@ -6,7 +6,6 @@ import { themeConfig } from '@themeConfig'
 // Components
 import Footer from '@/layouts/components/Footer.vue'
 import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
-import NavSearchBar from '@/layouts/components/NavSearchBar.vue'
 import NavbarShortcuts from '@/layouts/components/NavbarShortcuts.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
@@ -19,6 +18,8 @@ const configStore = useConfigStore()
 
 // ℹ️ Provide animation name for vertical nav collapse icon.
 const verticalNavHeaderActionAnimationName = ref(null)
+
+console.log(navItems)
 
 watch([
   () => configStore.isVerticalNavCollapsed,
@@ -48,7 +49,7 @@ const isLoggedIn = !!dataUser && !!token
           <VIcon icon="ri-menu-line" />
         </IconBtn>
 
-<!--        <NavSearchBar class="ms-lg-n2" />-->
+        <!--        <NavSearchBar class="ms-lg-n2" /> -->
 
         <VSpacer />
 
@@ -57,11 +58,19 @@ const isLoggedIn = !!dataUser && !!token
           :languages="themeConfig.app.i18n.langConfig"
         />
         <div class="bg-menu-white">
-        <NavbarThemeSwitcher v-if="isLoggedIn" />
-        <NavbarShortcuts v-if="isLoggedIn" />
-        <NavBarNotifications class="me-2" v-if="isLoggedIn" />
-        <UserProfile v-if="isLoggedIn" />
-        <router-link v-if="!isLoggedIn" to="/login"><VIcon>ri-user-line</VIcon></router-link>
+          <NavbarThemeSwitcher v-if="isLoggedIn" />
+          <NavbarShortcuts v-if="isLoggedIn" />
+          <NavBarNotifications
+            v-if="isLoggedIn"
+            class="me-2"
+          />
+          <UserProfile v-if="isLoggedIn" />
+          <RouterLink
+            v-if="!isLoggedIn"
+            to="/login"
+          >
+            <VIcon>ri-user-line</VIcon>
+          </RouterLink>
         </div>
       </div>
     </template>

@@ -300,6 +300,15 @@ watch(() => chatStore.activeChat?.id, newChatId => {
   }
 })
 
+watch(() => chatStore.activeChat?.status, status => {
+  if (status === 'awaiting_payment_confirmation') {
+    sendReview.value = false
+  } else {
+    sendReview.value = true
+  }
+})
+
+
 onMounted(async () => {
   try {
     chatStore.resetState()
@@ -913,7 +922,7 @@ onUnmounted(() => {
                     </VCard>
                   </div>
                   <div
-                    v-if="chatStore.activeChat.status === 'on_confirmation' && showUploadScreen"
+                    v-if="chatStore.activeChat.status === 'on_confirmation'"
                     class="mt-4"
                   >
                     <VCard
