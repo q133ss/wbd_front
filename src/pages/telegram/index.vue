@@ -8,13 +8,11 @@ const text = ref('Загрузка...')
 const router = useRouter()
 
 onMounted(async () => {
-  const chatId = route.query.chat_id // Получаем токен из URL
+  const chatIdCookie = useCookie('chatId')
+  const chatId = chatIdCookie.value || (typeof route.query.chat_id === 'string' ? route.query.chat_id : null)
 
   try{
     if (chatId) {
-      // Сохраняем чат ид!
-      useCookie('chatId').value = chatId
-
       try{
         const response = await api.telegram.getUser(chatId)
 

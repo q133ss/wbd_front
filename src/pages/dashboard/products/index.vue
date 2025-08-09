@@ -177,7 +177,7 @@ const addProductToWb = async () => {
     loading.value = true
     await nextTick()
 
-    const response = await api.products.addWbProduct(articleInput.value)
+    const response = await api.products.addWbProduct(articleInput.value, loadRelated.value)
 
     if (response.code === 201) {
       const userData = useCookie('userData')
@@ -846,7 +846,7 @@ const loadRelated = ref(false)
             required
           />
           <VCheckbox
-            v-model="loadRelated"
+            :model-value="loadRelated"
             label="Загрузить связанные товары"
             @update:model-value="loadRelated = !loadRelated"
           />

@@ -67,7 +67,9 @@ definePage({
 
 const route = useRoute()
 
-const chatId = route.query.chat_id
+const chatIdCookie = useCookie('chatId')
+const chatId = chatIdCookie.value || (typeof route.query.chat_id === 'string' ? route.query.chat_id : null)
+
 const role = route.query.role
 
 const share = () => {
