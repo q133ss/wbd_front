@@ -486,7 +486,7 @@ const closeTgModal = () => {
           class="mb-2 text-body-1"
           @click="openProductModal"
         >
-          Добавить товар
+          Создать объявление
         </VBtn>
       </VCol>
       <VCol cols="12">
