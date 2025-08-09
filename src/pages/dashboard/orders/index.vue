@@ -1396,7 +1396,12 @@ onUnmounted(() => {
           <VCardText class="pa-0">
             Вы можете отменить заказ по любой причине, где покупатель нарушает правила исполнения заказа. В случае выявления неправомерной отмены заказа в процессе выкупа товара покупателем, на ваш аккаунт могут быть наложены ограничения.  
           </VCardText>
-          <VTextField label="Комментарий" v-model="comment" class="mt-2" required/>
+          <VTextField
+            v-model="comment"
+            label="Комментарий"
+            class="mt-2"
+            required
+          />
           <VCardActions class="d-flex flex-column pa-0">
             <VBtn
               block
@@ -1670,6 +1675,10 @@ onUnmounted(() => {
 .layout-footer {
   display: none !important;
 }
+
+.footer {
+  display: none !important;
+}
 </style>
 
 <style scoped lang="scss">
@@ -1711,25 +1720,7 @@ onUnmounted(() => {
   overflow-x: hidden;
 }
 
-@media screen and (max-width: 960px) {
-  .chats-container {
-    overflow-x: auto !important;
-  }
-  .content-wrapper {
-    overflow: hidden;
-  }
-  .chat-content {
-    margin-top: 25px !important;
-    min-height: 90vh !important;
-  }
-  .chat-list-sidebar {
-    min-height: 91vh !important;
-    margin-top: 30px !important;
-  }
-  .chat-log {
-    min-height: 60vh !important;
-  }
-}
+
 
 .msg-alert-text {
   color: #164582;
@@ -1809,5 +1800,31 @@ onUnmounted(() => {
   background: #fff;
   border-radius: 30px;
   padding: 5px;
+}
+
+@media screen and (max-width: 960px) {
+  .chats-container {
+    overflow-x: auto !important;
+  }
+  .content-wrapper {
+    overflow: hidden;
+  }
+  .chat-content {
+    margin-top: 0px !important;
+    min-height: 85vh !important;
+  }
+  .chat-list-sidebar {
+    min-height: 91vh !important;
+    margin-top: 25px !important;
+  }
+  .chat-log {
+    min-height: 80vh !important;
+  }
+  .success-msg {
+    width: 95%;
+  }
+  .info-msg {
+    width: 95%;
+  }
 }
 </style>

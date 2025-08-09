@@ -62,7 +62,8 @@ onMounted(async () => {
       api.balance.getBalaceOnly(),
       api.template.getAllTemplates(),
     ])
-    console.log('Balance: ', balanceResponse);
+
+    console.log('Balance: ', balanceResponse)
     
 
     product.value = productResponse
@@ -209,6 +210,7 @@ const submitAd = async () => {
 
   // 🔽 Замена переносов строк на <br> для полей с текстом
   const FIELDS_WITH_TEXTAREA = ['order_conditions', 'redemption_instructions', 'review_criteria']
+
   FIELDS_WITH_TEXTAREA.forEach(field => {
     if (payload[field]) {
       payload[field] = payload[field].replace(/\n/g, '<br>')
@@ -537,7 +539,7 @@ function decrement(idx) {
                   cols="12"
                   md="6"
                 >
-                  <div class="d-flex align-center justify-center">
+                  <div class="d-flex align-center">
                     <VBtn
                       class="increment-btn mr-2"
                       color="primary"
