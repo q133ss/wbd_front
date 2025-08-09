@@ -755,99 +755,63 @@ const closeTgModal = () => {
             Выкупов
           </th>
           <th>
-            <div class="inline-flex items-center">              
-              <VTooltip location="top">
-                <template #activator="{ props }">
-                  <VBadge
-                    v-bind="props"
-                    location="right center"
-                    :offset-x="-10"
-                    color="primary"
-                    dot
-                    class="ml-[2px]"
-                  >
-                    <span class="text-uppercase">Выкупают</span>
-                  </VBadge>
-                </template>
-                <span>Выкупы в процессе</span>
-              </VTooltip>
-            </div>
+            <VTooltip location="top">
+              <template #activator="{ props }">
+                <span
+                  v-bind="props"
+                  class="text-uppercase cursor-pointer"
+                >Выкупают</span>
+              </template>
+              <span>Выкупы в процессе</span>
+            </VTooltip>
           </th>
+
           <th>
-            <div class="flex items-center gap-1">              
-              <VTooltip location="top">
-                <template #activator="{ props }">
-                  <VBadge
-                    v-bind="props"
-                    location="right center"
-                    :offset-x="-10"
-                    color="primary"
-                    dot
-                    class="ml-[2px]"
-                  >
-                    <span class="text-uppercase">Показы</span>
-                  </VBadge>
-                </template>
-                <span>Сколько людей увидело карточку на главной</span>
-              </VTooltip>
-            </div>
+            <VTooltip location="top">
+              <template #activator="{ props }">
+                <span
+                  v-bind="props"
+                  class="text-uppercase cursor-pointer"
+                >Показы</span>
+              </template>
+              <span>Сколько людей увидело карточку на главной</span>
+            </VTooltip>
           </th>
+
           <th>
-            <div class="flex items-center gap-1">              
-              <VTooltip location="top">
-                <template #activator="{ props }">
-                  <VBadge
-                    v-bind="props"
-                    location="right center"
-                    :offset-x="-10"
-                    color="primary"
-                    dot
-                    class="ml-[2px]"
-                  >
-                    <span class="text-uppercase">Переходы</span>
-                  </VBadge>
-                </template>
-                <span>Сколько людей перешло в карточку</span>
-              </VTooltip>
-            </div>
+            <VTooltip location="top">
+              <template #activator="{ props }">
+                <span
+                  v-bind="props"
+                  class="text-uppercase cursor-pointer"
+                >Переходы</span>
+              </template>
+              <span>Сколько людей перешло в карточку</span>
+            </VTooltip>
           </th>
+
           <th>
-            <div class="relative inline-flex items-center">              
-              <VTooltip location="top">
-                <template #activator="{ props }">
-                  <VBadge
-                    v-bind="props"
-                    location="right center"
-                    :offset-x="-10"
-                    color="primary"
-                    dot
-                    class="ml-[2px] relative top-[1px]"
-                  >
-                    <span class="text-uppercase">CTR</span>
-                  </VBadge>
-                </template>
-                <span>Конверсия из показа в переход</span>
-              </VTooltip>
-            </div>
+            <VTooltip location="top">
+              <template #activator="{ props }">
+                <span
+                  v-bind="props"
+                  class="text-uppercase cursor-pointer"
+                >CTR</span>
+              </template>
+              <span>Конверсия из показа в переход</span>
+            </VTooltip>
           </th>
+
           <th>
-            <div class="relative inline-flex items-center">
-              <VTooltip location="top">
-                <template #activator="{ props }">
-                  <VBadge
-                    v-bind="props"
-                    location="right center"
-                    :offset-x="-10"
-                    color="primary"
-                    dot
-                    class="ml-[2px] relative top-[1px]"
-                  >
-                    <span class="text-uppercase">CR</span>
-                  </VBadge>
-                </template>
-                <span>Конверсия из перехода в заказ</span>
-              </VTooltip>
-            </div>
+            <VTooltip location="top">
+              <template #activator="{ props }">
+                <span
+                  v-bind="props"
+                  class="text-uppercase cursor-pointer"
+                >CR</span>
+              </template>
+              <span>Конверсия из перехода в заказ</span>
+            </VTooltip>
           </th>
         </tr>
       </thead>
