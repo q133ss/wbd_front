@@ -113,7 +113,7 @@ export default {
 
     return response
   },
-  async addWbProduct(article) {
+  async addWbProduct(article, loadRelated) {
     const token = useCookie('accessToken').value
     if (!token) return null
 
@@ -123,7 +123,10 @@ export default {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
-      }
+      },
+      body: JSON.stringify({
+        loadRelated: loadRelated
+      })
     })
 
     return response

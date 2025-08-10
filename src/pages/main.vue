@@ -6,6 +6,7 @@ import productApi from '@/api/index'
 import ProductCard from '@/components/ProductCard.vue'
 import { onMounted, ref } from 'vue'
 import Footer from "@/views/front-pages/front-page-footer.vue"
+import { useRoute, useRouter } from "vue-router"
 
 const DefaultLayoutWithHorizontalNav = defineAsyncComponent(() => import('@/layouts/components/DefaultLayoutWithHorizontalNav.vue'))
 const DefaultLayoutWithVerticalNav = defineAsyncComponent(() => import('@/layouts/components/DefaultLayoutWithVerticalNav.vue'))
@@ -146,6 +147,25 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
+
+// Проверка на TG APP и перенаправление, если нет логина!
+const userData = useCookie('userData')
+const router = useRouter()
+const route = useRoute()
+
+if(userData.value == undefined){
+  const tg = window.Telegram?.WebApp
+  function isTelegramMiniApp() {
+    return Boolean(tg && typeof tg.initData === 'string' && tg.initData.length > 0)
+  }
+
+  const chatIdCookie = useCookie('chatId')
+  const chatId = chatIdCookie.value || (typeof route.query.chat_id === 'string' ? route.query.chat_id : null)
+
+  if(isTelegramMiniApp()){
+    router.push(`/telegram?chat_id=${chatId}`)
+  }
+}
 </script>
 
 <template>

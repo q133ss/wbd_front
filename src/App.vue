@@ -19,6 +19,20 @@ const configStore = useConfigStore()
 import { useSnackbarStore } from '@/stores/snackbar'
 
 const snackbar = useSnackbarStore()
+
+// Записываем ID чата из URL в cookie, если он отличается от текущего
+const route = useRoute()
+const chatIdCookie = useCookie('chatId', { sameSite: 'lax' }) // Nuxt
+
+const chatIdParam = route.query.chat_id
+
+if (
+  typeof chatIdParam === 'string' &&
+  /^\d+$/.test(chatIdParam) &&
+  chatIdParam !== chatIdCookie.value
+) {
+  chatIdCookie.value = chatIdParam
+}
 </script>
 
 <template>
