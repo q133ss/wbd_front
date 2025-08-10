@@ -76,6 +76,19 @@ export default {
     })
   },
 
+  async buyerBuybacksCount() {
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    return await $api(`/buybacks-unread-count`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+    })
+  },
+
   async sendScreen(id, file) {
     const token = useCookie('accessToken').value
     if (!token) return null
@@ -98,7 +111,7 @@ export default {
   async acceptPayment(chatId, buybackId) {
     const token = useCookie('accessToken').value
     if (!token) return null
-    console.log('Ну бля до сюда зашел');
+    console.log('Ну бля до сюда зашел')
     
     return await $api(`/chat/${chatId}/accept/payment?buyback.id=${buybackId}`, {
       method: 'POST',

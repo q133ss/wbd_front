@@ -9,9 +9,10 @@ export function useBuyerNavigation() {
   
   const buybacksCount = async () => {
     try {
-      const response = await api.buyback.buybacksCount()
+      const response = await api.buyback.buyerBuybacksCount()
 
       buybacks.value = response.count   
+      console.log(buybacks.value);      
     } catch (error) {
       console.error('Ошибка при получении количества бэкапов:', error)
     }
