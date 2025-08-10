@@ -282,7 +282,7 @@ import { themeConfig } from '@themeConfig'
 
 <style lang="scss">
 .footer {
-  @media (min-width: 600px) and (max-width: 960px) {
+  @media (max-width: 960px) {
     .v-container {
       padding-inline: 2rem !important;
     }

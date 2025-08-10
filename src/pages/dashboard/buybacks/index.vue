@@ -1519,14 +1519,14 @@ onUnmounted(() => {
   }
   .chat-content {
     margin-top: 0px !important;
-    min-height: 90vh !important;
+    min-height: 91dvh !important;
   }
   .chat-list-sidebar {
-    min-height: 91vh !important;
-    margin-top: 30px !important;
+    min-height: 91dvh !important;
+    margin-top: 0px !important;
   }
   .chat-log {
-    min-height: 60vh !important;
+    min-height: 91dvh !important;
   }
 }
 </style>

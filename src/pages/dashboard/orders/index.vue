@@ -1811,14 +1811,14 @@ onUnmounted(() => {
   }
   .chat-content {
     margin-top: 0px !important;
-    min-height: 85vh !important;
+    min-height: 91dvh !important;
   }
   .chat-list-sidebar {
-    min-height: 91vh !important;
-    margin-top: 25px !important;
+    min-height: 91dvh !important;
+    margin-top: 0px !important;
   }
   .chat-log {
-    min-height: 80vh !important;
+    min-height: 91dvh !important;
   }
   .success-msg {
     width: 95%;
