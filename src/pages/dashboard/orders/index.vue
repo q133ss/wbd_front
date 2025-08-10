@@ -972,22 +972,6 @@ onUnmounted(() => {
                         </div>
                       </template>
                     </div>
-                    <div
-                      v-if="chatStore.activeChat && message.text === 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически' && !getPaymentAcceptedStatus(chatStore.activeChat?.id) && chatStore.activeChat?.status === 'awaiting_payment_confirmation' && message.id === chatStore.messages.filter(m => m.text === message.text).slice(-1)[0]?.id"
-                      style="max-width: 311px; margin-inline: auto"
-                      class="my-4"
-                    >
-                      {{ console.log(chatStore.activeChat) }}
-                      <VBtn
-                        block
-                        color="primary"
-                        size="large"
-                        :loading="isAcceptPaymentLoading"
-                        @click="confirmCashback = true"
-                      >
-                        Принять
-                      </VBtn>
-                    </div>
                   </li>
                   <div
                     v-if="chatStore.activeChat?.status === 'cashback_received' && !chatStore.activeChat?.has_review_by_buyer && !isReviewSubmitted"
@@ -1042,6 +1026,22 @@ onUnmounted(() => {
                         </VBtn>
                       </VCardActions>
                     </VCard>
+                  </div>
+                  <div
+                    v-if="chatStore.activeChat && !getPaymentAcceptedStatus(chatStore.activeChat?.id) && chatStore.activeChat?.status === 'awaiting_payment_confirmation'"
+                    style="max-width: 311px; margin-inline: auto"
+                    class="my-4"
+                  >
+                    {{ console.log(chatStore.activeChat) }}
+                    <VBtn
+                      block
+                      color="primary"
+                      size="large"
+                      :loading="isAcceptPaymentLoading"
+                      @click="confirmCashback = true"
+                    >
+                      Принять
+                    </VBtn>
                   </div>
                   <div
                     v-if="(chatStore.activeChat?.status === 'pending' && !chatStore.activeChat?.is_order_photo_sent && !orderSend) || showOrderForm"
@@ -1396,7 +1396,12 @@ onUnmounted(() => {
           <VCardText class="pa-0">
             Вы можете отменить заказ по любой причине, где покупатель нарушает правила исполнения заказа. В случае выявления неправомерной отмены заказа в процессе выкупа товара покупателем, на ваш аккаунт могут быть наложены ограничения.  
           </VCardText>
-          <VTextField label="Комментарий" v-model="comment" class="mt-2" required/>
+          <VTextField
+            v-model="comment"
+            label="Комментарий"
+            class="mt-2"
+            required
+          />
           <VCardActions class="d-flex flex-column pa-0">
             <VBtn
               block
@@ -1670,6 +1675,10 @@ onUnmounted(() => {
 .layout-footer {
   display: none !important;
 }
+
+.footer {
+  display: none !important;
+}
 </style>
 
 <style scoped lang="scss">
@@ -1711,25 +1720,7 @@ onUnmounted(() => {
   overflow-x: hidden;
 }
 
-@media screen and (max-width: 960px) {
-  .chats-container {
-    overflow-x: auto !important;
-  }
-  .content-wrapper {
-    overflow: hidden;
-  }
-  .chat-content {
-    margin-top: 25px !important;
-    min-height: 90vh !important;
-  }
-  .chat-list-sidebar {
-    min-height: 91vh !important;
-    margin-top: 30px !important;
-  }
-  .chat-log {
-    min-height: 60vh !important;
-  }
-}
+
 
 .msg-alert-text {
   color: #164582;
@@ -1809,5 +1800,31 @@ onUnmounted(() => {
   background: #fff;
   border-radius: 30px;
   padding: 5px;
+}
+
+@media screen and (max-width: 960px) {
+  .chats-container {
+    overflow-x: auto !important;
+  }
+  .content-wrapper {
+    overflow: hidden;
+  }
+  .chat-content {
+    margin-top: 0px !important;
+    min-height: 91dvh !important;
+  }
+  .chat-list-sidebar {
+    min-height: 91dvh !important;
+    margin-top: 0px !important;
+  }
+  .chat-log {
+    min-height: 91dvh !important;
+  }
+  .success-msg {
+    width: 95%;
+  }
+  .info-msg {
+    width: 95%;
+  }
 }
 </style>

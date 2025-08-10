@@ -37,10 +37,10 @@
       <div class="product-info-wrap">
         <div class="d-flex align-center gap-2 mt-1">
           <span class="text-h4 text-primary product-price">
-            {{ parseInt(item.price_with_cashback) }} ₽
+            {{ parseInt(item.price_with_cashback) }}₽
           </span>
           <span class="text-body-2 text-disabled text-decoration-line-through">
-            {{ parseInt(item.product.price) }} ₽
+            {{ parseInt(item.product.price) }}₽
           </span>
 
           <VTooltip location="top">

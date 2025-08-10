@@ -1,6 +1,6 @@
-import { ref, computed } from 'vue'
 import api from '@/api/index'
 import Pusher from 'pusher-js'
+import { computed, ref } from 'vue'
 
 export function useSellerNavigation() {
   const buybacks = ref(0)
@@ -10,6 +10,7 @@ export function useSellerNavigation() {
   const buybacksCount = async () => {
     try {
       const response = await api.buyback.buybacksCount()
+
       buybacks.value = response.count
     } catch (error) {
       console.error('Ошибка при получении количества бэкапов:', error)
@@ -22,7 +23,7 @@ export function useSellerNavigation() {
 
       pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
         cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-        encrypted: true
+        encrypted: true,
       })
 
       const notificationChannelName = `notification-${currentUser.value.id}`
@@ -45,12 +46,12 @@ export function useSellerNavigation() {
     {
       title: 'Товары',
       icon: { icon: 'ri-box-3-line' },
-      to: 'dashboard-products'
+      to: 'dashboard-products',
     },
     {
       title: 'Объявления',
       icon: { icon: 'ri-advertisement-line' },
-      to: 'dashboard-advertisements'
+      to: 'dashboard-advertisements',
     },
     {
       title: 'Выкупы',
@@ -84,10 +85,10 @@ export function useSellerNavigation() {
       title: 'Поддержка',
       icon: { icon: 'ri-headphone-line' },
       to: 'dashboard-support',
-    }
+    },
   ])
 
   return {
-    sellerNavItems
+    sellerNavItems,
   }
 }

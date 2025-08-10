@@ -563,12 +563,12 @@ const translateStatus = status => {
                           <span v-else-if="index === 2">в год</span>
                         </p>
                         <p
-                          class="ma-0"
+                          class="ma-0 text-no-wrap"
                           style="font-size: 10px;"
                         >
                           Далее {{ data.recurring_price }} ₽
                           <span v-if="index === 0">/месяц</span>
-                          <span v-else-if="index === 1">/ 3 месяца</span>
+                          <span v-else-if="index === 1">/ 3 мес</span>
                           <span v-else-if="index === 2">/ в год</span>
                         </p>
                       </div>
@@ -579,14 +579,6 @@ const translateStatus = status => {
             </template>
           </VRow>
         </div>
-      </div>
-      <!--        / Тарифы -->
-
-      <!-- Transaction Filters -->
-      <div class="filters-box mt-10 mb-6">
-        <h1 class="text-h4 mb-4  font-weight-bold">
-          Транзакции:
-        </h1>
       </div>
     </div>
     <!--        / Тарифы -->

@@ -197,7 +197,7 @@ const handleConfirm = async () => {
   }
 }
 
-const handleCancel = async (com) => {
+const handleCancel = async com => {
   cancelItem.value = false
 
   const success = await cancelOrder(com)
@@ -299,6 +299,15 @@ watch(() => chatStore.activeChat?.id, newChatId => {
     hasSubmittedReview.value = false
   }
 })
+
+watch(() => chatStore.activeChat?.status, status => {
+  if (status === 'awaiting_payment_confirmation') {
+    sendReview.value = false
+  } else {
+    sendReview.value = true
+  }
+})
+
 
 onMounted(async () => {
   try {
@@ -711,7 +720,7 @@ onUnmounted(() => {
                         <div
                           :class="{
                             'success-msg': message.system_type === 'success',
-                            'info-msg': message.system_type === 'info'  || 'cancel'
+                            'info-msg': message.system_type === 'info' || 'cancel'
                           }"
                           v-html="message.text"
                         />
@@ -913,7 +922,7 @@ onUnmounted(() => {
                     </VCard>
                   </div>
                   <div
-                    v-if="chatStore.activeChat.status === 'on_confirmation' && showUploadScreen"
+                    v-if="chatStore.activeChat.status === 'on_confirmation'"
                     class="mt-4"
                   >
                     <VCard
@@ -1103,7 +1112,12 @@ onUnmounted(() => {
           <VCardText class="pa-0">
             Вы можете отменить заказ по любой причине, где покупатель нарушает правила исполнения заказа. В случае выявления неправомерной отмены заказа в процессе выкупа товара покупателем, на ваш аккаунт могут быть наложены ограничения.  
           </VCardText>
-          <VTextField label="Комментарий" v-model="comment" class="mt-2" required/>
+          <VTextField
+            v-model="comment"
+            label="Комментарий"
+            class="mt-2"
+            required
+          />
           <VCardActions class="d-flex flex-column pa-0">
             <VBtn
               block
@@ -1367,6 +1381,10 @@ onUnmounted(() => {
   }
 }
 
+.layout-footer {
+  display: none !important;
+}
+
 .footer {
   display: none;
 }
@@ -1409,26 +1427,6 @@ onUnmounted(() => {
 .chats-container {
   overflow-y: hidden !important;
   overflow-x: hidden;
-}
-
-@media screen and (max-width: 960px) {
-  .chats-container {
-    overflow-x: auto !important;
-  }
-  .content-wrapper {
-    overflow: hidden;
-  }
-  .chat-content {
-    margin-top: 25px !important;
-    min-height: 90vh !important;
-  }
-  .chat-list-sidebar {
-    min-height: 91vh !important;
-    margin-top: 30px !important;
-  }
-  .chat-log {
-    min-height: 60vh !important;
-  }
 }
 
 .msg-alert-text {
@@ -1509,5 +1507,26 @@ onUnmounted(() => {
   background: #fff;
   border-radius: 30px;
   padding: 5px;
+}
+
+
+@media screen and (max-width: 960px) {
+  .chats-container {
+    overflow-x: auto !important;
+  }
+  .content-wrapper {
+    overflow: hidden;
+  }
+  .chat-content {
+    margin-top: 0px !important;
+    min-height: 91dvh !important;
+  }
+  .chat-list-sidebar {
+    min-height: 91dvh !important;
+    margin-top: 0px !important;
+  }
+  .chat-log {
+    min-height: 91dvh !important;
+  }
 }
 </style>
