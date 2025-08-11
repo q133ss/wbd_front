@@ -48,6 +48,7 @@ const userData = useCookie('userData')
 // Обрезка названия до 20 символов
 const truncateName = name => {
   if (!name) return ''
+  
   return name.length > 20 ? name.slice(0, 20) + '...' : name
 }
 
@@ -130,11 +131,13 @@ const addProduct = async () => {
         text: 'Данные пользователя не найдены',
         color: 'error',
       })
+      
       return
     }
 
     if (userData.value.shop) {
       await addProductToWb()
+      
       return
     }
 
@@ -145,6 +148,7 @@ const addProduct = async () => {
         text: 'Неверный формат данных товара или магазина',
         color: 'error',
       })
+      
       return
     }
 
@@ -184,6 +188,7 @@ const addProductToWb = async () => {
 
       if (!userData.value?.shop) {
         const updatedUser = await api.user.profile()
+
         userData.value = updatedUser
         await loadProducts()
         showAddModal.value = false
@@ -216,6 +221,7 @@ const stopSelected = async () => {
   const productIds = selectedRows.value
 
   const originalStatuses = new Map()
+
   products.value.forEach(item => {
     if (productIds.includes(item.id)) {
       originalStatuses.set(item.id, item.status)
@@ -259,6 +265,7 @@ const archiveSelected = async () => {
 const confirmArchive = async () => {
   const productIds = selectedRows.value
   const originalProducts = [...products.value]
+
   products.value = products.value.filter(item => !productIds.includes(item.id))
 
   try {
@@ -308,6 +315,7 @@ const selectAll = computed({
 const paginationText = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage + 1
   const end = Math.min(currentPage.value * itemsPerPage, totalItems.value)
+  
   return `${start}-${end} из ${totalItems.value}`
 })
 
@@ -785,7 +793,7 @@ const loadRelated = ref(false)
                 @update:model-value="() => toggleStatus(item.id)"
               />
             </td>
-            <td>{{ item.completed_buybacks_count || 0 }}</td>
+            <td>{{ item.completed_buybacks_count }}</td>
             <td>{{ item.buybacks_progress }}</td>
             <td>{{ item.ads_count }}</td>
             <td>{{ item.views || 0 }}</td>

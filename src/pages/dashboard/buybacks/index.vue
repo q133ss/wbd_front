@@ -202,6 +202,10 @@ const handleCancel = async com => {
 
   const success = await cancelOrder(com)
   if (success) {
+    if (timer.value) {
+      clearInterval(timer.value)
+      timer.value = null
+    }
     snackbar.notify({ text: 'Заказ успешно отменен', color: 'success' })
   }
 }
