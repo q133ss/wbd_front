@@ -49,6 +49,7 @@ const isRejectVisible = ref(false)
 const sendReview = ref(false)
 const comment = ref(null)
 const hasSubmittedReview = ref(false)
+const selectedImageUrl = ref(null) 
 
 const confirmationMessage = `Продавец получил подтверждение вашего заказа.<br>
 Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом`
@@ -292,6 +293,21 @@ function parseMessage(text) {
 
   return html
 }
+
+const handleFileSelect = event => {
+  const file = event.target.files[0]
+  if (file) {
+    selectedImage.value = file
+    selectedImageUrl.value = URL.createObjectURL(file)
+  }
+}
+
+const removeImage = () => {
+  selectedImage.value = null
+  selectedImageUrl.value = null
+  fileInput.value.value = '' 
+}
+
 
 // Следим за сменой чата
 watch(() => chatStore.activeChat?.id, newChatId => {
@@ -1026,22 +1042,51 @@ onUnmounted(() => {
                 </div>
               </div>
               <VForm
-                v-if="chatStore.activeChat"
-                class="pt-4 px-5 border-t gap-3 d-flex justify-between align-center"
+                v-if="chatStore.activeChat && (chatStore.activeChat?.status !== 'pending')"
+                class="pt-4 px-5 border-t gap-3 d-flex justify-between align-end"
                 :class="$vuetify.display.smAndDown ? 'pb-4' : 'pb-11'"
                 @submit.prevent="sendMessage"
               >
-                <VTextField
-                  v-model="messageInput"
-                  variant="outlined"
-                  density="compact"
-                  class="chat-message-input pa-0"
-                  placeholder="Введите сообщение..."
-                  autofocus
-                  single-line
-                  style="height: 44px"
-                />
-                <div class="d-flex gap-3 align-center">
+                <div
+                  class="d-flex flex-column"
+                  style="flex: 1"
+                >
+                  <div
+                    v-if="selectedImageUrl"
+                    class="d-flex align-center mb-2"
+                    style="position: relative; max-width: 120px"
+                  >
+                    <img
+                      :src="selectedImageUrl"
+                      style="max-width: 100%; border-radius: 8px;"
+                    >
+                    <VBtn
+                      icon
+                      small
+                      style="position: absolute; top: -8px; right: -8px; background: white;"
+                      @click="removeImage"
+                    >
+                      <VIcon
+                        size="16"
+                        icon="ri-close-line"
+                      />
+                    </VBtn>
+                  </div>
+                  <VTextField
+                    v-model="messageInput"
+                    variant="outlined"
+                    density="compact"
+                    class="chat-message-input pa-0"
+                    placeholder="Введите сообщение..."
+                    autofocus
+                    single-line
+                    style="height: 44px"
+                  />
+                </div>
+                <div
+                  class="d-flex gap-3 align-center"
+                  style="margin-bottom: 3px;"
+                >
                   <VTooltip text="Прикрепить файл (.jpg, .jpeg, .png)">
                     <template #activator="{ props: activatorProps }">
                       <VBtn
@@ -1073,12 +1118,14 @@ onUnmounted(() => {
                     />
                   </VBtn>
                 </div>
+
                 <input
                   ref="fileInput"
                   type="file"
                   name="file"
-                  accept=".jpeg,.png,.jpg,GIF"
+                  accept=".jpeg,.png,.jpg"
                   hidden
+                  @change="handleFileSelect"
                 >
               </VForm>
             </div>
