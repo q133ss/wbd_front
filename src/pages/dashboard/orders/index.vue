@@ -934,6 +934,54 @@ onUnmounted(() => {
                           </div>
                         </div>
                       </template>
+                      <template v-else-if="message.type === 'text' && message.files && message.files.length > 0">
+                        <div
+                          class="chat-body d-inline-flex flex-column"
+                          :class="message.sender_id === chatStore.currentUser?.id ? 'align-end' : 'align-start'"
+                        >
+                          <div
+                            class="text-body-1 py-2 px-4 elevation-2 mb-1"
+                            :class="[
+                              message.sender_id === chatStore.currentUser?.id
+                                ? 'bg-secondary text-white chat-right'
+                                : 'bg-primary chat-left'
+                            ]"
+                            :style="{
+                              borderRadius: message.sender_id === chatStore.currentUser?.id
+                                ? '8px 0 8px 8px'
+                                : '0 8px 8px 8px'
+                            }"
+                          >
+                            <p
+                              v-if="message.text"
+                              class="mb-2"
+                              style="word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap"
+                              v-html="parseMessage(message.text)"
+                            />
+
+                            <!-- Картинки -->
+                            <VImg
+                              v-for="(file, index) in message.files"
+                              :key="index"
+                              :src="file.src || 'https://via.placeholder.com/200'"
+                              alt="Изображение в чате"
+                              style="max-width: 200px; position: relative !important"
+                              class="mt-2 cursor-pointer rounded"
+                              cover
+                              @click="openImage(file.src)"
+                            />
+                          </div>
+
+                          <div class="d-flex align-center gap-2">
+                            <p
+                              class="text-caption text-disabled mb-0"
+                              style="letter-spacing: 0.4px;"
+                            >
+                              {{ formatTimeAgo(message.created_at) }}
+                            </p>
+                          </div>
+                        </div>
+                      </template>
                       <template v-else>
                         <div
                           class="chat-body d-inline-flex flex-column"
@@ -1251,6 +1299,7 @@ onUnmounted(() => {
                   <VBtn
                     width="42"
                     height="42"
+                    :disabled="!messageInput"
                     :loading="sendingMessage"
                     @click="sendMessage"
                   >
@@ -1264,7 +1313,7 @@ onUnmounted(() => {
                   ref="fileInput"
                   type="file"
                   name="file"
-                  accept=".jpeg,.png,.jpg,GIF"
+                  accept=".jpeg,.png,.jpg"
                   hidden
                 >
               </VForm>
