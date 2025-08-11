@@ -49,17 +49,27 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
   const setupNotificationChannel = () => {
     initializePusher()
 
+    if (!chatStore.currentUser?.id) return
+
     const notificationChannel = pusherInstance.value.subscribe(
-      `notification-${chatStore.currentUser?.id}`,
+      `notification-${chatStore.currentUser.id}`,
     )
 
     notificationChannel.bind('MessageSent', async data => {
-      const updatedChat = await api.buyback.getBuybackById(data.chatId)
-      if (updatedChat) {
-        chatStore.updateChat(updatedChat)
+      try {
+        await refreshChat(data.chatId)
+
+        if (chatStore.activeChat?.id === data.chatId) {
+          await chatStore.selectChat(chatStore.activeChat)
+          await nextTick()
+          scrollToBottom()
+        }
+      } catch (error) {
+        console.error('Ошибка обновления чата по уведомлению:', error)
       }
     })
   }
+
 
   const cleanupPusher = () => {
     if (channel) channel.unsubscribe()

@@ -1110,7 +1110,10 @@ onUnmounted(() => {
                     height="42"
                     :disabled="!messageInput"
                     :loading="sendingMessage"
-                    @click="sendMessage"
+                    @click="() => {
+                      sendMessage()
+                      selectedImageUrl = null
+                    }"
                   >
                     <VIcon
                       size="18"

@@ -475,7 +475,6 @@ onMounted(async () => {
       }
       if (chat) {
         if (chat.status !== chatStore.selectedStatus) {
-          chatStore.selectedStatus = chat.status
           await fetchChats(chat.status)
         }
         await selectChat(chat)
@@ -1345,7 +1344,10 @@ onUnmounted(() => {
                     height="42"
                     :disabled="!messageInput"
                     :loading="sendingMessage"
-                    @click="sendMessage"
+                    @click="async () => {
+                      await sendMessage()
+                      selectedImageUrl = null
+                    }"
                   >
                     <VIcon
                       size="18"
