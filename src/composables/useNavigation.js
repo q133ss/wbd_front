@@ -76,11 +76,11 @@ export function useSellerNavigation() {
       icon: { icon: 'ri-hand-heart-line' },
       to: 'dashboard-partners',
     },
-    {
-      title: 'Партнеры',
-      icon: { icon: 'ri-gift-line' },
-      to: 'dashboard-partners-list',
-    },
+    // {
+    //   title: 'Партнеры',
+    //   icon: { icon: 'ri-gift-line' },
+    //   to: 'dashboard-partners-list',
+    // },
     {
       title: 'Поддержка',
       icon: { icon: 'ri-headphone-line' },
