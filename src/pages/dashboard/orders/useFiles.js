@@ -53,6 +53,8 @@ export const useFiles = () => {
       reviewPreview.value = null
       snackbar.notify({ text: 'Файлы отправлены', color: 'success' })
       await chatStore.selectChat(chatStore.activeChat)
+
+      return true
     } catch (error) {
       snackbar.notify({
         text: error.response?._data?.message || 'Ошибка отправки файлов',

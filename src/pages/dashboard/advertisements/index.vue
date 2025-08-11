@@ -878,11 +878,8 @@ const closeTgModal = () => {
               <span class="truncate-2-lines">{{ truncateName(item.product.name) }}</span>
             </td>
             <td>{{ parseInt(item.cashback_percentage) }}% / {{ parseInt(item.price_with_cashback) }}₽</td>
-            <td v-if="item.keywords == null">
-              {{ item.completed_buybacks_count }} из {{ item.redemption_count }}
-            </td>
-            <td v-else>
-              {{ item.completed_buybacks_count }} из {{ item.keywords.reduce((sum, kw) => sum + (kw.redemption_count || 0), 0) }}
+            <td >
+              {{ item.completed_buybacks_count }}
             </td>
             <td>
               {{ item.process_buybacks_count }}

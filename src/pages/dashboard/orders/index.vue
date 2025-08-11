@@ -258,36 +258,28 @@ const handleCancel = async () => {
   }
 }
 
-const handleUpload = async () => {
+const handleUpload = async chatIdParam => {
+  const chatId = chatIdParam || chatStore.activeChat?.id
+
   isUploadLoading.value = true
   correctPhotos.value = false
   try {
     const success = await uploadConfirmationFiles()
     if (success) {
       snackbar.notify({ text: 'Файлы успешно отправлены', color: 'success' })
-      receiptSent.value = true
-      barcodeFile.value = null
-      reviewFile.value = null
 
-      const updatedChat = await api.buyback.getBuybackById(currentChatId.value)
+      const updatedChat = await api.buyback.getBuybackById(chatId)
+
       if (updatedChat) {
         chatStore.updateChat(updatedChat)
-        if (chatStore.activeChat?.id === currentChatId.value) {
+
+        if (chatStore.activeChat?.id === updatedChat.id) {
           chatStore.activeChat = { ...updatedChat }
         }
-      }
-      await fetchChats(chatStore.selectedStatus)
-      if (currentChatId.value) {
-        const chat = Object.values(chatStore.chatsByStatus)
-          .flat()
-          .find(c => c.id === currentChatId.value)
 
-        if (chat) {
-          await selectChat(chat)
-          scrollToBottom()
-        } else {
-          snackbar.notify({ text: 'Чат не найден после обновления', color: 'error' })
-        }
+        await fetchChats(chatStore.selectedStatus)
+
+        await selectChat(updatedChat)
       }
     }
   } catch (error) {
@@ -300,6 +292,7 @@ const handleUpload = async () => {
     isUploadLoading.value = false
   }
 }
+
 
 const handleAcceptPayment = async (chatId, buybackId) => {
   console.log(chatId, buybackId)
@@ -784,7 +777,7 @@ onUnmounted(() => {
                     >{{ statusInfo.text }}</span>
                   </div>
                   <span
-                    v-if="step !== 1 && timer && step"
+                    v-if="step !== 1 && timer && step && chatStore.activeChat.status !== 'cancelled'"
                     class="timer text-no-wrap"
                     :class="$vuetify.display.mdAndUp ? 'mr-2' : 'ma-0'"
                   >{{ timer }}</span>
@@ -1447,7 +1440,7 @@ onUnmounted(() => {
               class="mt-6"
               size="large"
               :loading="isUploadLoading"
-              @click="handleUpload"
+              @click="handleUpload(currentChatId)"
             >
               Подтвердить
             </VBtn>

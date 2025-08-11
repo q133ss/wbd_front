@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useSnackbarStore } from '@/stores/snackbar'
 import api from '@/api/index'
+import { useSnackbarStore } from '@/stores/snackbar'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 definePage({
   meta: {
@@ -15,6 +15,7 @@ const route = useRoute()
 const router = useRouter()
 
 const ad = ref(null)
+
 const adData = ref({
   name: '',
   cashback_percentage: 0,
@@ -23,8 +24,9 @@ const adData = ref({
   redemption_instructions: '',
   review_criteria: '',
   size: [],
-  color: []
+  color: [],
 })
+
 const balance = ref(null)
 const loading = ref(true)
 const templates = ref({})
@@ -42,7 +44,7 @@ onMounted(() => {
   if (!adId.value) {
     snackbar.notify({
       text: 'Неверный идентификатор объявления',
-      color: 'error'
+      color: 'error',
     })
     router.push('/dashboard/advertisements')
   }
@@ -67,14 +69,15 @@ onMounted(async () => {
     const [adResponse, balanceResponse, templatesResponse] = await Promise.all([
       api.ads.getAdById(adId.value), // Assuming this method exists
       api.balance.getBalance(),
-      api.template.getAllTemplates()
+      api.template.getAllTemplates(),
     ])
+
     ad.value = adResponse
 
     keywords.value = (adResponse.keywords || []).map((item, index) => ({
       id: index + 1,
       text: item.word,
-      count: item.redemption_count
+      count: item.redemption_count,
     }))
     nextId = keywords.value.length + 1
 
@@ -85,6 +88,7 @@ onMounted(async () => {
 
     balance.value = balanceResponse
     templates.value = templatesResponse || {}
+
     // Pre-populate form with ad data
     adData.value = {
       name: adResponse.name || '',
@@ -94,14 +98,14 @@ onMounted(async () => {
       redemption_instructions: adResponse.redemption_instructions.replace(/<br\s*\/?>/gi, '\n') || '',
       review_criteria: adResponse.review_criteria.replace(/<br\s*\/?>/gi, '\n') || '',
       size: adResponse.size || '',
-      color: adResponse.color || ''
+      color: adResponse.color || '',
     }
 
     product.value = adResponse.product || {}
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка загрузки данных',
-      color: 'error'
+      color: 'error',
     })
   } finally {
     loading.value = false
@@ -109,11 +113,12 @@ onMounted(async () => {
 })
 
 // Function to get first image safely
-const getFirstImage = (images) => {
+const getFirstImage = images => {
   if (!images) return ''
   if (Array.isArray(images)) return images[0] || ''
   try {
     const parsed = JSON.parse(images)
+    
     return Array.isArray(parsed) ? parsed[0] || '' : ''
   } catch {
     return ''
@@ -124,6 +129,7 @@ const getFirstImage = (images) => {
 const userPrice = computed(() => {
   if (!ad.value?.product) return 0
   const price = parseFloat(ad.value.product.price)
+  
   return Math.floor(price * (1 - adData.value.cashback_percentage / 100))
 })
 
@@ -141,6 +147,7 @@ const totalCost = computed(() => {
 const additionalRedemptions = computed(() => {
   const needed = adData.value.redemption_count
   const available = balance.value?.redemption_count || 0
+  
   return Math.max(0, needed - available)
 })
 
@@ -151,6 +158,7 @@ const availableRedemptions = computed(() => {
 const cashbackPerRedemption = computed(() => {
   if (!ad.value?.product) return 0
   const price = parseFloat(ad.value.product.price)
+  
   return Math.floor(price * adData.value.cashback_percentage / 100)
 })
 
@@ -169,7 +177,7 @@ const setMaxRedemptions = () => {
   adData.value.redemption_count = availableRedemptions.value
 }
 
-const insertTemplate = async (field) => {
+const insertTemplate = async field => {
   try {
     const template = await api.template.getTemplateByType(field)
     if (template?.text) {
@@ -177,18 +185,18 @@ const insertTemplate = async (field) => {
     } else {
       snackbar.notify({
         text: 'Шаблон не найден',
-        color: 'warning'
+        color: 'warning',
       })
     }
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка загрузки шаблона',
-      color: 'error'
+      color: 'error',
     })
   }
 }
 
-const openEditTemplateModal = (field) => {
+const openEditTemplateModal = field => {
   editingTemplateType.value = field
   editingTemplateContent.value = adData.value[field] || ''
   showEditModal.value = true
@@ -197,29 +205,30 @@ const openEditTemplateModal = (field) => {
 const saveTemplate = async () => {
   try {
     await api.template.updateTemplate(editingTemplateType.value, {
-      text: editingTemplateContent.value
+      text: editingTemplateContent.value,
     })
     adData.value[editingTemplateType.value] = editingTemplateContent.value
     snackbar.notify({
       text: 'Шаблон сохранен',
-      color: 'success'
+      color: 'success',
     })
     showEditModal.value = false
   } catch (error) {
     snackbar.notify({
       text: 'Ошибка сохранения шаблона',
-      color: 'error'
+      color: 'error',
     })
   }
 }
 
 const submitAd = async () => {
   const payload = {
-    ...adData.value
+    ...adData.value,
   }
 
   // 🔽 Замена переносов строк на <br> для полей с текстом
   const FIELDS_WITH_TEXTAREA = ['order_conditions', 'redemption_instructions', 'review_criteria']
+
   FIELDS_WITH_TEXTAREA.forEach(field => {
     if (payload[field]) {
       payload[field] = payload[field].replace(/\n/g, '<br>')
@@ -232,21 +241,21 @@ const submitAd = async () => {
         .filter(k => k.text.trim())
         .map(k => ({
           word: k.text.trim(),
-          redemption_count: k.count || 1
+          redemption_count: k.count || 1,
         }))
     }
 
     await api.ads.updateAd(adId.value, payload)
     snackbar.notify({
       text: 'Объявление обновлено',
-      color: 'success'
+      color: 'success',
     })
     router.push('/dashboard/advertisements')
   } catch (error) {
     console.error(error)
     snackbar.notify({
       text: 'Ошибка при обновлении объявления',
-      color: 'error'
+      color: 'error',
     })
   }
 }
@@ -267,24 +276,63 @@ function decrement(idx) {
   const cw = keywords.value[idx]
   if (cw.count > 0) cw.count--
 }
+
+const textAreas = computed(() => {
+  const fields = [
+    {
+      key: 'order_conditions',
+      label: 'Условия заказа',
+      desc: 'Если у вас есть особые условия, то обозначьте тут. Их увидят пользователи до того как оформят заказ',
+    },
+    {
+      key: 'redemption_instructions',
+      label: 'Инструкции для выкупа',
+      desc: 'Предоставьте инструкцию как найти и выкупить ваш товар. Эта инструкция будет отправлена автоматически покупателю в момент создания сделки',
+    },
+    {
+      key: 'review_criteria',
+      label: 'Критерии отзыва',
+      desc: 'Предоставьте критерии отзыва, которые покупатель должен соблюсти, когда будет составлять отзыв',
+    },
+  ]
+
+  if (isKeywords.value) {
+    return fields.filter(f => f.key !== 'redemption_instructions')
+  }
+  
+  return fields
+})
 </script>
 
 <template>
-  <div class="edit-ad-container">
-    <div class="content-wrapper m0-auto">
-      <h1 class="text-h4 mb-2">Редактирование объявления</h1>
-      <p class="text-body-1 mb-6">Отредактируйте объявление для продвижения вашего товара с кэшбеком за отзыв</p>
+  <VContainer>
+    <div class="mx-auto">
+      <h1 class="text-h4 mb-2">
+        Редактирование объявления
+      </h1>
+      <p class="text-body-1 mb-6">
+        Отредактируйте объявление для продвижения вашего товара с кэшбеком за отзыв
+      </p>
 
-      <div v-if="loading" class="text-center">
-        <v-progress-circular indeterminate color="primary" />
+      <div
+        v-if="loading"
+        class="text-center"
+      >
+        <VProgressCircular
+          indeterminate
+          color="primary"
+        />
       </div>
 
       <div v-else-if="ad?.product">
         <!-- Product Info -->
         <div class="product-info mb-6">
-          <v-row>
-            <v-col cols="4" md="2">
-              <v-img
+          <VRow>
+            <VCol
+              cols="4"
+              md="2"
+            >
+              <VImg
                 v-if="getFirstImage(ad.product.images)"
                 :src="getFirstImage(ad.product.images)"
                 width="112"
@@ -292,26 +340,42 @@ function decrement(idx) {
                 contain
                 class="product-img"
               />
-              <v-sheet v-else class="text-center pa-4">
-                <v-icon size="large">mdi-image-off</v-icon>
-                <p class="text-caption">Изображение отсутствует</p>
-              </v-sheet>
-            </v-col>
-            <v-col cols="12" md="9">
-              <h3 class="mb-3">{{ ad.product.name }}</h3>
-              <p class="text-subtitle-1 mb-0 pb-0">Цена: <span class="text-black"><span class="total-cost">{{ ad.product.price }} ₽</span></span> </p>
-              <p class="text-subtitle-1 mb-0 pb-0">Бренд: <span class="text-black">{{ ad.product.brand }} </span></p>
+              <VSheet
+                v-else
+                class="text-center pa-4"
+              >
+                <VIcon size="large">
+                  mdi-image-off
+                </VIcon>
+                <p class="text-caption">
+                  Изображение отсутствует
+                </p>
+              </VSheet>
+            </VCol>
+            <VCol
+              cols="12"
+              md="9"
+            >
+              <h3 class="mb-3">
+                {{ ad.product.name }}
+              </h3>
+              <p class="text-subtitle-1 mb-0 pb-0">
+                Цена: <span class="text-black"><span class="total-cost">{{ ad.product.price }} ₽</span></span>
+              </p>
+              <p class="text-subtitle-1 mb-0 pb-0">
+                Бренд: <span class="text-black">{{ ad.product.brand }} </span>
+              </p>
               <p class="text-subtitle-1">
                 Артикул: <span class="text-black">{{ product?.wb_id }}</span>
               </p>
-            </v-col>
-          </v-row>
+            </VCol>
+          </VRow>
         </div>
 
         <!-- Ad Form -->
         <div class="ad-form">
-          <v-form @submit.prevent="submitAd">
-            <v-text-field
+          <VForm @submit.prevent="submitAd">
+            <VTextField
               v-model="adData.name"
               label="Название объявления"
               hint="Это название видно только вам"
@@ -321,7 +385,7 @@ function decrement(idx) {
             />
 
             <div class="cashback-section">
-              <v-slider
+              <VSlider
                 v-model="adData.cashback_percentage"
                 label="Процент кэшбека"
                 min="10"
@@ -338,7 +402,7 @@ function decrement(idx) {
             </div>
 
             <!-- Выбор цвета -->
-            <v-select
+            <VSelect
               v-model="adData.color"
               :items="product.colors"
               item-title="name"
@@ -351,7 +415,7 @@ function decrement(idx) {
             />
 
             <!-- Размер -->
-            <v-select
+            <VSelect
               v-model="adData.size"
               :items="product.sizes"
               item-title="name"
@@ -364,30 +428,36 @@ function decrement(idx) {
             />
 
             <!-- Textareas with Templates -->
-            <v-row v-for="field in [
-              { key: 'order_conditions', label: 'Условия заказа', desc: 'Если у вас есть особые условия, то обозначьте тут. Их увидят пользователи до того как оформят заказ' },
-              { key: 'redemption_instructions', label: 'Инструкции для выкупа', desc: 'Предоставьте инструкцию как найти и выкупить ваш товар. Эта инструкция будет отправлена автоматически покупателю в момент создания сделки' },
-              { key: 'review_criteria', label: 'Критерии отзыва', desc: 'Предоставьте критерии отзыва, которые покупатель должен соблюсти, когда будет составлять отзыв' }
-            ]" :key="field.key" class="mb-4">
-              <v-col cols="12" md="8">
-                <v-textarea
+            <VRow
+              v-for="field in textAreas"
+              :key="field.key"
+              class="mb-4"
+            >
+              <VCol
+                cols="12"
+                md="8"
+              >
+                <VTextarea
                   v-model="adData[field.key]"
                   :label="field.label"
                   rows="4"
                   :placeholder="field.label"
                   required
                 />
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-btn
+              </VCol>
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <VBtn
                   color="primary"
                   class="mb-2"
                   block
                   @click="insertTemplate(field.key)"
                 >
                   Вставить шаблон
-                </v-btn>
-                <v-btn
+                </VBtn>
+                <VBtn
                   color="primary"
                   variant="outlined"
                   class="mb-2"
@@ -395,14 +465,19 @@ function decrement(idx) {
                   @click="openEditTemplateModal(field.key)"
                 >
                   Редактировать шаблон
-                </v-btn>
-                <p class="text-caption">{{ field.desc }}</p>
-              </v-col>
-            </v-row>
+                </VBtn>
+                <p class="text-caption">
+                  {{ field.desc }}
+                </p>
+              </VCol>
+            </VRow>
 
             <!-- Redemption Count -->
-            <label class="d-flex align-center mb-10" style="cursor: pointer;">
-              <v-switch
+            <label
+              class="d-flex align-center mb-4"
+              style="cursor: pointer;"
+            >
+              <VSwitch
                 v-model="isKeywords"
                 color="primary"
                 hide-details
@@ -412,62 +487,104 @@ function decrement(idx) {
             </label>
 
             <div v-if="isKeywords">
-              <transition name="fade">
+              <Transition name="fade">
                 <div v-if="isKeywords">
-                  <v-row
+                  <VRow
                     v-for="(item, idx) in keywords"
                     :key="item.id"
-                    class="align-center"
+                    class="align-center my-4"
                   >
-                    <v-col cols="1">{{ idx + 1 }}.</v-col>
-                    <v-col cols="6" class="p-0">
-                      <v-text-field v-model="item.text" placeholder="Введите ключевое слово" dense />
-                    </v-col>
-                    <v-col cols="2" class="d-flex align-center">
-                      <v-btn icon @click="decrement(idx)">
-                        <v-icon>ri-subtract-line</v-icon>
-                      </v-btn>
+                    <VCol cols="1">
+                      {{ idx + 1 }}.
+                    </VCol>
+                    <VCol
+                      cols="6"
+                      class="p-0"
+                    >
+                      <VTextField
+                        v-model="item.text"
+                        placeholder="Введите ключевое слово"
+                        dense
+                      />
+                    </VCol>
+                    <VCol
+                      cols="2"
+                      class="d-flex align-center"
+                    >
+                      <VBtn
+                        icon
+                        @click="decrement(idx)"
+                      >
+                        <VIcon>ri-subtract-line</VIcon>
+                      </VBtn>
                       <span class="mx-2">{{ item.count }}</span>
-                      <v-btn icon @click="increment(idx)">
-                        <v-icon>ri-add-line</v-icon>
-                      </v-btn>
-                    </v-col>
-                    <v-col cols="2">
-                      <v-btn icon color="error" @click="remove(idx)">
-                        <v-icon>ri-delete-bin-line</v-icon>
-                      </v-btn>
-                    </v-col>
-                  </v-row>
+                      <VBtn
+                        icon
+                        @click="increment(idx)"
+                      >
+                        <VIcon>ri-add-line</VIcon>
+                      </VBtn>
+                    </VCol>
+                    <VCol cols="2">
+                      <VBtn
+                        icon
+                        color="error"
+                        @click="remove(idx)"
+                      >
+                        <VIcon>ri-delete-bin-line</VIcon>
+                      </VBtn>
+                    </VCol>
+                  </VRow>
 
-                  <v-btn
+                  <VBtn
                     outlined
                     color="primary"
-                    class="mt-5 ml-14"
+                    class="mt-5"
                     @click="addKeyword"
                   >
-                    <v-icon left>mdi-plus</v-icon>
-                    Добавить еще
-                  </v-btn>
+                    <VIcon left>
+                      mdi-plus
+                    </VIcon>  
+                    {{ keywords.length ? 'Добавить еще' : 'Добавить' }}
+                  </VBtn>
                 </div>
-              </transition>
+              </Transition>
 
-              <div v-if="isKeywords" class="mt-4 text-subtitle-1 grey--text">
-                Если вы активируете эту функцию, то поиск и выкуп товаров покупателями будет происходить по этим ключевым словам. В разделе "Инструкция для выкупа вставьте в нужное место {word} для отображения ключевого слова. Например: Найдите товар по ключевому слову "{word}".
+              <div
+                v-if="isKeywords"
+                class="my-4 text-subtitle-1 grey--text"
+              >
+                При активации функции ключевых слов вы не можете управлять инструкцией к выкупу.
               </div>
             </div>
-            <v-row class="mb-4" v-else>
-              <v-col cols="12" md="6">
+            <VRow
+              v-else
+              class="mb-4"
+            >
+              <VCol
+                cols="12"
+                md="6"
+              >
                 <div class="d-flex align-center">
                   <button
                     type="button"
                     class="increment-btn mr-2"
                     @click="decrementRedemptions"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
-                      <path d="M5 12h14"></path>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-6 h-6"
+                    >
+                      <path d="M5 12h14" />
                     </svg>
                   </button>
-                  <v-text-field
+                  <VTextField
                     v-model.number="adData.redemption_count"
                     label="Количество выкупов"
                     type="number"
@@ -480,62 +597,75 @@ function decrement(idx) {
                     class="increment-btn ml-2"
                     @click="incrementRedemptions"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
-                      <path d="M5 12h14"></path>
-                      <path d="M12 5v14"></path>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-6 h-6"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="M12 5v14" />
                     </svg>
                   </button>
                 </div>
-              </v-col>
-            </v-row>
+              </VCol>
+            </VRow>
 
             <!-- Cost Breakdown -->
-            <v-btn
+            <VBtn
               color="primary"
               type="submit"
               block
               :disabled="loading"
             >
               Сохранить изменения
-            </v-btn>
-          </v-form>
+            </VBtn>
+          </VForm>
         </div>
       </div>
     </div>
 
     <!-- Edit Template Modal -->
-    <v-dialog v-model="showEditModal" max-width="600px">
-      <v-sheet class="pa-6">
-        <h2 class="text-h5 mb-4">Редактировать шаблон</h2>
-        <v-textarea
+    <VDialog
+      v-model="showEditModal"
+      max-width="600px"
+    >
+      <VSheet class="pa-6">
+        <h2 class="text-h5 mb-4">
+          Редактировать шаблон
+        </h2>
+        <VTextarea
           v-model="editingTemplateContent"
           label="Содержимое шаблона"
           rows="6"
           outlined
         />
         <div class="d-flex justify-end mt-4">
-          <v-btn
+          <VBtn
             color="secondary"
             class="mr-2"
             @click="showEditModal = false"
           >
             Отмена
-          </v-btn>
-          <v-btn
+          </VBtn>
+          <VBtn
             color="primary"
             @click="saveTemplate"
           >
             Сохранить
-          </v-btn>
+          </VBtn>
         </div>
-      </v-sheet>
-    </v-dialog>
-  </div>
+      </VSheet>
+    </VDialog>
+  </VContainer>
 </template>
 
 
 <style scoped lang="scss">
-
 .content-wrapper {
   max-width: 800px;
   margin-left: 0;
