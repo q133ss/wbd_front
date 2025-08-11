@@ -777,7 +777,7 @@ onUnmounted(() => {
                     >{{ statusInfo.text }}</span>
                   </div>
                   <span
-                    v-if="step !== 1 && timer && step"
+                    v-if="step !== 1 && timer && step && chatStore.activeChat.status !== 'cancelled'"
                     class="timer text-no-wrap"
                     :class="$vuetify.display.mdAndUp ? 'mr-2' : 'ma-0'"
                   >{{ timer }}</span>
