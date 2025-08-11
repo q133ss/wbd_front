@@ -616,7 +616,6 @@ const loadRelated = ref(false)
                   class="text-high-emphasis"
                   style="font-size: 16px !important; font-weight: 500 !important"
                 >{{ item.buybacks_progress }}</span>
-                {{ console.log(item) }}
               </li>
             </ul>
             <ul class="w-50">
@@ -785,8 +784,8 @@ const loadRelated = ref(false)
                 @update:model-value="() => toggleStatus(item.id)"
               />
             </td>
-            <td>{{ item.completed_buybacks_count || 0 }}</td>
             <td>{{ item.buybacks_progress }}</td>
+            <td>{{ item.processing_buybacks || 0 }}</td>
             <td>{{ item.ads_count }}</td>
             <td>{{ item.views || 0 }}</td>
             <td>{{ item.clicks }}</td>
