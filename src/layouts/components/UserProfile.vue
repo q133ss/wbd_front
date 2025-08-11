@@ -11,6 +11,7 @@ const logout = async () => {
   // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
   useCookie('telegramBotLink').value = null
+  localStorage.removeItem('test_tariff_shown');
 
   let roleId = userData.value?.role?.id
   // Remove "userData" from cookie
