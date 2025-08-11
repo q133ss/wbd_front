@@ -1,4 +1,4 @@
-import api from '@/api/index'
+import $api from '@/utils/api'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { debounce } from 'lodash'
 import { ref } from 'vue'
@@ -12,25 +12,55 @@ export const useMessages = () => {
   const fileInput = ref(null)
 
   const sendMessage = debounce(async () => {
-    if (!messageInput.value.trim() && !fileInput.value?.files?.length) return
+    if (!chatStore.activeChat) {
+      snackbar.notify({ text: 'Чат не выбран', color: 'error' })
+
+      return
+    }
+
+    if (!messageInput.value.trim() && !fileInput.value?.files?.length) {
+      snackbar.notify({ text: 'Введите сообщение или выберите файл', color: 'error' })
+
+      return
+    }
+
     sendingMessage.value = true
 
     try {
+      const token = useCookie('accessToken').value
+      if (!token) {
+        throw new Error('Токен авторизации отсутствует')
+      }
+
       const formData = new FormData()
 
-      formData.append('message', messageInput.value)
-      if (fileInput.value?.files?.length) formData.append('file', fileInput.value.files[0])
+      // Добавляем текст, если он есть
+      if (messageInput.value.trim()) {
+        formData.append('text', messageInput.value)
+      }
 
-      const response = await api.chat.sendMessage(chatStore.activeChat.id, messageInput.value, formData)
+      // Добавляем файлы, если они выбраны
+      if (fileInput.value?.files?.length) {
+        Array.from(fileInput.value.files).forEach(file => {
+          formData.append('files[]', file)
+        })
+      }
 
-      console.log('API sendMessage response:', response) // Логируем ответ API
+      const response = await $api(`/chat/${chatStore.activeChat.id}/send`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        body: formData,
+      })
 
-      // Проверяем наличие response и его структуры
+      console.log('API response:', response)
+
       if (!response) {
         throw new Error('Некорректный ответ API: ответ пустой')
       }
 
-      // Предполагаем, что данные могут быть в response или response.data
       const messageData = response.data?.message || response.message || response
       if (!messageData?.id) {
         throw new Error('Некорректный ответ API: отсутствует id')
@@ -40,18 +70,15 @@ export const useMessages = () => {
         id: messageData.id,
         sender_id: messageData.sender_id || chatStore.currentUser.id,
         text: messageData.text || messageInput.value,
-        type: messageData.type || (fileInput.value?.files?.length ? 'image' : 'text'),
-        files: messageData.files || (fileInput.value?.files?.length ? [{ src: URL.createObjectURL(fileInput.value.files[0]) }] : []),
+        type: fileInput.value?.files?.length ? 'image' : 'text',
+        files: messageData.files || (fileInput.value?.files?.length ? Array.from(fileInput.value.files).map(file => ({ src: URL.createObjectURL(file) })) : []),
         created_at: messageData.created_at || new Date().toISOString(),
         is_read: messageData.is_read || false,
       }
 
       chatStore.addMessage(newMessage)
-
       messageInput.value = ''
       if (fileInput.value) fileInput.value.value = ''
-
-      // snackbar.notify({ text: 'Сообщение отправлено', color: 'success' })
     } catch (error) {
       console.error('Error sending message:', error)
       snackbar.notify({

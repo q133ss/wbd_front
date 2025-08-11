@@ -60,6 +60,8 @@ export const useFiles = () => {
         text: error.response?._data?.message || 'Ошибка отправки файлов',
         color: 'error',
       })
+
+      return false
     }
   }
 
