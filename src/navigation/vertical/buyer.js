@@ -11,8 +11,7 @@ export function useBuyerNavigation() {
     try {
       const response = await api.buyback.buyerBuybacksCount()
 
-      buybacks.value = response.count   
-      console.log(buybacks.value);      
+      buybacks.value = response.count    
     } catch (error) {
       console.error('Ошибка при получении количества бэкапов:', error)
     }

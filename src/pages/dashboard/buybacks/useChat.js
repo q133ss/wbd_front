@@ -49,17 +49,27 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
   const setupNotificationChannel = () => {
     initializePusher()
 
+    if (!chatStore.currentUser?.id) return
+
     const notificationChannel = pusherInstance.value.subscribe(
-      `notification-${chatStore.currentUser?.id}`,
+      `notification-${chatStore.currentUser.id}`,
     )
 
     notificationChannel.bind('MessageSent', async data => {
-      const updatedChat = await api.buyback.getBuybackById(data.chatId)
-      if (updatedChat) {
-        chatStore.updateChat(updatedChat)
+      try {
+        await refreshChat(data.chatId)
+
+        if (chatStore.activeChat?.id === data.chatId) {
+          await chatStore.selectChat(chatStore.activeChat)
+          await nextTick()
+          scrollToBottom()
+        }
+      } catch (error) {
+        console.error('Ошибка обновления чата по уведомлению:', error)
       }
     })
   }
+
 
   const cleanupPusher = () => {
     if (channel) channel.unsubscribe()
@@ -76,9 +86,23 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
     }
   }
 
+  const fetchProdChats = async status => {
+    try {
+      await chatStore.fetchProdChats(status)
+    } catch (error) {
+      console.error('Error fetching chats:', error)
+      snackbar.notify({ text: 'Ошибка загрузки чатов', color: 'error' })
+    }
+  }
+
   const selectStatus = async status => {
     chatStore.selectedStatus = status
     if (!chatStore.chatsByStatus[status]) await fetchChats(status)
+  }
+
+  const selectProdStatus = async prodStatus => {
+    chatStore.selectedProdStats = prodStatus
+    await fetchProdChats(prodStatus)
   }
 
   const selectChat = async chat => {
@@ -136,5 +160,6 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
     setupNotificationChannel,
     cleanupPusher,
     scrollToBottom,
+    selectProdStatus,
   }
 }

@@ -25,7 +25,7 @@ const snackbar = useSnackbarStore()
 
 const chatLogPS = ref(null)
 const { updateStatusTimer, timer } = useTimer()
-const { fetchChats, selectStatus, selectChat, setupNotificationChannel, cleanupPusher, scrollToBottom } = useChat(chatLogPS, updateStatusTimer)
+const { fetchChats, selectStatus, selectChat, setupNotificationChannel, cleanupPusher, selectProdStatus } = useChat(chatLogPS, updateStatusTimer)
 const { sendMessage, messageInput, fileInput, sendingMessage } = useMessages()
 const { generatePreview, uploadPendingFile, uploadConfirmationFiles, pendingFile, barcodeFile, reviewFile, pendingPreview, barcodePreview, reviewPreview } = useFiles()
 const { submitReview, reviewText, reviewRating } = useReviews()
@@ -399,16 +399,16 @@ onUnmounted(() => {
           >
             <div class="chat-list-header py-4 px-4 gap-4">
               <VSelect
-                v-model="chatStore.selectedStatus"
-                :items="chatStore.statuses"
+                v-model="chatStore.selectedProdStats"
+                :items="chatStore.prodStatuses"
                 item-title="title"
-                item-value="slug"
+                item-value="value"
                 label="Товары"
                 variant="outlined"
                 density="compact"
                 class="px-2"
                 :menu-props="{ maxHeight: 'none' }"
-                @update:model-value="selectStatus"
+                @update:model-value="selectProdStatus"
               >
                 <template #selection="{ item }">
                   <span>{{ item.title }}</span>
@@ -1110,7 +1110,10 @@ onUnmounted(() => {
                     height="42"
                     :disabled="!messageInput"
                     :loading="sendingMessage"
-                    @click="sendMessage"
+                    @click="() => {
+                      sendMessage()
+                      selectedImageUrl = null
+                    }"
                   >
                     <VIcon
                       size="18"
