@@ -494,13 +494,11 @@ const textAreas = computed(() => {
                     :key="item.id"
                     class="align-center my-4"
                   >
-                    <VCol cols="1">
-                      {{ idx + 1 }}.
-                    </VCol>
                     <VCol
-                      cols="6"
-                      class="p-0"
-                    >
+                      cols="7"
+                      class="p-0 d-flex align-center gap-2 ml-3"
+                    > 
+                      <span style="width: 12px !important;">{{ idx + 1 }}.</span>
                       <VTextField
                         v-model="item.text"
                         placeholder="Введите ключевое слово"

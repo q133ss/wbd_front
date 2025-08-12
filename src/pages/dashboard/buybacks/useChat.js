@@ -86,9 +86,23 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
     }
   }
 
+  const fetchProdChats = async status => {
+    try {
+      await chatStore.fetchProdChats(status)
+    } catch (error) {
+      console.error('Error fetching chats:', error)
+      snackbar.notify({ text: 'Ошибка загрузки чатов', color: 'error' })
+    }
+  }
+
   const selectStatus = async status => {
     chatStore.selectedStatus = status
     if (!chatStore.chatsByStatus[status]) await fetchChats(status)
+  }
+
+  const selectProdStatus = async prodStatus => {
+    chatStore.selectedProdStats = prodStatus
+    await fetchProdChats(prodStatus)
   }
 
   const selectChat = async chat => {
@@ -146,5 +160,6 @@ export const useChat = (chatLogPS, updateStatusTimer) => {
     setupNotificationChannel,
     cleanupPusher,
     scrollToBottom,
+    selectProdStatus,
   }
 }
