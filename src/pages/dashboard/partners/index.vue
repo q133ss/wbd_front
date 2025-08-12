@@ -129,7 +129,49 @@
 
       <VCol cols="12">
         <h3>Статистика Telegram</h3>
-        <p class="text-body-1 mb-4">
+
+        <VRow
+          class="mt-6"
+          align="stretch"
+        >
+          <VCol
+            cols="12"
+            sm="6"
+            md="3"
+          >
+            <VCard
+              class="pa-4"
+              outlined
+            >
+              <div class="text-subtitle-1 font-weight-medium">
+                Активаций бота
+              </div>
+              <div class="text-h5 mt-2">
+                {{ stats.telegram.clicks_count }}
+              </div>
+            </VCard>
+          </VCol>
+
+          <VCol
+            cols="12"
+            sm="6"
+            md="3"
+          >
+            <VCard
+              class="pa-4"
+              outlined
+            >
+              <div class="text-subtitle-1 font-weight-medium">
+                Зарегистрировались
+              </div>
+              <div class="text-h5 mt-2">
+                {{ stats.telegram.registrations_count }}
+              </div>
+            </VCard>
+          </VCol>
+        </VRow>
+
+        <p class="text-body-1 mb-4 mt-10">
           Здесь отображается статистика вашей партнёрской программы в Telegram: количество переходов по ссылке и регистраций.
         </p>
         <p class="text-body-1 mb-2">
