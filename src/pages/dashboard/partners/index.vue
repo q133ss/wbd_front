@@ -30,7 +30,7 @@
             Перешли по ссылке
           </div>
           <div class="text-h5 mt-2">
-            {{ stats.clicks_count }}
+            {{ stats.site.clicks_count }}
           </div>
         </VCard>
       </VCol>
@@ -48,7 +48,7 @@
             Зарегистрировались
           </div>
           <div class="text-h5 mt-2">
-            {{ stats.registrations_count }}
+            {{ stats.site.registrations_count }}
           </div>
         </VCard>
       </VCol>
@@ -66,7 +66,7 @@
             Пополнили баланс
           </div>
           <div class="text-h5 mt-2">
-            {{ stats.topup_count }}
+            {{ stats.site.topup_count }}
           </div>
         </VCard>
       </VCol>
@@ -84,7 +84,7 @@
             Вы заработали
           </div>
           <div class="text-h5 mt-2">
-            {{ stats.earnings }}
+            {{ stats.site.earnings }}
           </div> <!-- Можно заменить на сумму, если появится -->
         </VCard>
       </VCol>
@@ -125,14 +125,15 @@
           >Напишите нам</a> и узнайте все подробности.
         </p>
       </VCol>
-    </VRow>
-    <VRow v-else>
+
+
       <VCol cols="12">
+        <h3>Статистика Telegram</h3>
         <p class="text-body-1 mb-4">
-          Специально для вас мы создали партнёрскую программу, по которой вы сможете зарабатывать не только с кэшбека, но и за рекомендации сервиса!
+          Здесь отображается статистика вашей партнёрской программы в Telegram: количество переходов по ссылке и регистраций.
         </p>
         <p class="text-body-1 mb-2">
-          Копируйте вашу индивидуальную ссылку:
+          Ваша уникальная партнёрская ссылка — используйте её, чтобы приглашать новых пользователей:
         </p>
 
         <VAlert
@@ -140,9 +141,26 @@
           type="primary"
           class="mb-4 cursor-pointer"
           icon="$success"
-          @click="copyReferralLink"
+          @click="copyReferralLinkTg"
         >
-          <strong>{{ referralLink }}</strong>
+          <strong>{{ referralLinkTg }}</strong>
+        </VAlert>
+      </VCol>
+    </VRow>
+    <VRow v-else>
+      <VCol cols="12">
+        <p class="text-body-1 mb-4">
+          Делитесь этой ссылкой в Telegram, соцсетях или мессенджерах.
+        </p>
+
+        <VAlert
+          v-if="referralLink"
+          type="primary"
+          class="mb-4 cursor-pointer"
+          icon="$success"
+          @click="copyReferralLinkTg"
+        >
+          <strong>{{ referralLinkTG }}</strong>
         </VAlert>
 
         <p class="text-body-1 mb-4">
@@ -176,10 +194,17 @@ definePage({
 const snackbar = useSnackbarStore()
 
 const stats = ref({
-  clicks_count: 0,
-  registrations_count: 0,
-  topup_count: 0,
-  earnings: 0,
+  site: {
+    clicks_count: 0,
+    registrations_count: 0,
+    topup_count: 0,
+    earnings: 0,
+  },
+  telegram: {
+    clicks_count: 0,
+    registrations_count: 0,
+  }
+
 })
 
 const user = ref(null)
@@ -187,6 +212,8 @@ const user = ref(null)
 const referralLink = computed(() => {
   return user.value?.id ? `https://wbdiscount.pro?ref=${user.value.id}` : ''
 })
+
+const referralLinkTg = ref('')
 
 onMounted(async () => {
   const profile = await api.user.profile()
@@ -198,11 +225,26 @@ onMounted(async () => {
   if (referralStats) {
     stats.value = referralStats
   }
+
+  const tgLink = await api.telegram.getReferralLink()
+  referralLinkTg.value = tgLink.link
 })
 
 const copyReferralLink = () => {
   if (referralLink.value) {
     navigator.clipboard.writeText(referralLink.value)
+      .then(() => {
+        snackbar.notify({ text: "Ссылка скопирована в буфер обмена", color: 'success' })
+      })
+      .catch(err => {
+        snackbar.notify({ text: "Ошибка при копировании ссылки", color: 'error' })
+      })
+  }
+}
+
+const copyReferralLinkTg = () => {
+  if (referralLink.value) {
+    navigator.clipboard.writeText(referralLinkTg.value)
       .then(() => {
         snackbar.notify({ text: "Ссылка скопирована в буфер обмена", color: 'success' })
       })

@@ -19,7 +19,8 @@ export default {
     const response = await $api('/referral', {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     })
 

@@ -15,5 +15,21 @@ export default {
     })
 
     return response
+  },
+
+  async getReferralLink(){
+    const token = useCookie('accessToken').value
+    if (!token) return null
+
+    const response = await $api(`/get-telegram-ref`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+
+    return response
   }
 }

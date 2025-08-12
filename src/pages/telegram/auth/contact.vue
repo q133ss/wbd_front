@@ -83,7 +83,7 @@ const share = () => {
   tg.requestContact((success, info) => {
     if (!success || !info || info.status !== 'sent') {
       tg.showAlert('Не удалось получить контакт.')
-      
+      console.log('НЕ УДАЛОСЬ ПОЛУЧИТЬ КОНТАКТ')
       return
     }
 
@@ -93,7 +93,16 @@ const share = () => {
     const phone = contact.phone_number
     const userId = contact.user_id
 
-    const response = api.auth.registerFromTelegram(userId, phone, role, chatId, firstName, lastName)
+    // const response = api.auth.registerFromTelegram(userId, phone, role, chatId, firstName, lastName)
+    const response = api.auth.registerFromTelegram(
+      {
+        telegram_id: contact.user_id,
+        phone: contact.phone_number,
+        role,
+        chatId,
+        first_name: contact.first_name,
+        last_name: contact.last_name
+      })
 
     router.push(`/telegram/auth/complete?token=${response.token}`)
   })

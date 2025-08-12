@@ -99,6 +99,7 @@ export default {
   },
 
   async registerFromTelegram({telegram_id, phone, role, chatId, first_name = null, last_name = null}){
+
     return await $api('/telegram/register', {
       method: 'POST',
       body: {
