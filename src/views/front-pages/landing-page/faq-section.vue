@@ -35,7 +35,8 @@
           color="primary"
           size="large"
           class="text-none"
-          @click="contactSupport"
+          href="https://t.me/WBDiscountPro"
+          target="_blank"
         >
           Связаться с поддержкой
         </VBtn>
@@ -73,10 +74,6 @@ const faqItems = [
 
 // Отслеживание открытых панелей для анимации иконки
 const panelOpen = reactive(faqItems.map(() => false))
-
-const contactSupport = () => {
-  console.log('Contact support')
-}
 </script>
 
 <style scoped>

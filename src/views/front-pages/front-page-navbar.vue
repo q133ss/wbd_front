@@ -78,7 +78,7 @@ const onLoginClick = () => {
           color="primary"
           variant="flat"
           class="text-none"
-          @click="scrollToSection('hero')"
+          to="/seller/login"
         >
           Начать продвижение
         </VBtn>

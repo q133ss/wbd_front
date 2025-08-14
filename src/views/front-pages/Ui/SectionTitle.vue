@@ -51,10 +51,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const titleClasses = computed(() => {
   const sizes = {
-    sm: 'text-2xl',
-    md: 'text-3xl',
-    lg: 'text-h2',
-    xl: 'text-h1',
+    sm: 'text-xl',
+    md: 'text-2xl',
+    lg: 'text-h3',
+    xl: 'text-h2',
   }
   return sizes[props.size]
 })
@@ -62,9 +62,9 @@ const titleClasses = computed(() => {
 const subtitleClasses = computed(() => {
   const sizes = {
     sm: 'text-base',
-    md: 'text-lg',
-    lg: 'text-xl',
-    xl: 'text-2xl',
+    md: 'text-base',
+    lg: 'text-lg',
+    xl: 'text-xl',
   }
   return sizes[props.size]
 })

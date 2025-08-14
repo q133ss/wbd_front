@@ -1,5 +1,5 @@
 <script setup>
-import Badge from '../Ui/Badge.vue'
+import SectionTitle from '../Ui/SectionTitle.vue'
 
 const scrollToSection = sectionId => {
   const element = document.getElementById(sectionId)
@@ -25,13 +25,12 @@ const scrollToSection = sectionId => {
             :initial="{ opacity: 0, y: 30 }"
             :enter="{ opacity: 1, y: 0, transition: { duration: 600 } }"
           >
-            <h1 class="text-h2 font-bold text-gray-900 mb-6">
-              WBdiscount — умное продвижение карточек на WB
-            </h1>
+            <SectionTitle
+              title="WBdiscount — умное продвижение карточек на WB"
+              subtitle="Автоматизация выкупов и отзывов, антифрод, аналитика. Всё, что не хватало при работе с TG-группами."
+              class="mb-10"
+            />
 
-            <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Автоматизация выкупов и отзывов, антифрод, аналитика. Всё, что не хватало при работе с TG-группами.
-            </p>
 
             <div class="d-flex flex-wrap gap-4 justify-center items-center mb-12">
               <VBtn
@@ -39,7 +38,7 @@ const scrollToSection = sectionId => {
                 variant="flat"
                 size="x-large"
                 class="text-none"
-                @click="scrollToSection('pricing')"
+                to="/seller/login"
               >
                 Начать продвижение
               </VBtn>
@@ -57,38 +56,54 @@ const scrollToSection = sectionId => {
 
             <!-- Metrics badges -->
             <div class="d-flex flex-wrap justify-center gap-4 opacity-70 mb-16">
-              <Badge
-                variant="gray"
+              <VChip
+                variant="flat"
                 size="md"
-                class="text-no-wrap"
+                class="text-no-wrap pa-1 px-2 "
+                style="background-color: rgba(var(--v-theme-secondary), 0.1) !important; color: var(--v-theme-on-surface);"
               >
-                <i class="ri-trending-up-line w-4 h-4 mr-1" />
+                <VIcon
+                  icon="ri-arrow-right-up-long-fill"
+                  class="w-4 h-4 mr-1"
+                />
                 1039 покупателей
-              </Badge>
-              <Badge
-                variant="gray"
+              </VChip>
+              <VChip
+                variant="flat"
                 size="md"
-                class="text-no-wrap"
+                class="text-no-wrap pa-1 px-2 "
+                style="background-color: rgba(var(--v-theme-secondary), 0.1) !important; color: var(--v-theme-on-surface);"
               >
-                <i class="ri-user-group-line w-4 h-4 mr-1" />
+                <VIcon
+                  icon="ri-group-line"
+                  class="w-4 h-4 mr-1"
+                />
                 320 продавцов
-              </Badge>
-              <Badge
-                variant="gray"
+              </VChip>
+              <VChip
+                variant="flat"
                 size="md"
-                class="text-no-wrap"
+                class="text-no-wrap pa-1 px-2 "
+                style="background-color: rgba(var(--v-theme-secondary), 0.1) !important; color: var(--v-theme-on-surface);"
               >
-                <i class="ri-shopping-bag-line w-4 h-4 mr-1" />
+                <VIcon
+                  icon="ri-shopping-bag-line"
+                  class="w-4 h-4 mr-1"
+                />
                 3902 объявления
-              </Badge>
-              <Badge
-                variant="gray"
+              </VChip>
+              <VChip
+                variant="flat"
                 size="md"
-                class="text-no-wrap"
+                class="text-no-wrap pa-1 px-2 "
+                style="background-color: rgba(var(--v-theme-secondary), 0.1) !important; color: var(--v-theme-on-surface);"
               >
-                <i class="ri-currency-rub-line w-4 h-4 mr-1" />
+                <VIcon
+                  icon="ri-money-dollar-circle-line"
+                  class="w-4 h-4 mr-1"
+                />
                 100 493 ₽ выплачено
-              </Badge>
+              </VChip>
             </div>
 
             <!-- Floating Dashboard Illustration -->
@@ -107,12 +122,21 @@ const scrollToSection = sectionId => {
               <div class="absolute inset-0 bg-gradient-to-r from-primary-200/30 via-purple-200/30 to-primary-300/30 rounded-3xl blur-3xl transform scale-110" />
 
               <!-- Floating Container -->
-              <picture>
+              <!--
+                <picture>
                 <img
-                  src="/images/landing-hero.jpg"
-                  class="w-100 rounded-lg"
+                src="/images/landing-hero.jpg"
+                class="w-100 rounded-lg"
                 >
-              </picture>
+                </picture> 
+              -->
+              <VCard
+                rounded="lg"
+                class="ma-0 pa-0 border border-secondary"
+              >
+                <VImg src="/images/landing-hero.jpg" />
+              </VCard>
+
               
 
               <!-- Floating Elements -->
