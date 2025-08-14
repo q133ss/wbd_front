@@ -7,7 +7,7 @@
         class="mb-10"
       />
 
-      <v-row justify="center" align="stretch" class="mx-auto gap-4" style="max-width: 1200px;" dense>
+      <v-row justify="center" align="stretch" class="mx-auto gap-md-4 gap-8" style="max-width: 1200px;" dense>
         <v-col
           v-for="(plan, index) in plans"
           :key="plan.name"
@@ -20,10 +20,10 @@
         >
           <v-chip
               v-if="plan.popular"
-              color="primary"
               text="Most popular"
+              variant="flat"
               class="position-absolute"
-              style="top: -24px; left: 50%; opacity: 1; transform: translateX(-50%); z-index: 100;"
+              style="top: -24px; left: 50%; opacity: 1; transform: translateX(-50%); z-index: 100; background-color: #F3E8FF; color: #6B21A8;"
             />
           <v-card
             :elevation="plan.popular ? 12 : 2"
@@ -36,7 +36,7 @@
             <!-- Plan header -->
             <div class="mb-6">
               <h3 class="text-h5 font-weight-bold mb-2">{{ plan.name }}</h3>
-              <v-chip color="success" class="mb-4" size="small">50% скидка</v-chip>
+              <v-chip color="rgb(34 197 94 / var(--tw-text-opacity, 1))" class="mb-4" size="small">50% скидка</v-chip>
               
               <div class="mb-2">
                 <span class="text-h2 font-weight-bold">{{ plan.price }}</span>
@@ -55,7 +55,7 @@
                   cols="12"
                   class="d-flex align-center justify-center mb-2"
                 >
-                  <v-icon color="green" size="20" class="mr-2">ri-check-line</v-icon>
+                  <v-icon color="rgb(34 197 94 / var(--tw-text-opacity, 1))" size="20" class="mr-2">ri-check-line</v-icon>
                   <span class="text-body-2">{{ feature }}</span>
                 </v-col>
               </v-row>
@@ -67,7 +67,7 @@
               large
               block
               class="text-none"
-              @click="selectPlan(plan)"
+              to="/seller/login"
             >
               Начать продвижение
             </v-btn>
@@ -80,7 +80,7 @@
         <p class="text-body-2 text--secondary mb-2">
           Нужна помощь с выбором тарифа?
         </p>
-        <v-btn variant="text" color="primary" class="font-weight-medium text-none" style="text-decoration: underline;">
+        <v-btn variant="text" href="https://t.me/WBDiscountPro" target="_blank" color="primary" class="font-weight-medium text-none" style="text-decoration: underline;">
           Связаться с нами
         </v-btn>
       </div>
@@ -148,8 +148,4 @@ const plans: Plan[] = [
     ]
   }
 ]
-
-const selectPlan = (plan: Plan) => {
-  console.log('Selected plan:', plan.name)
-}
 </script>
