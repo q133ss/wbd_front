@@ -1,89 +1,87 @@
-<script setup>
-import sittingGirlWithLaptop from '@images/front-pages/landing-page/sitting-girl-with-laptop.png'
-import sectionTitleIcon from '@images/pages/section-title-icon.png'
-import frontPageElement from '@images/svg/front-page-element.svg'
+<template>
+  <section
+    id="faq"
+    class="py-16"
+  >
+    <VContainer>
+      <SectionTitle
+        title="Часто задаваемые вопросы"
+        subtitle="Ответы на самые популярные вопросы о WBdiscount"
+        class="mb-10"
+      />
 
-const faqData = [
+      <VExpansionPanels multiple>
+        <VExpansionPanel
+          v-for="(item, index) in faqItems"
+          :key="index"
+        >
+          <VExpansionPanelTitle class="d-flex justify-space-between align-center">
+            <span class="text-body-1 font-weight-medium">{{ item.question }}</span>
+          </VExpansionPanelTitle>
+
+          <VExpansionPanelText>
+            <div class="text-body-1 text--secondary">
+              {{ item.answer }}
+            </div>
+          </VExpansionPanelText>
+        </VExpansionPanel>
+      </VExpansionPanels>
+
+      <div class="text-center mt-12">
+        <p class="text-body-1 text--secondary mb-2">
+          Не нашли ответ на свой вопрос?
+        </p>
+        <VBtn
+          color="primary"
+          size="large"
+          class="text-none"
+          @click="contactSupport"
+        >
+          Связаться с поддержкой
+        </VBtn>
+      </div>
+    </VContainer>
+  </section>
+</template>
+
+<script setup lang="ts">
+import { reactive } from 'vue'
+import SectionTitle from '../Ui/SectionTitle.vue'
+
+const faqItems = [
   {
     question: 'Как начать продвижение товара?',
-    answer: 'Lemon drops chocolate cake gummies carrot cake chupa chups muffin topping. Sesame snaps icing marzipan gummi bears macaroon dragée danish caramels powder. Bear claw dragée pastry topping soufflé. Wafer gummi bears marshmallow pastry pie.',
+    answer: 'Зарегистрируйтесь на платформе, выберите подходящий тариф, добавьте товар и создайте объявление с указанияем размера кэшбэка и требований к отзыву. После публикации ваше объявление станет доступно покупателям.',
   },
   {
     question: 'А что если покупатель в процессе сделки обманет меня?',
-    answer: 'Regular license can be used for end products that do not charge users for access or service(access is free and there will be no monthly subscription fee). Single regular license can be used for single end product and end product can be used by you or your client. If you want to sell end product to multiple clients then you will need to purchase separate license for each client. The same rule applies if you want to use the same end product on multiple domains(unique setup). For more info on regular license you can check official description.',
+    answer: 'У нас работает система антифрод с рейтингом покупателей и модерации спорных ситуаций. Вы платите кэшбэк только после получения подтверждения выполнения всех условий. В случае нарушений покупатель получает негативный рейтинг или блокировку аккаунта.',
   },
   {
     question: 'Как быстро происходит продвижение товара?',
-    answer: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis et aliquid quaerat possimus maxime! Mollitia reprehenderit neque repellat deleniti delectus architecto dolorum maxime, blanditiis earum ea, incidunt quam possimus cumque.',
+    answer: 'Скорость зависит от размера кэшбэка (чем выше кэшбэк, тем больше покупателей) и популярности категории товара. В среднем первые выкупы начинаются в течение первых часов после публикации объявления.',
   },
   {
-    question: 'Как выплачивать кэшбек?',
-    answer: 'Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sequi molestias exercitationem ab cum nemo facere voluptates veritatis quia, eveniet veniam at et repudiandae mollitia ipsam quasi labore enim architecto non!',
+    question: 'Как выплачивать кэшбэк?',
+    answer: 'На текущем этапе кэшбэк выплачивается вручную переводом от продавца покупателю по реквизитам в чате выкупа. Мы работаем над автоматизацией платежей и скоро добавим этот модуль.',
   },
   {
     question: 'Не хочу настраивать сам, поможете?',
-    answer: 'Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sequi molestias exercitationem ab cum nemo facere voluptates veritatis quia, eveniet veniam at et repudiandae mollitia ipsam quasi labore enim architecto non!',
-  }
+    answer: 'Конечно! Наша команда поддержки поможет вам с настройкой первого объявления. Клиенты тарифа Superstar получают персонального менеджера, который возьмет на себя всю настройку и ведение кампаний.',
+  },
 ]
+
+// Отслеживание открытых панелей для анимации иконки
+const panelOpen = reactive(faqItems.map(() => false))
+
+const contactSupport = () => {
+  console.log('Contact support')
+}
 </script>
 
-<template>
-  <hr style="margin-top: 100px">
-  <VContainer id="faq">
-    <!-- 👉 Header  -->
-    <div class="faq-section">
-      <div class="text-center feature-text-block">
-        <span class="feature-subheading">
-          FAQ
-        </span>
-        <h3 class="feature-heading">
-          Отвечаем на популярные вопросы
-        </h3>
-        <span class="feature-subheading">
-        Приобретайте выкупы с выгодой до 20%
-    </span>
-      </div>
-
-      <div
-        class="d-flex align-center justify-space-between flex-wrap flex-md-nowrap pb-4"
-        style="gap: 6.25rem;"
-      >
-        <VImg
-          :src="sittingGirlWithLaptop"
-          height="340"
-          width="320"
-          class="flip-in-rtl"
-        />
-
-        <div>
-          <VExpansionPanels class="py-4">
-            <VExpansionPanel
-              v-for="faq in faqData"
-              :key="faq.question"
-            >
-              <VExpansionPanelTitle>
-                {{ faq.question }}
-              </VExpansionPanelTitle>
-              <VExpansionPanelText>
-                {{ faq.answer }}
-              </VExpansionPanelText>
-            </VExpansionPanel>
-          </VExpansionPanels>
-        </div>
-      </div>
-    </div>
-  </VContainer>
-</template>
-
-<style lang="scss" scoped>
-.faq-section {
-  position: relative;
-  margin-block: 5.25rem 4.25rem;
-}
-
-.front-page-element {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: 0;
+<style scoped>
+.rotate-180 {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
 }
 </style>

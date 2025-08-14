@@ -1,264 +1,196 @@
-<script setup>
-import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
-import { themeConfig } from '@themeConfig'
-</script>
-
 <template>
-  <div class="footer">
-    <VSheet
-      class="footer-top pt-8 pb-4"
-      theme="dark"
-    >
-      <VContainer>
-        <VRow>
-          <!-- 👉 Footer  -->
-          <VCol
-            cols="12"
-            md="5"
+  <VFooter height="auto">
+    <VContainer>
+      <VRow dense>
+        <!-- Колонка 1: бренд + реквизиты -->
+        <VCol
+          cols="12"
+          md="3"
+        >
+          <RouterLink
+            to="/"
+            class="d-flex gap-2 py-1 mb-6"
           >
-            <div class="footer-form">
-              <div class="d-flex gap-2 py-1 mb-6">
-                <VNodeRenderer :nodes="themeConfig.app.logo" />
-                <h1 class="footer-title">
-                  {{ themeConfig.app.title }}
-                </h1>
-              </div>
-              <div class="text-body-1 footer-text mb-6">
-                Общество с ограниченной ответственностью “Маркет Ревью”
-                <br>
-                ИНН: 9722092663
-              </div>
+            <VNodeRenderer :nodes="themeConfig.app.logo" />
+            <h1 class="footer-title">
+              {{ themeConfig.app.title }}
+            </h1>
+          </RouterLink>
 
-              <router-link to="/terms">Пользовательское соглашение</router-link>
-              <br>
-              <router-link to="/privacy">Политика конфидициальности</router-link>
-              <br>
-              <a href="https://wbd-back.ru/sitemap.xml" target="_blank" rel="noopener noreferrer">Карта сайта</a>
-            </div>
-          </VCol>
-
-          <!-- 👉 Pages -->
-          <VCol
-            md="2"
-            sm="4"
-            xs="6"
-          >
-            <div class="footer-links">
-              <div class="footer-heading mb-6">
-                Покупателям
-              </div>
-              <ul style="list-style: none;">
-                <li class="mb-4">
-                  <RouterLink
-                    class="text-body-1 footer-text text-no-wrap"
-                    to="/"
-                  >
-                    <div class="d-flex align-center">
-                      <div>
-                        Главная
-                      </div>
-                    </div>
-                  </RouterLink>
-                </li>
-
-                <li class="mb-4">
-                  <RouterLink
-                    class="text-body-1 footer-text text-no-wrap"
-                    to="/categories"
-                  >
-                    <div class="d-flex align-center">
-                      <div>
-                        Категории
-                      </div>
-                    </div>
-                  </RouterLink>
-                </li>
-
-                <li class="mb-4">
-                  <RouterLink
-                    class="text-body-1 footer-text text-no-wrap"
-                    to="/buyer/login"
-                  >
-                    <div class="d-flex align-center">
-                      <div>
-                        Вход
-                      </div>
-                    </div>
-                  </RouterLink>
-                </li>
-              </ul>
-            </div>
-          </VCol>
-
-          <!-- 👉 Products  -->
-          <VCol
-            md="2"
-            sm="4"
-            xs="6"
-          >
-            <div class="footer-links">
-              <div class="footer-heading mb-6">
-                Продавцам
-              </div>
-              <ul>
-                <li class="mb-4 text-body-1" style="list-style: none;">
-                  <RouterLink
-                    to="/login?role=seller"
-                    class="footer-text text-no-wrap"
-                  >
-                    Вход
-                  </RouterLink>
-                </li>
-
-                <li class="mb-4 text-body-1" style="list-style: none;">
-                  <RouterLink
-                    to="/seller/support"
-                    class="footer-text text-no-wrap"
-                  >
-                    Поддержка
-                  </RouterLink>
-                </li>
-              </ul>
-            </div>
-          </VCol>
-
-          <!-- 👉 Download App -->
-          <VCol
-            cols="12"
-            md="3"
-            sm="4"
-          >
-            <div>
-              <div class="footer-heading mb-6">
-                Контакты
-              </div>
-              <div>
-                <ul>
-                  <li class="mb-4 text-body-1" style="list-style: none;">
-                    <VIcon
-                      icon="ri-mail-line"
-                      size="16"
-                      color="white"
-                    />
-                    contact@wbdiscount.pro
-                  </li>
-                  <li class="mb-4 text-body-1" style="list-style: none;">
-                    <VIcon
-                      icon="ri-phone-line"
-                      size="16"
-                      color="white"
-                    />
-                    +7 (977) 687 58 92
-                  </li>
-                  <li class="mb-4 text-body-1" style="list-style: none;">
-                    <VIcon
-                      icon="ri-map-pin-line"
-                      size="16"
-                      color="white"
-                    />
-                    г. Москва, вн. тер. г. муниципальный округ Лефортово, ул. Авиамоторная,д. 50 стр. 2, помещ. 29/2
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </VCol>
-        </VRow>
-      </VContainer>
-    </VSheet>
-
-    <div class="footer-line w-100">
-      <VContainer>
-        <div class="d-flex justify-space-between flex-wrap gap-y-4">
-          <span class="d-flex align-center text-body-2 footer-heading font-weight-regular">
-            WBDiscount.pro | Все права защищены &copy; {{ new Date().getFullYear() }}
-          </span>
-          <div class="d-flex gap-x-1">
-            <template
-              v-for="(item, index) in [
-                { title: 'Telegram', icon: 'ri-telegram-line', href: 'http://telegram.org' },
-                { title: 'VK', icon: 'ri-vk-line', href: 'https://vk.ru' },
-              ]"
-              :key="index"
-            >
-              <IconBtn
-                :href="item.href"
-                size="x-small"
-                target="_blank"
-                color="#fff"
-                rel="noopener noreferrer"
-              >
-                <VIcon
-                  :icon="item.icon"
-                  size="16"
-                  color="white"
-                />
-              </IconBtn>
-            </template>
+          <div class="text-caption mb-4">
+            Общество с ограниченной ответственностью "Маркет Ревью"<br>
+            ИНН: 9722092663
           </div>
-        </div>
-      </VContainer>
-    </div>
-  </div>
+
+          <div class="d-flex flex-column">
+            <RouterLink
+              to="/legal/user-agreement"
+              class="text-caption  text-decoration-none"
+            >
+              Пользовательское соглашение
+            </RouterLink>
+            <RouterLink
+              to="/legal/privacy"
+              class="text-caption my-2 text-decoration-none"
+            >
+              Политика конфиденциальности
+            </RouterLink>
+            <RouterLink
+              to="/sitemap"
+              class="text-caption  text-decoration-none"
+            >
+              Карта сайта
+            </RouterLink>
+          </div>
+        </VCol>
+
+        <!-- Колонка 2: Покупателям -->
+        <VCol
+          cols="12"
+          md="3"
+        >
+          <h3 class="text-subtitle-1 font-weight-bold mb-3">
+            Покупателям
+          </h3>
+          <div class="d-flex flex-column">
+            <RouterLink
+              to="/"
+              class="text-body-1 text-decoration-none"
+            >
+              Главная
+            </RouterLink>
+            <RouterLink
+              to="/categories"
+              class="text-body-1 my-2 text-decoration-none"
+            >
+              Категории
+            </RouterLink>
+            <RouterLink
+              to="/login"
+              class="text-body-1 text-decoration-none"
+            >
+              Вход
+            </RouterLink>
+          </div>
+        </VCol>
+
+        <!-- Колонка 3: Продавцам -->
+        <VCol
+          cols="12"
+          md="3"
+        >
+          <h3 class="text-subtitle-1 font-weight-bold mb-3">
+            Продавцам
+          </h3>
+          <div class="d-flex flex-column">
+            <RouterLink
+              to="/seller/login"
+              class="text-body-1 hover-primary mb-2 text-decoration-none"
+            >
+              Вход
+            </RouterLink>
+            <RouterLink
+              to="/support"
+              class="text-body-1 mb-1 text-decoration-none"
+            >
+              Поддержка
+            </RouterLink>
+          </div>
+        </VCol>
+
+        <!-- Колонка 4: Контакты -->
+        <VCol
+          cols="12"
+          md="3"
+        >
+          <h3 class="text-subtitle-1 font-weight-bold mb-3">
+            Контакты
+          </h3>
+          <div class="d-flex flex-column">
+            <a
+              href="mailto:contact@wbdiscount.pro"
+              class="text-caption d-flex align-center"
+            >
+              <VIcon
+                size="18"
+                class="mr-1"
+              >ri-mail-line</VIcon>
+              contact@wbdiscount.pro
+            </a>
+            <a
+              href="tel:+79776875892"
+              class="text-caption my-3 d-flex align-center"
+            >
+              <VIcon
+                size="18"
+                class="mr-1"
+              >ri-phone-line</VIcon>
+              +7 (977) 687 58 92
+            </a>
+            <div class="text-caption d-flex align-start">
+              <VIcon
+                size="18"
+                class="mr-1 mt-1"
+              >
+                ri-map-pin-line
+              </VIcon>
+              г. Москва, вн. тер. г. муниципальный округ Лефортово,<br>
+              ул. Авиамоторная, д. 50 стр. 2, помещение 29/2
+            </div>
+          </div>
+        </VCol>
+      </VRow>
+
+      <!-- Нижняя плашка -->
+      <VDivider class="my-6" />
+      <VRow
+        align="center"
+        justify="space-between"
+      >
+        <VCol cols="10">
+          <span class="text-caption">Wbdiscount.pro | Все права защищены © {{ currentYear }}</span>
+        </VCol>
+        <VCol
+          cols="2"
+          class="d-flex justify-end"
+        >
+          <a
+            href="https://t.me/wbdiscount"
+            target="_blank"
+            class="mr-3"
+            aria-label="Telegram"
+          >
+            <VIcon size="24">ri-telegram-line</VIcon>
+          </a>
+          <a
+            href="mailto:contact@wbdiscount.pro"
+            aria-label="Email"
+          >
+            <VIcon size="24">ri-mail-line</VIcon>
+          </a>
+        </VCol>
+      </VRow>
+    </VContainer>
+  </VFooter>
 </template>
 
-<style lang="scss" scoped>
-.footer-top {
-  background-color: rgba(var(--v-theme-background));
-}
+<script setup lang="ts">
+import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
+import { themeConfig } from '@themeConfig'
+import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
-.footer-heading {
-  color: rgba(255, 255, 255, var(--v-high-emphasis-opacity));
-  font-weight: 500;
-  line-height: 22px;
-}
+const currentYear = computed(() => new Date().getFullYear())
+</script>
 
-.footer-text {
-  color: rgba(255, 255, 255, var(--v-medium-emphasis-opacity));
-}
-
+<style scoped>
 .footer-title {
-  color: rgba(255, 255, 255, var(--v-high-emphasis-opacity));
+  color: rgb(103,106,123);
+  //color: rgba(255, 255, 255, var(--v-high-emphasis-opacity));
   font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: 0.27px;
   line-height: 1.5rem;
   text-transform: capitalize;
-}
-
-.footer-line {
-  background: #211b2c;
-  color: rgba(255, 255, 255, var(--v-medium-emphasis-opacity));
-  font-size: 13px;
-  line-height: 20px;
-}
-
-.footer {
-  color: rgba(255, 255, 255, 70%);
-}
-
-.footer-links {
-  .footer-text:hover {
-    color: #fff;
-  }
-}
-</style>
-
-<style lang="scss">
-.footer {
-  @media (min-width: 600px) and (max-width: 960px) {
-    .v-container {
-      padding-inline: 2rem !important;
-    }
-
-    .footer-logo-buttons {
-      gap: 0.5rem;
-    }
-  }
-}
-
-.footer-form {
-  @media (min-width: 1280px) {
-    max-inline-size: 400px;
-  }
 }
 </style>

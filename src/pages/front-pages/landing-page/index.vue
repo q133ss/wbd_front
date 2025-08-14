@@ -1,8 +1,6 @@
 <script setup>
 import Footer from '@/views/front-pages/front-page-footer.vue'
 import Navbar from '@/views/front-pages/front-page-navbar.vue'
-import Banner from '@/views/front-pages/landing-page/banner.vue'
-import ContactUs from '@/views/front-pages/landing-page/contact-us.vue'
 import CustomersReview from '@/views/front-pages/landing-page/customers-review.vue'
 import FaqSection from '@/views/front-pages/landing-page/faq-section.vue'
 import Features from '@/views/front-pages/landing-page/features.vue'
@@ -44,39 +42,38 @@ useIntersectionObserver([
 <template>
   <div class="landing-page-wrapper">
     <Navbar :active-id="activeSectionId" />
+    <main style="padding-top: 100px;">
+      <!-- 👉 Hero Section  -->
+      <HeroSection ref="refHome" />
 
-    <!-- 👉 Hero Section  -->
-    <HeroSection ref="refHome" />
+      <!-- 👉 Useful features  -->
+      <div :style="{ 'background-color': 'rgb(var(--v-theme-surface))' }">
+        <Features ref="refFeatures" />
+      </div>
 
-    <!-- 👉 Useful features  -->
-    <div :style="{ 'background-color': 'rgb(var(--v-theme-surface))' }">
-      <Features ref="refFeatures" />
-    </div>
+      <!-- 👉 Customer Review -->
+      <CustomersReview />
 
-    <!-- 👉 Customer Review -->
-    <CustomersReview />
+      <!-- 👉 Our Team -->
+      <div :style="{ 'background-color': 'rgb(var(--v-theme-surface))' }">
+        <OurTeam ref="refTeam" />
+      </div>
 
-    <!-- 👉 Our Team -->
-    <div :style="{ 'background-color': 'rgb(var(--v-theme-surface))' }">
-      <OurTeam ref="refTeam" />
-    </div>
+      <!-- 👉 Pricing Plans -->
+      <PricingPlans />
 
-    <!-- 👉 Pricing Plans -->
-    <PricingPlans />
+      <!-- 👉 Product stats -->
+      <ProductStats />
 
-    <!-- 👉 Product stats -->
-    <ProductStats />
+      <!-- 👉 FAQ Section -->
+      <div :style="{ 'background-color': 'rgb(var(--v-theme-surface))' }">
+        <FaqSection ref="refFaq" />
+      </div>
 
-    <!-- 👉 FAQ Section -->
-    <FaqSection ref="refFaq" />
-
-    <!-- 👉 Banner  -->
-    <Banner />
-
-    <!-- 👉 Contact Us  -->
-    <ContactUs ref="refContact" />
 
     <!-- 👉 Footer -->
+    </main>
+   
     <Footer />
   </div>
 </template>

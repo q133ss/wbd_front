@@ -1,255 +1,160 @@
-<script setup>
-import { register } from 'swiper/element/bundle'
-import { useGenerateImageVariant } from '@/@core/composable/useGenerateImageVariant'
-import logo1dark from '@images/front-pages/branding/logo-1-dark.png'
-import logo1light from '@images/front-pages/branding/logo-1-light.png'
-import logo1 from '@images/front-pages/branding/logo-1.png'
-import logo2dark from '@images/front-pages/branding/logo-2-dark.png'
-import logo2light from '@images/front-pages/branding/logo-2-light.png'
-import logo2 from '@images/front-pages/branding/logo-2.png'
-import logo3dark from '@images/front-pages/branding/logo-3-dark.png'
-import logo3light from '@images/front-pages/branding/logo-3-light.png'
-import logo3 from '@images/front-pages/branding/logo-3.png'
-import logo4dark from '@images/front-pages/branding/logo-4-dark.png'
-import logo4light from '@images/front-pages/branding/logo-4-light.png'
-import logo4 from '@images/front-pages/branding/logo-4.png'
-import logo5dark from '@images/front-pages/branding/logo-5-dark.png'
-import logo5light from '@images/front-pages/branding/logo-5-light.png'
-import sectionTitleIcon from '@images/pages/section-title-icon.png'
-
-register()
-
-const brandLogo1 = useGenerateImageVariant(logo1light, logo1dark)
-const brandLogo2 = useGenerateImageVariant(logo2light, logo2dark)
-const brandLogo3 = useGenerateImageVariant(logo3light, logo3dark)
-const brandLogo4 = useGenerateImageVariant(logo4light, logo4dark)
-const brandLogo5 = useGenerateImageVariant(logo5light, logo5dark)
-
-const reviewData = [
-  {
-    desc: 'Пользуюсь WBD для продвижения нулевых карточек. В тг группах тратила на переписки часы, а тут то же самое за 15 минут.',
-    rating: 5,
-    name: 'Ирина',
-    position: 'Продавец на WB',
-  },
-  {
-    desc: 'Очень удобно. Закинул деньги и всё работает без моего участия. Главное не надо объяснять каждому покупателю, что делать.',
-    rating: 5,
-    name: 'Игорь',
-    position: 'Продавец на WB',
-  },
-  {
-    desc: 'Ни одного фейкового отзыва, всё подтверждается фото и видео. Конверсия карточки выросла на 30% после живых отзывов с фото!',
-    rating: 4,
-    name: 'Максим К.',
-    position: 'Продавец на WB',
-  },
-  {
-    desc: 'All the requirements for developers have been taken into consideration, so I\'m able to build any interface I want.',
-    rating: 5,
-    name: 'Sara Smith',
-    position: 'Founder of Continental',
-  },
-  {
-    desc: '«В тг группах часто сталкивался с мошенниками, пользуюсь вбдисконт потому что тут есть гарантии что мои права защищены»',
-    rating: 5,
-    name: 'Андрей',
-    position: 'Продавец на WB',
-  },
-  {
-    desc: 'Очень нравится, что продавцов и покупателей можно оценивать. Ты видишь, с кем работаешь. Давно искала такой прозрачный инструмент',
-    rating: 5,
-    name: 'Алена Б.',
-    position: 'Продавец на WB',
-  },
-  {
-    desc: 'Materialize is awesome, and I particularly enjoy knowing that if I get stuck on something.',
-    rating: 5,
-    name: 'Tommy haffman',
-    position: 'Founder of Levis',
-  },
-  {
-    desc: 'This template is superior in so many ways. The code, the design, the regular updates, the support.. It\'s the whole package. Excellent Work.',
-    rating: 4,
-    name: 'Eugenia Moore',
-    position: 'CTO of Airbnb',
-  },
-  {
-    desc: 'All the requirements for developers have been taken into consideration, so I\'m able to build any interface I want.',
-    rating: 5,
-    name: 'Sara Smith',
-    position: 'Founder of Continental',
-  },
-  {
-    desc: 'Materialize is awesome, and I particularly enjoy knowing that if I get stuck on something.',
-    rating: 5,
-    name: 'Tommy haffman',
-    position: 'Founder of Levis',
-  },
-]
-</script>
-
 <template>
-  <div class="customer-reviews">
-    <!-- 👉 Headers  -->
-    <div class="text-center feature-text-block">
-        <span class="feature-subheading">
-          Отзывы продавцов:
-        </span>
-      <h3 class="feature-heading">
-        Почему все больше продавцов выбирают WBDiscsount:
-      </h3>
-      <span class="feature-subheading">
-          Попробуйте и убедитесь сами!
-        </span>
-    </div>
+  <section class="py-16" style="overflow: hidden;">
+    <VContainer>
+      <SectionTitle
+        title="Почему всё больше продавцов выбирают WBDiscount"
+        subtitle="Попробуйте и убедитесь сами!"
+        class="mb-8"
+      />
 
-    <div class="swiper-reviews-carousel py-4 mb-6">
-      <!-- eslint-disable vue/attribute-hyphenation -->
-      <swiper-container
-        slides-per-view="1"
-        space-between="10"
-        centered-slides="true"
-        loop="true"
-        autoplay-delay="3000"
-        autoplay-disable-on-interaction="false"
-        events-prefix="swiper-"
-        :pagination="{
-          clickable: 'true',
-        }"
-        :injectStyles="[
-          `
-          .swiper-pagination{
-            position: static;
-            margin-block: 1rem;
-          },
-          .swiper-pagination-bullet-active{
-            width: 1rem;
-          }
-
-      `]"
-        :breakpoints="{
-          1400: {
-            slidesPerView: 4,
-            spaceBetween: 20,
-          },
-          992: {
-            slidesPerView: 3,
-            spaceBetween: 20,
-          },
-          768: {
-            slidesPerView: 2,
-            spaceBetween: 20,
-          },
-        }"
-      >
-        <swiper-slide
-          v-for="(data, index) in reviewData"
-          :key="index"
+      <!-- Reviews Carousel -->
+      <div class="position-relative overflow-hidden">
+        <div
+          ref="carouselContainer"
+          class="d-flex"
+          :style="carouselStyle"
         >
-          <VCard class="h-100 d-flex align-stretch">
-            <VCardText class="pa-4 pa-sm-6 pa-md-8 d-flex flex-column justify-space-between align-center">
-              <img
-                :src="data.img"
-                style="block-size: 1.75rem;"
-              >
-
-              <div class="text-body-1 text-high-emphasis text-center">
-                {{ data.desc }}
-              </div>
-
-              <div>
+          <div
+            v-for="(review, index) in reviews"
+            :key="index"
+            style="flex-shrink: 0; width: 320px; transition: transform 0.5s ease;"
+          >
+            <v-card class="h-100" elevation="4">
+              <v-card-text class="pa-6">
+                <!-- Rating -->
                 <VRating
-                  :model-value="data.rating"
-                  color="warning"
+                  :model-value="5"
                   readonly
+                  size="10"
+                  color="yellow"
+                  item-icon="ri-star-s-fill"
+                  item-icon-empty="ri-star-s-fill"
+                  class="mb-4 d-flex justify-start gap-3"
                 />
-              </div>
 
-              <div class="text-center">
-                <div class="text-body-1 text-high-emphasis font-weight-medium">
-                  {{ data.name }}
+                <!-- Review Text -->
+                <blockquote class="text-body-1 mb-6" style="min-height: 80px; display: flex; align-items: center;">
+                  "{{ review.text }}"
+                </blockquote>
+
+                <!-- Author Info -->
+                <div class="d-flex align-center">
+                  <VCard color="primary"
+                    class="d-flex align-center justify-center text-white font-weight-bold"
+                    style="width: 48px; height: 48px; border-radius: 50%; font-size: 18px;"
+                  >
+                    {{ review.author.charAt(0) }}
+                  </VCard>
+                  <div class="ml-3">
+                    <div class="text-subtitle-2 font-weight-medium">
+                      {{ review.author }}
+                    </div>
+                    <div class="text-caption text-medium-emphasis">
+                      {{ review.role }}
+                    </div>
+                  </div>
                 </div>
+              </v-card-text>
+            </v-card>
+          </div>
+        </div>
 
-                <div class="text-body-2">
-                  {{ data.position }}
-                </div>
-              </div>
-            </VCardText>
-          </VCard>
-        </swiper-slide>
-      </swiper-container>
-    </div>
+        <!-- Navigation Dots -->
+        <div class="d-flex justify-center mt-8">
+          <VBtn
+            v-for="(_, index) in Math.ceil(reviews.length / slidesToShow)"
+            :key="index"
+            icon
+            width="14"
+            height="14"
+            :color="currentSlide === index ? 'primary' : 'grey'"
+            class="mx-1"
+            @click="goToSlide(index)"
+          />            
+        </div>
+      </div>
 
-  </div>
+      <!-- Button -->
+      <div class="text-center mt-12">
+        <v-btn
+          size="large"
+          color="primary"
+          @click="scrollToSection('pricing')"
+        >
+          Начать продвижение
+        </v-btn>
+      </div>
+    </VContainer>
+  </section>
 </template>
 
-<style lang="scss">
-@use "swiper/css/bundle";
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import SectionTitle from '../Ui/SectionTitle.vue'
 
-swiper-container::part(bullet-active) {
-  border-radius: 6px;
-  //background-color: rgba(var(--v-theme-on-background), var(--v-disabled-opacity));
-  inline-size: 38px;
+const carouselContainer = ref<HTMLElement>()
+const currentSlide = ref(0)
+const slideWidth = ref(344) // 320px + 24px gap
+const slidesToShow = ref(3)
+let autoSlideInterval: NodeJS.Timeout | null = null
+
+const reviews = [
+  { text: 'Наконец-то нашёл сервис, который действительно работает. Продажи выросли на 40% за месяц.', author: 'Алексей М.', role: 'Продавец электроники' },
+  { text: 'Отличная альтернатива телеграм-группам. Здесь всё прозрачно и безопасно.', author: 'Мария К.', role: 'Продавец одежды' },
+  { text: 'Автоматизация сэкономила мне кучу времени. Рекомендую всем коллегам.', author: 'Дмитрий В.', role: 'Продавец товаров для дома' },
+  { text: 'Поддержка работает круглосуточно, всегда помогут решить любой вопрос.', author: 'Елена П.', role: 'Продавец косметики' },
+  { text: 'Аналитика просто огонь! Теперь вижу, что работает, а что нет.', author: 'Игорь С.', role: 'Продавец спортивных товаров' },
+  { text: 'Безопасность на высоте. Никаких блокировок за полгода использования.', author: 'Анна С.', role: 'Продавец детских товаров' },
+  { text: 'Персональный менеджер помог настроить всё под мой бизнес. Супер!', author: 'Максим О.', role: 'Продавец автотоваров' },
+  { text: 'Фото и видео отзывы выглядят естественно. Покупатели доверяют.', author: 'Ольга Н.', role: 'Продавец украшений' },
+  { text: 'ROI вырос в 2 раза за первый месяц. Окупилось с лихвой.', author: 'Сергей Л.', role: 'Продавец техники' },
+  { text: 'Интуитивно понятный интерфейс. Разобрался за 10 минут.', author: 'Татьяна М.', role: 'Продавец книг' }
+]
+
+const carouselStyle = computed(() => ({
+  transform: `translateX(-${currentSlide.value * slideWidth.value}px)`,
+  transition: 'transform 0.5s ease',
+  gap: '24px',
+  display: 'flex'
+}))
+
+const goToSlide = (index: number) => {
+  currentSlide.value = index
 }
 
-swiper-container::part(bullet) {
-  //background-color: rgba(var(--v-theme-on-background));
+const nextSlide = () => {
+  const maxSlides = Math.ceil(reviews.length / slidesToShow.value)
+  currentSlide.value = (currentSlide.value + 1) % maxSlides
 }
 
-swiper-container::part(pagination) {
-  margin-block: 1.5rem;
-}
-
-.swiper-reviews-carousel {
-  swiper-container {
-    --swiper-pagination-bullet-width: 10px;
-    --swiper-pagination-bullet-height: 10px;
-    --swiper-pagination-bullet-horizontal-gap: 6px;
-
-    .swiper {
-      padding-block-end: 3rem;
-    }
+const updateSlideWidth = () => {
+  if (window.innerWidth < 768) {
+    slidesToShow.value = 1
+    slideWidth.value = 344
+  } else if (window.innerWidth < 1024) {
+    slidesToShow.value = 2
+    slideWidth.value = 344
+  } else {
+    slidesToShow.value = 3
+    slideWidth.value = 344
   }
+}
 
-  swiper-slide {
-    block-size: auto;
-    opacity: 0.5;
-    padding-block: 1rem;
-    padding-block-end: 1rem;
-    transition: all 0.35s ease;
-
-    &.swiper-slide-active {
-      opacity: 1;
-      padding-block: 0;
-    }
-  }
-
-  .swiper-pagination {
-    inset-block: 0 0 !important;
+const scrollToSection = (sectionId: string) => {
+  const element = document.getElementById(sectionId)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' })
   }
 }
 
-.feature-text-block{
-  margin-top: 150px;
-  margin-bottom: 100px;
-}
+onMounted(() => {
+  updateSlideWidth()
+  window.addEventListener('resize', updateSlideWidth)
+  autoSlideInterval = setInterval(nextSlide, 4000)
+})
 
-.feature-subheading{
-  font-size: 20px;
-  font-weight: 700;
-  color: #33465A
-}
-
-.feature-heading{
-  font-weight: 900;
-  font-size: 30px;
-  color: #7958D2;
-}
-</style>
-
-<style lang="scss" scoped>
-.customer-reviews {
-  margin-block: 6.25rem;
-}
-</style>
+onUnmounted(() => {
+  window.removeEventListener('resize', updateSlideWidth)
+  if (autoSlideInterval) clearInterval(autoSlideInterval)
+})
+</script>

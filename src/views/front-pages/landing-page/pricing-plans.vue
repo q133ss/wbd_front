@@ -1,169 +1,155 @@
-<script setup>
-import { onMounted, ref } from "vue"
-import api from "@/api/index.js"
-
-const tariffs = ref([])
-
-const getBuybackDeclension = (count) => {
-  const num = Math.abs(count)
-  if (num % 10 === 1 && num % 100 !== 11) {
-    return 'выкуп'
-  } else if ([2, 3, 4].includes(num % 10) && ![12, 13, 14].includes(num % 100)) {
-    return 'выкупа'
-  } else {
-    return 'выкупов'
-  }
-}
-
-onMounted(async () => {
-  try {
-    const response = await api.tariff.getLandingTariffList()
-    tariffs.value = response || []
-  } catch (error) {
-    snackbar.notify({
-      text: 'Ошибка загрузки тарифов',
-      color: 'error'
-    })
-  }
-})
-</script>
-
 <template>
-  <hr>
-  <div class="text-center feature-text-block">
-        <span class="feature-subheading">
-          Тарифные планы:
-        </span>
-    <h3 class="feature-heading">
-      Сколько это стоит?
-    </h3>
-    <span class="feature-subheading">
-      Приобретайте выкупы с выгодой до 20%
-    </span>
-  </div>
+  <section id="pricing" class="py-16">
+    <v-container>
+      <SectionTitle
+        title="Выберите подходящий тариф"
+        subtitle="Все тарифы безлимитные по выкупам. Платите только за объем продвигаемых товаров."
+        class="mb-10"
+      />
 
-  <VContainer id="pricing-plan">
-    <v-row>
-      <v-col
-        v-for="tariff in tariffs"
-        :key="tariff.id"
-        cols="12"
-        sm="6"
-        md="4"
-        lg="3"
-      >
-        <v-card class="tariff-card pa-6" min-height="400">
-          <div class="card-content">
-            <div class="d-flex justify-between">
-              <h2 class="text-h5 mb-4 font-weight-bold tariff-name">{{ tariff.name }}</h2>
-              <div class="tariff-badge">Бессрочно</div>
-            </div>
-            <p class="text-h6 font-weight-bold mb-2">{{ tariff.price }} ₽</p>
-            <p class="text-body-1 mb-4">
-              {{ tariff.buybacks_count }} {{ getBuybackDeclension(tariff.buybacks_count) }}
-            </p>
-            <v-divider class="mb-4" />
-            <div class="min-100">
-              <div
-                v-for="(advantage, index) in tariff.advantages"
-                :key="index"
-                class="text-body-2 adv-item"
-              >
-                {{ advantage }}
-              </div>
-            </div>
-            <p class="text-body-1 mt-12 text-center opacity-50">
-              Стоимость выкупа: {{ tariff.redemption_price }} ₽
-            </p>
-          </div>
-          <v-btn
-            width="100%"
-            color="primary"
-            to="/seller/login"
+      <v-row justify="center" align="stretch" class="mx-auto gap-4" style="max-width: 1200px;" dense>
+        <v-col
+          v-for="(plan, index) in plans"
+          :key="plan.name"
+          cols="12"
+          md="3"
+          v-motion
+          class="position-relative"
+          :initial="{ opacity: 0, y: 30 }"
+          :enter="{ opacity: 1, y: 0, transition: { duration: 600, delay: index * 150 } }"
+        >
+          <v-chip
+              v-if="plan.popular"
+              color="primary"
+              text="Most popular"
+              class="position-absolute"
+              style="top: -24px; left: 50%; opacity: 1; transform: translateX(-50%); z-index: 100;"
+            />
+          <v-card
+            :elevation="plan.popular ? 12 : 2"
+            class="d-flex flex-column relative text-center pa-6"
+            :style="plan.popular ? 'border: 2px solid var(--v-theme-primary); transform: scale(1.05); z-index: 10;' : ''"
           >
-            начать продвижение
-          </v-btn>
-        </v-card>
-      </v-col>
-    </v-row>
-  </VContainer>
+            <!-- Popular badge -->
+
+
+            <!-- Plan header -->
+            <div class="mb-6">
+              <h3 class="text-h5 font-weight-bold mb-2">{{ plan.name }}</h3>
+              <v-chip color="success" class="mb-4" size="small">50% скидка</v-chip>
+              
+              <div class="mb-2">
+                <span class="text-h2 font-weight-bold">{{ plan.price }}</span>
+                <span class="text-subtitle-1 text--secondary ml-1">руб/мес</span>
+              </div>
+              <div class="text-body-2 text--secondary">{{ plan.subtitle }}</div>
+              <div class="text-caption text--disabled">Безлимит выкупов</div>
+            </div>
+
+            <!-- Features -->
+            <div class="mb-6">
+              <v-row dense>
+                <v-col
+                  v-for="feature in plan.features"
+                  :key="feature"
+                  cols="12"
+                  class="d-flex align-center justify-center mb-2"
+                >
+                  <v-icon color="green" size="20" class="mr-2">ri-check-line</v-icon>
+                  <span class="text-body-2">{{ feature }}</span>
+                </v-col>
+              </v-row>
+            </div>
+
+            <!-- CTA Button -->
+            <v-btn
+              color="primary"
+              large
+              block
+              class="text-none"
+              @click="selectPlan(plan)"
+            >
+              Начать продвижение
+            </v-btn>
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <!-- Support link -->
+      <div class="text-center mt-12">
+        <p class="text-body-2 text--secondary mb-2">
+          Нужна помощь с выбором тарифа?
+        </p>
+        <v-btn variant="text" color="primary" class="font-weight-medium text-none" style="text-decoration: underline;">
+          Связаться с нами
+        </v-btn>
+      </div>
+    </v-container>
+  </section>
 </template>
 
-<style lang="scss">
-.card-list {
-  --v-card-list-gap: 12px;
-}
-</style>
+<script setup lang="ts">
+import SectionTitle from '../Ui/SectionTitle.vue'
 
-<style lang="scss" scoped>
-.plan-price-text {
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
-  font-size: 48px;
-  font-weight: 700;
-  line-height: 56px;
+interface Plan {
+  name: string
+  price: string
+  subtitle: string
+  costPerPurchase: string
+  popular?: boolean
+  features: string[]
 }
 
-.pricing-plans {
-  position: relative;
-  margin-block: 5.25rem;
-}
-
-.front-page-vector {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-}
-
-.justify-between{
-  justify-content: space-between;
-  align-items: start;
-}
-
-.tariff-name{
-  font-size: 20px!important;
-}
-
-.tariff-badge{
-  color: #175CD3;
-  background-color: #EFF8FF;
-  padding: 5px 10px;
-  font-size: 13px;
-  border-radius: 35px;
-}
-
-.min-100{
-  min-height: 100px;
-}
-
-.advantages-list {
-  list-style-type: disc;
-  padding-left: 20px;
-  text-decoration: none;
-
-  li {
-    margin-bottom: 8px;
+const plans: Plan[] = [
+  {
+    name: 'Lite',
+    price: '1500',
+    subtitle: 'До 10 товаров в месяц',
+    costPerPurchase: '',
+    features: [
+      'Полная аналитика',
+      'Поддержка 24/7',
+      'Антифрод система',
+      'Живые покупатели',
+      'Фото и видео отзывы',
+      'Полная автоматизация',
+      'Персональный менеджер'
+    ]
+  },
+  {
+    name: 'Pro',
+    price: '3000',
+    subtitle: 'До 50 товаров в месяц',
+    costPerPurchase: '',
+    popular: true,
+    features: [
+      'Полная аналитика',
+      'Поддержка 24/7',
+      'Антифрод система',
+      'Живые покупатели',
+      'Фото и видео отзывы',
+      'Полная автоматизация',
+      'Персональный менеджер'
+    ]
+  },
+  {
+    name: 'Superstar',
+    price: '5000',
+    subtitle: 'Безлимит товаров',
+    costPerPurchase: '',
+    features: [
+      'Полная аналитика',
+      'Поддержка 24/7',
+      'Антифрод система',
+      'Живые покупатели',
+      'Фото и видео отзывы',
+      'Полная автоматизация',
+      'Персональный менеджер'
+    ]
   }
-}
+]
 
-.adv-item {
-  display: flex; // Добавляем flex для выравнивания
-  align-items: flex-start; // Выравниваем по верхнему краю
-  margin-bottom: 8px;
-  padding-left: 30px; // Отступ для иконки
-  position: relative; // Для позиционирования псевдоэлемента
-  font-size: 14px!important;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 2px; // Подправляем вертикальное выравнивание
-    width: 18px;
-    height: 18px;
-    background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='18' height='18' rx='9' fill='%23D1FADF'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12.8215 5.5425L7.45152 10.725L6.02652 9.2025C5.76402 8.955 5.35152 8.94 5.05152 9.15C4.75902 9.3675 4.67652 9.75 4.85652 10.0575L6.54402 12.8025C6.70902 13.0575 6.99402 13.215 7.31652 13.215C7.62402 13.215 7.91652 13.0575 8.08152 12.8025C8.35152 12.45 13.504 6.3075 13.504 6.3075C14.179 5.6175 13.3615 5.01 12.8215 5.535V5.5425Z' fill='%2312B76A'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    flex-shrink: 0; // Запрещаем сжатие
-    margin-right: 6px; // Отступ между иконкой и текстом
-  }
+const selectPlan = (plan: Plan) => {
+  console.log('Selected plan:', plan.name)
 }
-</style>
+</script>
