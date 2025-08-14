@@ -1,186 +1,198 @@
 <script setup>
-import { useMouse } from '@vueuse/core'
-import { useTheme } from 'vuetify'
-import { useGenerateImageVariant } from '@/@core/composable/useGenerateImageVariant'
-import darkBg from '@images/front-pages/backgrounds/hero-bg-dark.png'
-import lightBg from '@images/front-pages/backgrounds/hero-bg.png'
-import heroDashboardImgDark from '@images/front-pages/landing-page/banner.png'
-import heroDashboardImgLight from '@images/front-pages/landing-page/banner.png'
-import heroElementsImgDark from '@images/front-pages/landing-page/hero-elements-dark.png'
-import heroElementsImgLight from '@images/front-pages/landing-page/hero-elements-light.png'
+import Badge from '../Ui/Badge.vue'
 
-const theme = useTheme()
-const isDark = ref(theme.name)
-
-const heroBgUrl = computed(() => {
-  if (isDark.value === 'dark')
-    return darkBg
-  else
-    return lightBg
-})
-
-const heroElementsImg = useGenerateImageVariant(heroElementsImgLight, heroElementsImgDark)
-const heroDashboardImg = useGenerateImageVariant(heroDashboardImgLight, heroDashboardImgDark)
-const { x, y } = useMouse({ touch: false })
-
-const translateMouse = computed(() => speed => {
-  if (typeof window !== 'undefined') {
-    const positionX = computed(() => (window.innerWidth - x.value * speed) / 100)
-    const positionY = computed(() => Math.max((window.innerHeight - y.value * speed) / 100, -40))
-    
-    return { transform: `translate(${ positionX.value }px,${ positionY.value }px` }
-  }
-})
+const scrollToSection = sectionId => {
+  const element = document.getElementById(sectionId)
+  if (element) element.scrollIntoView({ behavior: 'smooth' })
+}
 </script>
 
 <template>
   <section
-    id="home"
-    :style="{ 'background-color': 'rgb(var(--v-theme-surface))' }"
+    id="hero"
+    class="bg-white"
+    style="padding-bottom: 75px;"
   >
-    <div
-      id="landingHero"
-      class="landing-hero"
-      :style="{ backgroundImage: `url(${heroBgUrl})` }"
-    >
-      <VContainer>
-        <div class="text-center pt-6 pb-16">
-          <div class="mb-4 landing-page-title">
-            <div>
-              Биржа живых отзывов и выкупов
-            </div>
-            от реальных покупателей
-          </div>
-          <div class="text-body-1 font-weight-medium text-high-emphasis pb-8">
-            <p class="mb-0">
-              WBdiscount — это инструмент, который помогает вам быстро поднимать карточки в поиске,
-            </p>
-            <p class="mb-0">
-              увеличивать продажи и собирать качественные отзывы без риска и ручной рутины.
-            </p>
-          </div>
-          <VBtn
-            to="/seller/login"
-            size="large"
-            :active="false"
+    <VContainer class="container-custom">
+      <VRow justify="center">
+        <VCol
+          cols="12"
+          md="8"
+          class="text-center"
+        >
+          <div
+            v-motion
+            :initial="{ opacity: 0, y: 30 }"
+            :enter="{ opacity: 1, y: 0, transition: { duration: 600 } }"
           >
-            Начать продвижение
-          </VBtn>
-        </div>
+            <h1 class="text-h2 font-bold text-gray-900 mb-6">
+              WBdiscount — умное продвижение карточек на WB
+            </h1>
 
-        <div class="position-relative hero-animation-img">
-          <div class="hero-dashboard-img text-center">
-            <RouterLink
-              to="/"
-              target="_blank"
-            >
-              <img
-                :src="heroDashboardImg"
-                data-allow-mismatch
-                class="mx-auto cursor-pointer"
-                :style="translateMouse(3)"
-              >
-            </RouterLink>
-          </div>
+            <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+              Автоматизация выкупов и отзывов, антифрод, аналитика. Всё, что не хватало при работе с TG-группами.
+            </p>
 
-          <div class="hero-elements-img">
-            <RouterLink
-              to="/"
-              target="_blank"
-            >
-              <img
-                class="cursor-pointer"
-                data-allow-mismatch
-                :src="heroElementsImg"
-                :style="translateMouse(5)"
-                target="_blank"
+            <div class="d-flex flex-wrap gap-4 justify-center items-center mb-12">
+              <VBtn
+                color="primary"
+                variant="flat"
+                size="x-large"
+                class="text-none"
+                @click="scrollToSection('pricing')"
               >
-            </RouterLink>
+                Начать продвижение
+              </VBtn>
+
+              <VBtn
+                color="secondary"
+                variant="flat"
+                size="x-large"
+                class="text-none"
+                @click="scrollToSection('pricing')"
+              >
+                Посмотреть тарифы
+              </VBtn>
+            </div>
+
+            <!-- Metrics badges -->
+            <div class="d-flex flex-wrap justify-center gap-4 opacity-70 mb-16">
+              <Badge
+                variant="gray"
+                size="md"
+                class="text-no-wrap"
+              >
+                <i class="ri-trending-up-line w-4 h-4 mr-1" />
+                1039 покупателей
+              </Badge>
+              <Badge
+                variant="gray"
+                size="md"
+                class="text-no-wrap"
+              >
+                <i class="ri-user-group-line w-4 h-4 mr-1" />
+                320 продавцов
+              </Badge>
+              <Badge
+                variant="gray"
+                size="md"
+                class="text-no-wrap"
+              >
+                <i class="ri-shopping-bag-line w-4 h-4 mr-1" />
+                3902 объявления
+              </Badge>
+              <Badge
+                variant="gray"
+                size="md"
+                class="text-no-wrap"
+              >
+                <i class="ri-currency-rub-line w-4 h-4 mr-1" />
+                100 493 ₽ выплачено
+              </Badge>
+            </div>
+
+            <!-- Floating Dashboard Illustration -->
+            <div
+              v-motion
+              :initial="{ opacity: 0, y: 50, scale: 0.9 }"
+              :enter="{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: { duration: 800, delay: 400, ease: 'easeOut' }
+              }"
+              class="relative max-w-4xl mx-auto"
+            >
+              <!-- Background Glow -->
+              <div class="absolute inset-0 bg-gradient-to-r from-primary-200/30 via-purple-200/30 to-primary-300/30 rounded-3xl blur-3xl transform scale-110" />
+
+              <!-- Floating Container -->
+              <picture>
+                <img
+                  src="/images/landing-hero.jpg"
+                  class="w-100 rounded-lg"
+                >
+              </picture>
+              
+
+              <!-- Floating Elements -->
+              <!--
+                <VSheet
+                width="32"
+                height="32"
+                color="info"
+                rounded="circle"
+                class="bounce circle-top-right opacity-80"
+                />
+
+                <VSheet
+                width="24"
+                height="24"
+                color="success"
+                rounded="circle"
+                class="pulse circle-bottom-left opacity-60"
+                />
+
+                <VSheet
+                width="14"
+                height="14"
+                color="info"
+                rounded="circle"
+                class="ping circle-middle-right opacity-40"
+                /> 
+              -->
+            </div>
           </div>
-        </div>
-      </VContainer>
-    </div>
+        </VCol>
+      </VRow>
+    </VContainer>
   </section>
 </template>
 
-<style lang="scss" scoped>
-@use "@layouts/styles/mixins" as layoutMixins;
-
-section {
-  display: block;
-  padding-block-end: 6.25rem;
-}
-
-.landing-hero {
-  background-position: bottom;
-  background-repeat: no-repeat;
-  background-size: cover;
-  padding-block-start: 5.5rem;
-}
-
-.hero-dashboard-img {
-  img {
-    inline-size: 85%;
-  }
-}
-
-.hero-elements-img {
+<style scoped>
+.circle-top-right {
   position: absolute;
-  inline-size: 100%;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  transform: translate(-50%, -50%);
-
-  @include layoutMixins.rtl {
-    transform: translate(50%, -50%);
-  }
-
-  img {
-    inline-size: 100%;
-  }
+  top: -16px;   /* -top-4 */
+  right: -16px; /* -right-4 */
 }
 
-.container {
-  margin-inline: auto;
-  max-inline-size: 85vw;
+.circle-bottom-left {
+  position: absolute;
+  bottom: -24px; /* -bottom-6 */
+  left: -24px;   /* -left-6 */
 }
 
-.feature-cards {
-  margin-block-start: 6.25rem;
+.circle-middle-right {
+  position: absolute;
+  top: 50%;      /* top-1/2 */
+  right: -32px;  /* -right-8 */
+  transform: translateY(-50%);
 }
 
-.landing-page-title {
-  color: rgb(var(--v-theme-primary));
-  font-size: 2.375rem;
-  font-weight: 800;
-  line-height: 2.75rem;
+/* Анимации */
+.bounce {
+  animation: bounce 1s infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(-25%); }
+  50% { transform: translateY(0); }
 }
 
-.hero-animation-img {
-  inset-block-start: 0;
-  margin-block-end: -16rem;
+.pulse {
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
 }
 
-@media (max-width: 960px) {
-  .hero-animation-img {
-    inset-block-start: 2rem;
-    margin-block-end: -8rem;
-  }
+.ping {
+  animation: ping 1s infinite;
 }
-
-@media (max-width: 600px) {
-  section {
-    padding-block-end: 4.25rem;
-  }
-
-  .hero-animation-img {
-    inset-block-start: 1rem;
-    margin-block-end: -2rem;
-  }
-
-  .landing-page-title {
-    font-size: 1.75rem;
-    line-height: 2.25rem;
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
   }
 }
 </style>
