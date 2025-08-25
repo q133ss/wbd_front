@@ -115,5 +115,23 @@ export default {
         'Accept': 'application/json'
       }
     })
+  },
+
+  async register(phone, name, password, password_confirmation, role_id, email = null){
+      return await $api('/register/password', {
+          method: 'POST',
+          body: {
+              phone,
+              name,
+              password,
+              password_confirmation,
+              role_id,
+              email
+          },
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+          }
+      })
   }
 }

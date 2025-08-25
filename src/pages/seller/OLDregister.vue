@@ -5,10 +5,8 @@ import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import authV2RegisterIllustrationBorderedDark from '@images/pages/auth-v2-register-illustration-bordered-dark.png'
 import authV2RegisterIllustrationBorderedLight from '@images/pages/auth-v2-register-illustration-bordered-light.png'
 
-import authV2RegisterIllustrationDark from '@images/pages/buyer-dark.png'
-import authV2RegisterIllustrationLight from '@images/pages/buyer-light.png'
-// import authV2RegisterIllustrationDark from '@images/pages/auth-v2-register-illustration-dark.png'
-// import authV2RegisterIllustrationLight from '@images/pages/auth-v2-register-illustration-light.png'
+import authV2RegisterIllustrationDark from '@images/pages/seller-dark.png'
+import authV2RegisterIllustrationLight from '@images/pages/seller-light.png'
 
 import authV2RegisterMaskDark from '@images/pages/auth-v2-register-mask-dark.png'
 import authV2RegisterMaskLight from '@images/pages/auth-v2-register-mask-light.png'
@@ -29,11 +27,11 @@ definePage({
 
 const form = ref({
   phone: '',
-  name: '',
-  password: '',
-  password_confirmation: '',
-  role_id: 2
+  code: ''
 })
+
+let btnText = 'Отправить код'
+let step = ref(1)
 
 const handleError = (error, errMessage = 'Произошла неизвестная ошибка') => {
   if (error.response?.status === 422) {
@@ -44,33 +42,62 @@ const handleError = (error, errMessage = 'Произошла неизвестн�
   }
 }
 
-const route = useRoute()
-const router = useRouter()
-
-const register = async () => {
-  try{
-    const response = await api.auth.register(form.value.phone, form.value.name, form.value.password, form.value.password_confirmation, form.value.role_id)
-    const token = response.token
-    const user = response.user
-
-    useCookie('accessToken').value = token
-    useCookie('userData').value = user
-    router.push('/')
-  }catch (error) {
-    handleError(error, 'Ошибка при отправке кода')
+const sendCode = async () => {
+  if (step.value == 1) {
+    try{
+      const { data } = await api.auth.sendCode(form.value.phone)
+      step.value = 2
+      btnText = 'Подтвердить код'
+      snackbar.notify({ text: 'Код успешно отправлен', color: 'success' })
+    }catch (error) {
+      handleError(error, 'Ошибка при отправке кода')
+    }
   }
 }
+
+const route = useRoute()
+const router = useRouter()
 
 const roleMap = {
   user: 2,
   seller: 3
 }
 
-const role = route.query.role || 'user'
-const role_id = roleMap[role] || 2
+const role = 'seller'
+const role_id = 3
+
+const verifyCode = async () => {
+  if (step.value == 2) {
+    try{
+      const response = await api.auth.verifyCode({phone: form.value.phone,
+        code: form.value.code,
+        role_id: role_id})
+
+      const token = response.token
+      const user = response.user
+
+      useCookie('accessToken').value = token
+      useCookie('userData').value = user
+      router.push('/')
+    }catch (error) {
+      console.log(error)
+      handleError(error, 'Неверный код')
+    }
+  }
+}
 
 const handleBtnClick = () => {
-  register()
+  if (step.value == 1) {
+    sendCode()
+  } else if (step.value == 2) {
+    verifyCode()
+  }
+}
+
+const reloadPage = (role) => {
+  router.push('/register?role='+role).then(() => {
+    window.location.reload()
+  })
 }
 </script>
 
@@ -120,7 +147,7 @@ const handleBtnClick = () => {
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Регистрация 🚀
+            Регистрация продавца 🚀
           </h4>
           <p class="mb-0">
             Создайте аккаунт, что бы начать использовать все возможности сервиса
@@ -140,40 +167,26 @@ const handleBtnClick = () => {
                   type="text"
                   autofocus
                   :rules="[requiredValidator, phoneValidator]"
-                />
-
-                <VTextField
-                  v-model="form.name"
-                  label="Имя"
-                  placeholder="Имя"
-                  type="text"
-                  class="mt-3"
-                />
-
-                <VTextField
-                  v-model="form.password"
-                  label="Пароль"
-                  placeholder="********"
-                  class="mt-3"
-                  type="password"
-                />
-
-                <VTextField
-                  v-model="form.password_confirmation"
-                  label="Повторите пароль"
-                  placeholder="********"
-                  class="mt-3"
-                  type="password"
+                  :disabled="step != 1"
                 />
               </VCol>
 
               <VCol cols="12">
+                <VTextField
+                  class="mb-2"
+                  v-if="step == 2"
+                  v-model="form.code"
+                  label="Код"
+                  placeholder="1234"
+                  type="text"
+                />
+
                 <VBtn
                   block
                   type="button"
                   @click="handleBtnClick"
                 >
-                  Зарегистрироваться
+                  {{btnText}}
                 </VBtn>
               </VCol>
 
@@ -188,29 +201,29 @@ const handleBtnClick = () => {
               <VCol cols="12">
                 <div class="text-center text-base">
                   <span class="d-inline-block">Уже есть аккаунт?</span> <RouterLink
-                    class="text-primary d-inline-block"
-                    :to="{ name: 'login' }"
-                  >
-                    Войти
-                  </RouterLink>
+                  class="text-primary d-inline-block"
+                  to="/seller/login"
+                >
+                  Войти
+                </RouterLink>
                 </div>
               </VCol>
 
-<!--              <VCol cols="12">-->
-<!--                <div class="d-flex align-center">-->
-<!--                  <VDivider />-->
-<!--                  <span class="mx-4 text-high-emphasis">или</span>-->
-<!--                  <VDivider />-->
-<!--                </div>-->
-<!--              </VCol>-->
+              <!--              <VCol cols="12">-->
+              <!--                <div class="d-flex align-center">-->
+              <!--                  <VDivider />-->
+              <!--                  <span class="mx-4 text-high-emphasis">или</span>-->
+              <!--                  <VDivider />-->
+              <!--                </div>-->
+              <!--              </VCol>-->
 
-<!--              &lt;!&ndash; auth providers &ndash;&gt;-->
-<!--              <VCol-->
-<!--                cols="12"-->
-<!--                class="text-center"-->
-<!--              >-->
-<!--                <AuthProvider />-->
-<!--              </VCol>-->
+              <!--              &lt;!&ndash; auth providers &ndash;&gt;-->
+              <!--              <VCol-->
+              <!--                cols="12"-->
+              <!--                class="text-center"-->
+              <!--              >-->
+              <!--                <AuthProvider />-->
+              <!--              </VCol>-->
             </VRow>
           </VForm>
         </VCardText>

@@ -29,11 +29,11 @@ definePage({
 
 const form = ref({
   phone: '',
-  name: '',
-  password: '',
-  password_confirmation: '',
-  role_id: 2
+  code: ''
 })
+
+let btnText = 'Отправить код'
+let step = ref(1)
 
 const handleError = (error, errMessage = 'Произошла неизвестная ошибка') => {
   if (error.response?.status === 422) {
@@ -44,22 +44,21 @@ const handleError = (error, errMessage = 'Произошла неизвестн�
   }
 }
 
-const route = useRoute()
-const router = useRouter()
-
-const register = async () => {
-  try{
-    const response = await api.auth.register(form.value.phone, form.value.name, form.value.password, form.value.password_confirmation, form.value.role_id)
-    const token = response.token
-    const user = response.user
-
-    useCookie('accessToken').value = token
-    useCookie('userData').value = user
-    router.push('/')
-  }catch (error) {
-    handleError(error, 'Ошибка при отправке кода')
+const sendCode = async () => {
+  if (step.value == 1) {
+    try{
+      const { data } = await api.auth.sendCode(form.value.phone)
+      step.value = 2
+      btnText = 'Подтвердить код'
+      snackbar.notify({ text: 'Код успешно отправлен', color: 'success' })
+    }catch (error) {
+      handleError(error, 'Ошибка при отправке кода')
+    }
   }
 }
+
+const route = useRoute()
+const router = useRouter()
 
 const roleMap = {
   user: 2,
@@ -69,8 +68,38 @@ const roleMap = {
 const role = route.query.role || 'user'
 const role_id = roleMap[role] || 2
 
+const verifyCode = async () => {
+  if (step.value == 2) {
+    try{
+      const response = await api.auth.verifyCode({phone: form.value.phone,
+        code: form.value.code,
+        role_id: role_id})
+
+      const token = response.token
+      const user = response.user
+
+      useCookie('accessToken').value = token
+      useCookie('userData').value = user
+      router.push('/')
+    }catch (error) {
+      console.log(error)
+      handleError(error, 'Неверный код')
+    }
+  }
+}
+
 const handleBtnClick = () => {
-  register()
+  if (step.value == 1) {
+    sendCode()
+  } else if (step.value == 2) {
+    verifyCode()
+  }
+}
+
+const reloadPage = (role) => {
+  router.push('/register?role='+role).then(() => {
+    window.location.reload()
+  })
 }
 </script>
 
@@ -140,40 +169,26 @@ const handleBtnClick = () => {
                   type="text"
                   autofocus
                   :rules="[requiredValidator, phoneValidator]"
-                />
-
-                <VTextField
-                  v-model="form.name"
-                  label="Имя"
-                  placeholder="Имя"
-                  type="text"
-                  class="mt-3"
-                />
-
-                <VTextField
-                  v-model="form.password"
-                  label="Пароль"
-                  placeholder="********"
-                  class="mt-3"
-                  type="password"
-                />
-
-                <VTextField
-                  v-model="form.password_confirmation"
-                  label="Повторите пароль"
-                  placeholder="********"
-                  class="mt-3"
-                  type="password"
+                  :disabled="step != 1"
                 />
               </VCol>
 
               <VCol cols="12">
+                <VTextField
+                  class="mb-2"
+                  v-if="step == 2"
+                  v-model="form.code"
+                  label="Код"
+                  placeholder="1234"
+                  type="text"
+                />
+
                 <VBtn
                   block
                   type="button"
                   @click="handleBtnClick"
                 >
-                  Зарегистрироваться
+                  {{btnText}}
                 </VBtn>
               </VCol>
 
