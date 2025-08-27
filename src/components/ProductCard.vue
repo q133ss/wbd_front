@@ -24,14 +24,13 @@
           <span style="color: #999;">Нет изображения</span>
         </div>
       </template>
-
       <VChip
         size="small"
         color="rgb(var(--v-theme-primary))"
         variant="flat"
         class="product-percentage"
       >
-        {{parseInt(item.cashback_percentage)}}%
+        {{parseInt(item.cashback_percentage)}}% / {{parseInt(item.price_without_cashback - item.price_with_cashback)}} ₽
       </VChip>
 
       <div class="product-info-wrap">
@@ -138,11 +137,18 @@ const isDialogVisible = ref(false)
 
 .product-percentage{
   color: #ffffff;
-  width: 45px;
+  width: 90%;
   position: relative;
   bottom: 40px;
   left: 10px;
   text-align: center;
   //background: rgb(38,43,67)!important;
+}
+</style>
+<style>
+.product-percentage .v-chip__content{
+  display: block!important;
+  width: 100%!important;
+  text-align: center!important;
 }
 </style>
