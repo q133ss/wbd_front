@@ -46,20 +46,6 @@ const handleError = (error, errMessage = 'Произошла неизвестн�
 const route = useRoute()
 const router = useRouter()
 
-const register = async () => {
-  try{
-    const response = await api.auth.register(form.value.phone, form.value.name, form.value.password, form.value.password_confirmation, form.value.role_id, form.value.email)
-    const token = response.token
-    const user = response.user
-
-    useCookie('accessToken').value = token
-    useCookie('userData').value = user
-    router.push('/')
-  }catch (error) {
-    handleError(error, 'Ошибка при отправке кода')
-  }
-}
-
 const roleMap = {
   user: 2,
   seller: 3
@@ -68,8 +54,12 @@ const roleMap = {
 const role = 'seller'
 const role_id = 3
 
-const handleBtnClick = () => {
-  register()
+const openBot = () => {
+  window.open(
+    'https://t.me/wbdapp_bot?start=register',
+    '_blank',
+    'noopener,noreferrer'
+  )
 }
 </script>
 
@@ -131,57 +121,14 @@ const handleBtnClick = () => {
             <VRow>
               <!-- Username -->
               <VCol cols="12">
-                <VTextField
-                  v-model="form.name"
-                  label="Имя"
-                  placeholder="Имя"
-                  type="text"
-                  autofocus
-                />
-
-                <VTextField
-                  v-model="form.phone"
-                  label="Телефон"
-                  v-mask="'+7(###)###-##-##'"
-                  placeholder="+7(999)999-99-99"
-                  type="text"
-                  class="mt-3"
-                  :rules="[phoneValidator]"
-                />
-
-                <VTextField
-                  v-model="form.email"
-                  label="Email"
-                  placeholder="mail@email.net"
-                  type="text"
-                  class="mt-3"
-                />
-
-                <VTextField
-                  v-model="form.password"
-                  label="Пароль"
-                  placeholder="********"
-                  class="mt-3"
-                  type="password"
-                />
-
-                <VTextField
-                  v-model="form.password_confirmation"
-                  label="Повторите пароль"
-                  placeholder="********"
-                  class="mt-3"
-                  type="password"
-                />
-              </VCol>
-
-              <VCol cols="12">
                 <VBtn
                   block
+                  color="white"
+                  variant="outlined"
                   type="button"
-                  @click="handleBtnClick"
-                >
-                  Зарегистрироваться
-                </VBtn>
+                  prepend-icon="ri-telegram-fill"
+                  @click="openBot()"
+                >Регистрация через Telegram</VBtn>
               </VCol>
 
               <VCol cols="12" class="text-caption text-center">
