@@ -30,7 +30,7 @@
         variant="flat"
         class="product-percentage"
       >
-        {{parseInt(item.cashback_percentage)}}% / {{parseInt(item.price_without_cashback - item.price_with_cashback)}} ₽
+        {{parseInt(item.cashback_percentage)}}% / кэшбек {{parseInt(item.price_without_cashback - item.price_with_cashback)}} ₽
       </VChip>
 
       <div class="product-info-wrap">

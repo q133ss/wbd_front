@@ -123,7 +123,7 @@ const openBot = () => {
               <VCol cols="12">
                 <VBtn
                   block
-                  color="white"
+                  color="primary"
                   variant="outlined"
                   type="button"
                   prepend-icon="ri-telegram-fill"

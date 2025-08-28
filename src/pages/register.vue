@@ -123,7 +123,7 @@ const role_id = roleMap[role] || 2
               <VCol cols="12">
                 <VBtn
                   block
-                  color="white"
+                  color="primary"
                   variant="outlined"
                   type="button"
                   prepend-icon="ri-telegram-fill"
