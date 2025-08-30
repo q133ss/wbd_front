@@ -35,21 +35,34 @@ function selectStatus(value) {
 
 const searchQuery = ref('')
 const currentPage = ref(1)
-const itemsPerPage = 15
+const itemsPerPage = 30
 const totalItems = ref(0)
-
 const showShopConfirmModal = ref(false)
 const showTestTariff = ref(false)
 const productData = ref(null)
 const shopData = ref(null)
-
 const userData = useCookie('userData')
 
-// Обрезка названия до 20 символов
+// Обрезка названия до 30 символов
 const truncateName = name => {
   if (!name) return ''
   
-  return name.length > 20 ? name.slice(0, 20) + '...' : name
+  return name.length > 30 ? name.slice(0, 30) + '...' : name
+}
+
+// Debounce function
+const debounce = (func, wait) => {
+  let timeout
+  
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
 }
 
 // Загрузка товаров
@@ -84,10 +97,8 @@ loadProducts()
 // Проверка на тестовый тариф
 const createdAt = new Date(userData.value.created_at)
 const now = new Date()
-
 const diffInMs = now - createdAt
 const diffInMinutes = diffInMs / 1000 / 60
-
 const alreadyShown = localStorage.getItem('test_tariff_shown') === '1'
 if (diffInMinutes < 180 && !alreadyShown) {
   showTestTariff.value = true
@@ -101,7 +112,6 @@ const toggleStatus = async productId => {
   const originalStatus = product.status
 
   product.status = product.status === 0 ? 1 : 0
-
   try {
     await nextTick()
     await api.products.stopSellerProducts([productId])
@@ -134,15 +144,12 @@ const addProduct = async () => {
       
       return
     }
-
     if (userData.value.shop) {
       await addProductToWb()
       
       return
     }
-
     const response = await api.products.fetchWbProduct(articleInput.value, loadRelated.value)
-
     if (!response || !response.product || !response.shop) {
       snackbar.notify({
         text: 'Неверный формат данных товара или магазина',
@@ -151,10 +158,8 @@ const addProduct = async () => {
       
       return
     }
-
     productData.value = response.product
     shopData.value = response.shop
-
     showShopConfirmModal.value = true
   } catch (error) {
     console.error('Error in addProduct:', error.message, error.stack)
@@ -182,10 +187,8 @@ const addProductToWb = async () => {
     await nextTick()
 
     const response = await api.products.addWbProduct(articleInput.value, loadRelated.value)
-
     if (response.code === 201) {
       const userData = useCookie('userData')
-
       if (!userData.value?.shop) {
         const updatedUser = await api.user.profile()
 
@@ -219,7 +222,6 @@ const addProductToWb = async () => {
 const stopSelected = async () => {
   if (!selectedRows.value.length) return
   const productIds = selectedRows.value
-
   const originalStatuses = new Map()
 
   products.value.forEach(item => {
@@ -228,7 +230,6 @@ const stopSelected = async () => {
       item.status = 1
     }
   })
-
   try {
     loading.value = true
     await nextTick()
@@ -267,7 +268,6 @@ const confirmArchive = async () => {
   const originalProducts = [...products.value]
 
   products.value = products.value.filter(item => !productIds.includes(item.id))
-
   try {
     loading.value = true
     await nextTick()
@@ -323,9 +323,13 @@ const paginationText = computed(() => {
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage))
 
 // Обработчики для поиска и фильтров
-const handleSearch = () => {
+const debouncedSearch = debounce(() => {
   currentPage.value = 1
   loadProducts()
+}, 500)
+
+const handleSearch = () => {
+  debouncedSearch()
 }
 
 const handleFilterArchived = () => {
@@ -756,12 +760,15 @@ const loadRelated = ref(false)
             :key="item.id"
             :class="{ 'selected-row': selectedRows.includes(item.id) }"
           >
-            <td>
+            <td
+              class="pr-2"                
+              style="max-width: 350px !important;"
+            >
               <div class="d-flex align-center gap-3">
                 <VCheckbox
                   :model-value="selectedRows.includes(item.id)"
                   hide-details
-                  width="36"
+                  min-width="36"
                   @update:model-value="() => toggleSelect(item)"
                 />
                 <VAvatar
@@ -771,12 +778,12 @@ const loadRelated = ref(false)
                   <VImg :src="item.images[0]" />
                 </VAvatar>
                 <div
-                  class="d-flex flex-column"
-                  style="max-width: 179px;"
+                  class="d-flex flex-column justify-center"
+                  style="min-width: 160px !important"
                 >
                   <RouterLink
                     :to="'/dashboard/advertisements?product_id='+item.id"
-                    class="text-no-wrap text-primary overflow-hidden text-body-2 font-weight-medium"
+                    class="text-primary w-100 text-body-2 text-no-wrap font-weight-medium d-block"
                   >
                     {{ truncateName(item.name) }}
                   </RouterLink>
@@ -988,10 +995,6 @@ const loadRelated = ref(false)
 
 <style scoped lang="scss">
 :deep(.v-table) {
-  .v-table__wrapper {
-    max-height: 600px;
-    overflow-y: auto;
-  }
   th {
     text-transform: uppercase;
     font-weight: bold;

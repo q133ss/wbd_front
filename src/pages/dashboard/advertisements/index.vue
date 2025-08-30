@@ -12,7 +12,6 @@ definePage({
 })
 
 const { mdAndUp } = useDisplay()
-
 const snackbar = useSnackbarStore()
 const router = useRouter()
 const route = useRoute()
@@ -34,7 +33,7 @@ function selectStatus(value) {
 
 const searchQuery = ref('')
 const currentPage = ref(1)
-const itemsPerPage = 15
+const itemsPerPage = 30
 const totalItems = ref(0)
 
 // Product selection modal
@@ -44,11 +43,9 @@ const productSearchQuery = ref('')
 const productCurrentPage = ref(1)
 const productTotalItems = ref(0)
 const productItemsPerPage = 18
-
 const showShopConfirmModal = ref(false)
 const adData = ref(null)
 const shopData = ref(null)
-
 const userData = useCookie('userData')
 
 // Truncate name to 27 characters
@@ -59,6 +56,21 @@ const truncateName = (name, length = 27) => {
 }
 
 const showTelegramModal = ref(false)
+
+// Debounce function
+const debounce = (func, wait) => {
+  let timeout
+  
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
 
 // Load advertisements
 const loadAds = async () => {
@@ -77,14 +89,11 @@ const loadAds = async () => {
     if (route.query.product_id) {
       params.product_id = route.query.product_id
     }
-
     const response = await api.ads.getAds(params)
 
     ads.value = response.data
     console.log(ads.value)
-    
     totalItems.value = response.total || 0
-
     if (totalItems.value == 1 && userData.telegram_id == null) {
       showTelegramModal.value = true
     }
@@ -272,9 +281,13 @@ const productPaginationText = computed(() => {
 const productTotalPages = computed(() => Math.ceil(productTotalItems.value / productItemsPerPage))
 
 // Handlers
-const handleSearch = () => {
+const debouncedSearch = debounce(() => {
   currentPage.value = 1
   loadAds()
+}, 500)
+
+const handleSearch = () => {
+  debouncedSearch()
 }
 
 const handleFilterArchived = () => {
@@ -509,8 +522,8 @@ const closeTgModal = () => {
               class="pl-1"
             > ({{ products.length }})</span>
           </VTab>
-          <VTab 
-            to="/dashboard/advertisements"         
+          <VTab
+            to="/dashboard/advertisements"        
             class="text-primary px-1 pb-4 text-body-1 font-weight-bold mx-4"
           >
             Объявления
@@ -578,7 +591,7 @@ const closeTgModal = () => {
                 style="font-size: 12px;"
               >
                 {{ item.product.wb_id }}
-              </span> 
+              </span>
             </div>
             <VSwitch
               :model-value="item.status === 1"
@@ -676,13 +689,11 @@ const closeTgModal = () => {
               :color="item.message_count ? 'primary' : 'rgba(var(--v-theme-secondary), 0.08)'"
               class="mt-3"
               :class="item.message_count ? '' : 'text-primary'"
-              
               @click="() => router.push(`/dashboard/buybacks?product=${item.id}`)"
             >
-              <!-- @click="() => router.push(`/dashboard/buybacks?product=${item.id}`)" -->
               <span v-if="item.message_count">
                 Сообщения ({{ item.message_count }})
-              </span> 
+              </span>
               <span v-else>
                 Нет сообщений
               </span>
@@ -745,7 +756,10 @@ const closeTgModal = () => {
           <th class="text-uppercase">
             Статус
           </th>
-          <th class="text-uppercase">
+          <th
+            class="text-uppercase"
+            style="max-width: 250px"
+          >
             Товар
           </th>
           <th class="text-uppercase">
@@ -765,7 +779,6 @@ const closeTgModal = () => {
               <span>Выкупы в процессе</span>
             </VTooltip>
           </th>
-
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
@@ -777,7 +790,6 @@ const closeTgModal = () => {
               <span>Сколько людей увидело карточку на главной</span>
             </VTooltip>
           </th>
-
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
@@ -789,7 +801,6 @@ const closeTgModal = () => {
               <span>Сколько людей перешло в карточку</span>
             </VTooltip>
           </th>
-
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
@@ -801,7 +812,6 @@ const closeTgModal = () => {
               <span>Конверсия из показа в переход</span>
             </VTooltip>
           </th>
-
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
@@ -838,22 +848,24 @@ const closeTgModal = () => {
           >
             <td>
               <VCheckbox
+                min-width="32px"
                 :model-value="selectedRows.includes(item.id)"
                 hide-details
                 @update:model-value="() => toggleSelect(item)"
               />
             </td>
             <td>
-              <div class="">
-                <RouterLink :to="`/dashboard/advertisements/edit/${item.id}`">
-                  <VIcon
-                    size="16"
-                    icon="ri-pencil-fill"
-                    class="mr-2"
-                  />
-                  {{ item.name }}
-                </RouterLink>
-              </div>
+              <RouterLink
+                class="text-no-wrap d-block"
+                :to="`/dashboard/advertisements/edit/${item.id}`"
+              >
+                <VIcon
+                  size="16"
+                  icon="ri-pencil-fill"
+                  class="mr-2"
+                />
+                {{ truncateName(item.name, 15) }}
+              </RouterLink>
             </td>
             <td>
               <VSwitch
@@ -864,21 +876,36 @@ const closeTgModal = () => {
               />
             </td>
             <td class="d-flex flex-row align-center">
-              <img
+              <VAvatar
                 v-if="item.product.images && getFirstImage(item.product.images)"
-                :src="getFirstImage(item.product.images)"
-                class="mr-2 rounded cursor-pointer"
-                cover
+                class="mr-2 cursor-pointer"
                 width="50"
-                height="50"
-                aspect-ratio="1"
-                style="aspect-ratio: 1 / 1 !important; height: 50px !important; width: 50px !important;"
-                @click="openImage(getFirstImage(item.product.images))"
               >
-              <span class="truncate-2-lines">{{ truncateName(item.product.name) }}</span>
+                <VImg                
+                  :src="getFirstImage(item.product.images)"                  
+                  cover            
+                  @click="openImage(getFirstImage(item.product.images))"
+                />
+              </VAvatar>
+              <div
+                class="d-flex flex-column justify-center"
+                style="min-width: 120px !important"
+              >
+                <RouterLink
+                  :to="'/dashboard/advertisements?product_id='+item.id"
+                  class="text-primary w-100 text-body-2 text-no-wrap font-weight-medium d-block"
+                >
+                  {{ truncateName(item.name, 25) }}
+                </RouterLink>
+                {{ item.product.wb_id }}
+              </div>
             </td>
-            <td>{{ parseInt(item.cashback_percentage) }}% / {{ parseInt(item.price_with_cashback) }}₽</td>
-            <td >
+            <td>
+              <p class="text-no-wrap">
+                <span class="text-primary">{{ parseInt(item.cashback_percentage) }}%</span> / {{ parseInt(item.price_with_cashback) }}₽
+              </p>
+            </td>
+            <td>
               {{ item.completed_buybacks_count }}
             </td>
             <td>
@@ -910,7 +937,6 @@ const closeTgModal = () => {
         </template>
       </tbody>
     </VTable>
-
     <!-- Пагинация -->
     <div
       v-if="ads.length && !loading && totalItems > itemsPerPage"
@@ -924,7 +950,6 @@ const closeTgModal = () => {
         @update:model-value="loadAds"
       />
     </div>
-
     <!-- Модальное окно для создания объявления -->
     <VDialog
       v-model="showAddModal"
@@ -953,7 +978,6 @@ const closeTgModal = () => {
         </VCardActions>
       </VCard>
     </VDialog>
-
     <!-- Модальное окно для выбора товара -->
     <VDialog
       v-model="showProductModal"
@@ -1060,7 +1084,6 @@ const closeTgModal = () => {
         </VCardActions>
       </VCard>
     </VDialog>
-
     <!-- Архивация -->
     <VDialog
       v-model="showArchiveModal"
@@ -1085,7 +1108,6 @@ const closeTgModal = () => {
         </VCardActions>
       </VCard>
     </VDialog>
-
     <!-- Модальное окно для подтверждения добавления магазина -->
     <VDialog
       v-model="showShopConfirmModal"
@@ -1107,7 +1129,6 @@ const closeTgModal = () => {
         </VCardActions>
       </VCard>
     </VDialog>
-
     <!-- Image Modal -->
     <VDialog
       v-model="imageModal"
@@ -1135,10 +1156,6 @@ const closeTgModal = () => {
 
 <style scoped lang="scss">
 :deep(.v-table) {
-  .v-table__wrapper {
-    max-height: 600px;
-    overflow-y: auto;
-  }
   th {
     text-transform: uppercase;
     font-weight: bold;
@@ -1153,29 +1170,24 @@ const closeTgModal = () => {
     vertical-align: middle;
   }
 }
-
 .v-table > .v-table__wrapper > table > thead > tr > th, .v-table > .v-table__wrapper > table > tfoot > tr > th {
   padding: 0 10px !important;
 }
-
 :deep(.v-table > .v-table__wrapper > table > tbody > tr > td) {
   padding: 0 10px !important;
 }
-
 .rounded-table {
   border-collapse: separate;
   border-spacing: 0;
   border-radius: 0.5rem;
   overflow: hidden;
 }
-
 .truncate-2-lines {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 @media screen and (max-width: 800px) {
   .rounded-table {
     display: none;
