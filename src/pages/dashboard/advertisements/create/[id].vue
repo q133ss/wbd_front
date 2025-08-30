@@ -61,6 +61,9 @@ onMounted(async () => {
     product.value = productResponse
     balance.value = balanceResponse
     templates.value = templatesResponse || {}
+    if (product.value && product.value.name) {
+      adData.value.name = product.value.name
+    }
   } catch (error) {
     console.log(error)
     snackbar.notify({
@@ -77,7 +80,7 @@ const getFirstImage = images => {
   if (Array.isArray(images)) return images[0] || ''
   try {
     const parsed = JSON.parse(images)
-    
+
     return Array.isArray(parsed) ? parsed[0] || '' : ''
   } catch {
     return ''
@@ -87,7 +90,7 @@ const getFirstImage = images => {
 const userPrice = computed(() => {
   if (!product.value) return 0
   const price = parseFloat(product.value.price)
-  
+
   return Math.floor(price * (1 - adData.value.cashback_percentage / 100))
 })
 
@@ -96,14 +99,14 @@ const totalCost = computed(() => {
   const availableRedemptions = balance.value?.redemption_count || 0
   const additionalRedemptions = Math.max(0, neededRedemptions - availableRedemptions)
   const redemptionPrice = 95
-  
+
   return additionalRedemptions * redemptionPrice
 })
 
 const additionalRedemptions = computed(() => {
   const needed = adData.value.redemption_count
   const available = balance.value?.redemption_count || 0
-  
+
   return Math.max(0, needed - available)
 })
 
@@ -113,7 +116,7 @@ const availableRedemptions = computed(() => {
 
 const cashbackPerRedemption = computed(() => {
   const price = parseFloat(product.value.price)
-  
+
   return Math.floor(price * adData.value.cashback_percentage / 100)
 })
 
@@ -208,7 +211,7 @@ const submitAd = async () => {
         text: 'У вас недостаточно средств',
         color: 'error',
       })
-      
+
       return
     }
     snackbar.notify({
@@ -272,7 +275,7 @@ const textAreas = computed(() => {
   if (isKeywords.value) {
     return fields.filter(f => f.key !== 'redemption_instructions')
   }
-  
+
   return fields
 })
 </script>
@@ -464,7 +467,7 @@ const textAreas = computed(() => {
                     <VCol
                       cols="7"
                       class="p-0 d-flex align-center gap-2 ml-3"
-                    > 
+                    >
                       <span style="width: 12px !important;">{{ idx + 1 }}.</span>
                       <VTextField
                         v-model="item.text"
