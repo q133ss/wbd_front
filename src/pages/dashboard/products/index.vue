@@ -2,6 +2,7 @@
 import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { computed, nextTick, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 definePage({
   meta: {
@@ -28,11 +29,6 @@ const statusOptions = [
   { label: 'Архивные', value: 'archived' },
 ]
 
-function selectStatus(value) {
-  filters.value.status = value
-  handleFilterStatus(value)
-}
-
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 30
@@ -42,8 +38,37 @@ const showTestTariff = ref(false)
 const productData = ref(null)
 const shopData = ref(null)
 const userData = useCookie('userData')
+const router = useRouter()
+const loadRelated = ref(false)
 
-// Обрезка названия до 30 символов
+// Sorting state
+const sortBy = ref(null) // Current sort column
+const sortDir = ref('asc') // Current sort direction ('asc' or 'desc')
+
+// Column to API field mapping
+const columnMap = {
+  buybacks: 'buybacks_progress',
+  processing_buybacks: 'processing_buybacks',
+  ads_count: 'ads_count',
+  views: 'views',
+  clicks: 'clicks',
+  ctr: 'ctr',
+  cr: 'cr',
+}
+
+// Toggle sort direction
+const toggleSort = column => {
+  if (sortBy.value === column) {
+    sortDir.value = sortDir.value === 'desc' ? 'asc' : 'desc'
+  } else {
+    sortBy.value = column
+    sortDir.value = 'desc'
+  }
+  currentPage.value = 1 // Reset to first page on sort change
+  loadProducts()
+}
+
+// Truncate name function
 const truncateName = name => {
   if (!name) return ''
   
@@ -65,7 +90,7 @@ const debounce = (func, wait) => {
   }
 }
 
-// Загрузка товаров
+// Load products with sorting
 const loadProducts = async () => {
   try {
     loading.value = true
@@ -76,10 +101,11 @@ const loadProducts = async () => {
       per_page: itemsPerPage,
       ...filters.value,
       search: searchQuery.value || undefined,
+      sort_by: sortBy.value ? columnMap[sortBy.value] : undefined,
+      sort_dir: sortDir.value,
     })
 
     products.value = response.data
-    console.log(products.value)
     totalItems.value = response.total || 0
   } catch (error) {
     snackbar.notify({
@@ -91,10 +117,10 @@ const loadProducts = async () => {
   }
 }
 
-// Инициальная загрузка
+// Initial load
 loadProducts()
 
-// Проверка на тестовый тариф
+// Check test tariff
 const createdAt = new Date(userData.value.created_at)
 const now = new Date()
 const diffInMs = now - createdAt
@@ -105,7 +131,7 @@ if (diffInMinutes < 180 && !alreadyShown) {
   localStorage.setItem('test_tariff_shown', '1')
 }
 
-// Переключение статуса
+// Toggle status
 const toggleStatus = async productId => {
   const product = products?.value?.find(item => item.id === productId)
   if (!product) return
@@ -128,7 +154,7 @@ const toggleStatus = async productId => {
   }
 }
 
-// Добавление товара
+// Add product
 const addProduct = async () => {
   if (!articleInput.value) return
   try {
@@ -178,9 +204,7 @@ const addProduct = async () => {
   }
 }
 
-// Добавление товара в WB
-const router = useRouter()
-
+// Add product to WB
 const addProductToWb = async () => {
   try {
     loading.value = true
@@ -348,7 +372,10 @@ const handleFilterStatus = value => {
   loadProducts()
 }
 
-const loadRelated = ref(false)
+function selectStatus(value) {
+  filters.value.status = value
+  handleFilterStatus(value)
+}
 </script>
 
 <template>
@@ -716,26 +743,131 @@ const loadRelated = ref(false)
           <th class="text-uppercase">
             Статус
           </th>
-          <th class="text-uppercase">
-            Выкупов
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('buybacks')"
+            >
+              Выкупов
+              <VIcon
+                v-if="sortBy === 'buybacks'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            Выкупают
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('processing_buybacks')"
+            >
+              Выкупают
+              <VIcon
+                v-if="sortBy === 'processing_buybacks'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            Объявлений
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('ads_count')"
+            >
+              Объявлений
+              <VIcon
+                v-if="sortBy === 'ads_count'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            Показы
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('views')"
+            >
+              Показы
+              <VIcon
+                v-if="sortBy === 'views'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            Переходы
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('clicks')"
+            >
+              Переходы
+              <VIcon
+                v-if="sortBy === 'clicks'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            CTR
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('ctr')"
+            >
+              CTR
+              <VIcon
+                v-if="sortBy === 'ctr'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            CR
+          <th class="text-uppercase cursor-pointer">
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('cr')"
+            >
+              CR
+              <VIcon
+                v-if="sortBy === 'cr'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
         </tr>
       </thead>
@@ -761,7 +893,7 @@ const loadRelated = ref(false)
             :class="{ 'selected-row': selectedRows.includes(item.id) }"
           >
             <td
-              class="pr-2"                
+              class="pr-2"
               style="max-width: 350px !important;"
             >
               <div class="d-flex align-center gap-3">
@@ -1014,6 +1146,9 @@ const loadRelated = ref(false)
   border-spacing: 0;
   border-radius: 0.5rem;
   overflow: hidden;
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 @media screen and (max-width: 800px) {
   .md-and-up {

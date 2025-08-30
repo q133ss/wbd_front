@@ -26,11 +26,36 @@ const filters = ref({
   status: null,
 })
 
+// Sorting state
+const sortBy = ref(null) // Current sort column
+const sortDir = ref('asc') // Current sort direction ('asc' or 'desc')
+
+// Column to API field mapping
+const columnMap = {
+  completed_buybacks: 'completed_buybacks_count',
+  process_buybacks: 'process_buybacks_count',
+  views: 'views_count',
+  clicks: 'clicks_count',
+  ctr: 'ctr',
+  cr: 'cr',
+}
+
+// Toggle sort direction
+const toggleSort = column => {
+  if (sortBy.value === column) {
+    sortDir.value = sortDir.value === 'desc' ? 'asc' : 'desc'
+  } else {
+    sortBy.value = column
+    sortDir.value = 'desc'
+  }
+  currentPage.value = 1 // Reset to first page on sort change
+  loadAds()
+}
+
 function selectStatus(value) {
   filters.value.status = value
   handleFilterStatus(value)
 }
-
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 30
@@ -48,6 +73,7 @@ const adData = ref(null)
 const shopData = ref(null)
 const userData = useCookie('userData')
 
+
 // Truncate name to 27 characters
 const truncateName = (name, length = 27) => {
   if (!name) return ''
@@ -56,6 +82,7 @@ const truncateName = (name, length = 27) => {
 }
 
 const showTelegramModal = ref(false)
+
 
 // Debounce function
 const debounce = (func, wait) => {
@@ -72,6 +99,7 @@ const debounce = (func, wait) => {
   }
 }
 
+
 // Load advertisements
 const loadAds = async () => {
   try {
@@ -84,6 +112,8 @@ const loadAds = async () => {
       status: filters.value.status !== null ? filters.value.status : undefined,
       is_archived: filters.value.is_archived !== null ? (filters.value.is_archived ? 1 : 0) : undefined,
       search: searchQuery.value || undefined,
+      sort_by: sortBy.value ? columnMap[sortBy.value] : undefined,
+      sort_dir: sortDir.value,
     }
 
     if (route.query.product_id) {
@@ -107,8 +137,10 @@ const loadAds = async () => {
   }
 }
 
+
 // Initial load
 loadAds()
+
 
 // Toggle status using stopAds
 const toggleStatus = async adId => {
@@ -134,6 +166,7 @@ const toggleStatus = async adId => {
   }
 }
 
+
 // Load products for modal
 const loadProducts = async () => {
   try {
@@ -158,6 +191,7 @@ const loadProducts = async () => {
   }
 }
 
+
 // Open product selection modal
 const openProductModal = () => {
   if (route.query.product_id != undefined) {
@@ -173,11 +207,13 @@ const openProductModal = () => {
   loadProducts()
 }
 
+
 // Select product and redirect
 const selectProduct = productId => {
   showProductModal.value = false
   router.push(`/dashboard/advertisements/create/${productId}`)
 }
+
 
 // Mass stop
 const stopSelected = async () => {
@@ -202,6 +238,7 @@ const stopSelected = async () => {
     loading.value = false
   }
 }
+
 
 // Archive selected
 const showArchiveModal = ref(false)
@@ -241,6 +278,7 @@ const statusOptions = [
   { label: 'Архивные', value: 'archived' },
 ]
 
+
 // Selection
 const hasSelection = computed(() => selectedRows.value.length > 0)
 
@@ -260,6 +298,7 @@ const selectAll = computed({
   },
 })
 
+
 // Pagination for ads
 const paginationText = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage + 1
@@ -270,6 +309,7 @@ const paginationText = computed(() => {
 
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage))
 
+
 // Pagination for products
 const productPaginationText = computed(() => {
   const start = (productCurrentPage.value - 1) * productItemsPerPage + 1
@@ -279,6 +319,7 @@ const productPaginationText = computed(() => {
 })
 
 const productTotalPages = computed(() => Math.ceil(productTotalItems.value / productItemsPerPage))
+
 
 // Handlers
 const debouncedSearch = debounce(() => {
@@ -307,6 +348,7 @@ const handleProductSearch = () => {
   loadProducts()
 }
 
+
 // Get first image
 const getFirstImage = images => {
   if (!images) return ''
@@ -319,6 +361,7 @@ const getFirstImage = images => {
     return ''
   }
 }
+
 
 // Image modal
 const imageModal = ref(false)
@@ -765,60 +808,151 @@ const closeTgModal = () => {
           <th class="text-uppercase">
             Кэшбэк
           </th>
-          <th class="text-uppercase">
-            Выкупов
-          </th>
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
-                <span
+                <button
+                  type="button"
+                  class="d-flex flex-row align-center text-uppercase cursor-pointer"
                   v-bind="props"
-                  class="text-uppercase cursor-pointer"
-                >Выкупают</span>
+                  @click="toggleSort('completed_buybacks')"
+                >
+                  Выкупов
+                  <VIcon
+                    v-if="sortBy === 'completed_buybacks'"
+                    :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+                  />
+                  <VIcon
+                    v-else
+                    icon="ri-arrow-down-line"
+                    color="secondary"
+                  />
+                </button>
+              </template>
+              <span>Завершенные выкупы</span>
+            </VTooltip>
+          </th>
+
+          <th>
+            <VTooltip location="top">
+              <template #activator="{ props }">
+                <button
+                  type="button"
+                  class="d-flex flex-row align-center text-uppercase cursor-pointer"
+                  v-bind="props"
+                  @click="toggleSort('process_buybacks')"
+                >
+                  Выкупают
+                  <VIcon
+                    v-if="sortBy === 'process_buybacks'"
+                    :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+                  />
+                  <VIcon
+                    v-else
+                    icon="ri-arrow-down-line"
+                    color="secondary"
+                  />
+                </button>
               </template>
               <span>Выкупы в процессе</span>
             </VTooltip>
           </th>
+
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
-                <span
+                <button
+                  type="button"
+                  class="d-flex flex-row align-center text-uppercase cursor-pointer"
                   v-bind="props"
-                  class="text-uppercase cursor-pointer"
-                >Показы</span>
+                  @click="toggleSort('views')"
+                >
+                  Показы
+                  <VIcon
+                    v-if="sortBy === 'views'"
+                    :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+                  />
+                  <VIcon
+                    v-else
+                    icon="ri-arrow-down-line"
+                    color="secondary"
+                  />
+                </button>
               </template>
               <span>Сколько людей увидело карточку на главной</span>
             </VTooltip>
           </th>
+
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
-                <span
+                <button
+                  type="button"
+                  class="d-flex flex-row align-center text-uppercase cursor-pointer"
                   v-bind="props"
-                  class="text-uppercase cursor-pointer"
-                >Переходы</span>
+                  @click="toggleSort('clicks')"
+                >
+                  Переходы
+                  <VIcon
+                    v-if="sortBy === 'clicks'"
+                    :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+                  />
+                  <VIcon
+                    v-else
+                    icon="ri-arrow-down-line"
+                    color="secondary"
+                  />
+                </button>
               </template>
               <span>Сколько людей перешло в карточку</span>
             </VTooltip>
           </th>
+
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
-                <span
+                <button
+                  type="button"
+                  class="d-flex flex-row align-center text-uppercase cursor-pointer"
                   v-bind="props"
-                  class="text-uppercase cursor-pointer"
-                >CTR</span>
+                  @click="toggleSort('ctr')"
+                >
+                  CTR
+                  <VIcon
+                    v-if="sortBy === 'ctr'"
+                    :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+                  />
+                  <VIcon
+                    v-else
+                    icon="ri-arrow-down-line"
+                    color="secondary"
+                  />
+                </button>
               </template>
               <span>Конверсия из показа в переход</span>
             </VTooltip>
           </th>
+
           <th>
             <VTooltip location="top">
               <template #activator="{ props }">
-                <span
+                <button
+                  type="button"
+                  class="d-flex flex-row align-center text-uppercase cursor-pointer"
                   v-bind="props"
-                  class="text-uppercase cursor-pointer"
-                >CR</span>
+                  @click="toggleSort('cr')"
+                >
+                  CR
+                  <VIcon
+                    v-if="sortBy === 'cr'"
+                    :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+                  />
+                  <VIcon
+                    v-else
+                    icon="ri-arrow-down-line"
+                    color="secondary"
+                  />
+                </button>
               </template>
               <span>Конверсия из перехода в заказ</span>
             </VTooltip>
@@ -1195,5 +1329,8 @@ const closeTgModal = () => {
   .md-and-up {
     display: none;
   }  
+}
+:deep(.v-btn) {
+  text-transform: none;
 }
 </style>
