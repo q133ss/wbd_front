@@ -2,6 +2,7 @@
 import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { computed, nextTick, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 definePage({
   meta: {
@@ -28,31 +29,68 @@ const statusOptions = [
   { label: 'Архивные', value: 'archived' },
 ]
 
-function selectStatus(value) {
-  filters.value.status = value
-  handleFilterStatus(value)
-}
-
 const searchQuery = ref('')
 const currentPage = ref(1)
-const itemsPerPage = 15
+const itemsPerPage = 30
 const totalItems = ref(0)
-
 const showShopConfirmModal = ref(false)
 const showTestTariff = ref(false)
 const productData = ref(null)
 const shopData = ref(null)
-
 const userData = useCookie('userData')
+const router = useRouter()
+const loadRelated = ref(false)
 
-// Обрезка названия до 20 символов
+// Sorting state
+const sortBy = ref(null) // Current sort column
+const sortDir = ref('asc') // Current sort direction ('asc' or 'desc')
+
+// Column to API field mapping
+const columnMap = {
+  buybacks: 'buybacks_progress',
+  processing_buybacks: 'processing_buybacks',
+  ads_count: 'ads_count',
+  views: 'views',
+  clicks: 'clicks',
+  ctr: 'ctr',
+  cr: 'cr',
+}
+
+// Toggle sort direction
+const toggleSort = column => {
+  if (sortBy.value === column) {
+    sortDir.value = sortDir.value === 'desc' ? 'asc' : 'desc'
+  } else {
+    sortBy.value = column
+    sortDir.value = 'desc'
+  }
+  currentPage.value = 1 // Reset to first page on sort change
+  loadProducts()
+}
+
+// Truncate name function
 const truncateName = name => {
   if (!name) return ''
   
-  return name.length > 20 ? name.slice(0, 20) + '...' : name
+  return name.length > 30 ? name.slice(0, 30) + '...' : name
 }
 
-// Загрузка товаров
+// Debounce function
+const debounce = (func, wait) => {
+  let timeout
+  
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+// Load products with sorting
 const loadProducts = async () => {
   try {
     loading.value = true
@@ -63,10 +101,11 @@ const loadProducts = async () => {
       per_page: itemsPerPage,
       ...filters.value,
       search: searchQuery.value || undefined,
+      sort_by: sortBy.value ? columnMap[sortBy.value] : undefined,
+      sort_dir: sortDir.value,
     })
 
     products.value = response.data
-    console.log(products.value)
     totalItems.value = response.total || 0
   } catch (error) {
     snackbar.notify({
@@ -78,30 +117,27 @@ const loadProducts = async () => {
   }
 }
 
-// Инициальная загрузка
+// Initial load
 loadProducts()
 
-// Проверка на тестовый тариф
+// Check test tariff
 const createdAt = new Date(userData.value.created_at)
 const now = new Date()
-
 const diffInMs = now - createdAt
 const diffInMinutes = diffInMs / 1000 / 60
-
 const alreadyShown = localStorage.getItem('test_tariff_shown') === '1'
 if (diffInMinutes < 180 && !alreadyShown) {
   showTestTariff.value = true
   localStorage.setItem('test_tariff_shown', '1')
 }
 
-// Переключение статуса
+// Toggle status
 const toggleStatus = async productId => {
   const product = products?.value?.find(item => item.id === productId)
   if (!product) return
   const originalStatus = product.status
 
   product.status = product.status === 0 ? 1 : 0
-
   try {
     await nextTick()
     await api.products.stopSellerProducts([productId])
@@ -118,7 +154,7 @@ const toggleStatus = async productId => {
   }
 }
 
-// Добавление товара
+// Add product
 const addProduct = async () => {
   if (!articleInput.value) return
   try {
@@ -134,15 +170,12 @@ const addProduct = async () => {
       
       return
     }
-
     if (userData.value.shop) {
       await addProductToWb()
       
       return
     }
-
     const response = await api.products.fetchWbProduct(articleInput.value, loadRelated.value)
-
     if (!response || !response.product || !response.shop) {
       snackbar.notify({
         text: 'Неверный формат данных товара или магазина',
@@ -151,10 +184,8 @@ const addProduct = async () => {
       
       return
     }
-
     productData.value = response.product
     shopData.value = response.shop
-
     showShopConfirmModal.value = true
   } catch (error) {
     console.error('Error in addProduct:', error.message, error.stack)
@@ -173,19 +204,15 @@ const addProduct = async () => {
   }
 }
 
-// Добавление товара в WB
-const router = useRouter()
-
+// Add product to WB
 const addProductToWb = async () => {
   try {
     loading.value = true
     await nextTick()
 
     const response = await api.products.addWbProduct(articleInput.value, loadRelated.value)
-
     if (response.code === 201) {
       const userData = useCookie('userData')
-
       if (!userData.value?.shop) {
         const updatedUser = await api.user.profile()
 
@@ -219,7 +246,6 @@ const addProductToWb = async () => {
 const stopSelected = async () => {
   if (!selectedRows.value.length) return
   const productIds = selectedRows.value
-
   const originalStatuses = new Map()
 
   products.value.forEach(item => {
@@ -228,7 +254,6 @@ const stopSelected = async () => {
       item.status = 1
     }
   })
-
   try {
     loading.value = true
     await nextTick()
@@ -267,7 +292,6 @@ const confirmArchive = async () => {
   const originalProducts = [...products.value]
 
   products.value = products.value.filter(item => !productIds.includes(item.id))
-
   try {
     loading.value = true
     await nextTick()
@@ -323,9 +347,13 @@ const paginationText = computed(() => {
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage))
 
 // Обработчики для поиска и фильтров
-const handleSearch = () => {
+const debouncedSearch = debounce(() => {
   currentPage.value = 1
   loadProducts()
+}, 500)
+
+const handleSearch = () => {
+  debouncedSearch()
 }
 
 const handleFilterArchived = () => {
@@ -344,7 +372,10 @@ const handleFilterStatus = value => {
   loadProducts()
 }
 
-const loadRelated = ref(false)
+function selectStatus(value) {
+  filters.value.status = value
+  handleFilterStatus(value)
+}
 </script>
 
 <template>
@@ -712,26 +743,131 @@ const loadRelated = ref(false)
           <th class="text-uppercase">
             Статус
           </th>
-          <th class="text-uppercase">
-            Выкупов
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('buybacks')"
+            >
+              Выкупов
+              <VIcon
+                v-if="sortBy === 'buybacks'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            Выкупают
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('processing_buybacks')"
+            >
+              Выкупают
+              <VIcon
+                v-if="sortBy === 'processing_buybacks'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            Объявлений
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('ads_count')"
+            >
+              Объявлений
+              <VIcon
+                v-if="sortBy === 'ads_count'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            Показы
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('views')"
+            >
+              Показы
+              <VIcon
+                v-if="sortBy === 'views'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            Переходы
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('clicks')"
+            >
+              Переходы
+              <VIcon
+                v-if="sortBy === 'clicks'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            CTR
+          <th>
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('ctr')"
+            >
+              CTR
+              <VIcon
+                v-if="sortBy === 'ctr'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
-          <th class="text-uppercase">
-            CR
+          <th class="text-uppercase cursor-pointer">
+            <button
+              type="button"
+              class="d-flex flex-row align-center text-uppercase cursor-pointer"
+              @click="toggleSort('cr')"
+            >
+              CR
+              <VIcon
+                v-if="sortBy === 'cr'"
+                :icon="sortDir === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line'"
+              />
+              <VIcon
+                v-else 
+                icon="ri-arrow-down-line"
+                color="secondary"
+              />
+            </button>
           </th>
         </tr>
       </thead>
@@ -756,12 +892,15 @@ const loadRelated = ref(false)
             :key="item.id"
             :class="{ 'selected-row': selectedRows.includes(item.id) }"
           >
-            <td>
+            <td
+              class="pr-2"
+              style="max-width: 350px !important;"
+            >
               <div class="d-flex align-center gap-3">
                 <VCheckbox
                   :model-value="selectedRows.includes(item.id)"
                   hide-details
-                  width="36"
+                  min-width="36"
                   @update:model-value="() => toggleSelect(item)"
                 />
                 <VAvatar
@@ -771,12 +910,12 @@ const loadRelated = ref(false)
                   <VImg :src="item.images[0]" />
                 </VAvatar>
                 <div
-                  class="d-flex flex-column"
-                  style="max-width: 179px;"
+                  class="d-flex flex-column justify-center"
+                  style="min-width: 160px !important"
                 >
                   <RouterLink
                     :to="'/dashboard/advertisements?product_id='+item.id"
-                    class="text-no-wrap text-primary overflow-hidden text-body-2 font-weight-medium"
+                    class="text-primary w-100 text-body-2 text-no-wrap font-weight-medium d-block"
                   >
                     {{ truncateName(item.name) }}
                   </RouterLink>
@@ -988,10 +1127,6 @@ const loadRelated = ref(false)
 
 <style scoped lang="scss">
 :deep(.v-table) {
-  .v-table__wrapper {
-    max-height: 600px;
-    overflow-y: auto;
-  }
   th {
     text-transform: uppercase;
     font-weight: bold;
@@ -1011,6 +1146,9 @@ const loadRelated = ref(false)
   border-spacing: 0;
   border-radius: 0.5rem;
   overflow: hidden;
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 @media screen and (max-width: 800px) {
   .md-and-up {
