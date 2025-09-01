@@ -55,11 +55,14 @@ const role = 'seller'
 const role_id = 3
 
 const openBot = () => {
-  window.open(
-    'https://t.me/wbdapp_bot?start=register',
-    '_blank',
-    'noopener,noreferrer'
-  )
+  const referrerId = useCookie('referrerId').value
+
+  let url = 'https://t.me/wbdappc_bot?start=register'
+  if (referrerId) {
+    url = `https://t.me/wbdappc_bot?start=ref${referrerId}`
+  }
+
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 </script>
 

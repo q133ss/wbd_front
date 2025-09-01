@@ -32,12 +32,12 @@ const form = ref({
   name: '',
   password: '',
   password_confirmation: '',
-  role_id: 2/
+  role_id: 2
 })
 
 const handleError = (error, errMessage = 'Произошла неизвестная ошибка') => {
   if (error.response?.status === 422) {
-    const message = error.response._data.message;
+    const message = error.response._data.message
     snackbar.error(message)
   } else {
     snackbar.error(errMessage)
