@@ -1035,7 +1035,7 @@ const closeTgModal = () => {
               </div>
             </td>
             <td>
-              <p class="text-no-wrap">
+              <p class="text-no-wrap ma-0">
                 <span class="text-primary">{{ parseInt(item.cashback_percentage) }}%</span> / {{ parseInt(item.price_with_cashback) }}₽
               </p>
             </td>
