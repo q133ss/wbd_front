@@ -18,6 +18,7 @@ export const setupGuards = router => {
       try {
         // Сохраняем реферальный ID
         await api.referral.saveReferral(referrerId)
+        useCookie('referrerId').value = referrerId
       } catch (error) {
         console.error('Ошибка при сохранении реферального ID:', error)
       }

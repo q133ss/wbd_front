@@ -32,7 +32,7 @@ const form = ref({
   name: '',
   password: '',
   password_confirmation: '',
-  role_id: 2
+  role_id: 2/
 })
 
 const handleError = (error, errMessage = 'Произошла неизвестная ошибка') => {
@@ -48,11 +48,14 @@ const route = useRoute()
 const router = useRouter()
 
 const openBot = () => {
-  window.open(
-    'https://t.me/wbdappc_bot?start=register',
-    '_blank',
-    'noopener,noreferrer'
-  )
+  const referrerId = useCookie('referrerId').value
+
+  let url = 'https://t.me/wbdappc_bot?start=register'
+  if (referrerId) {
+    url = `https://t.me/wbdappc_bot?start=ref${referrerId}`
+  }
+
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const roleMap = {
