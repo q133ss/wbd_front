@@ -1009,29 +1009,31 @@ const closeTgModal = () => {
                 @update:model-value="() => toggleStatus(item.id)"
               />
             </td>
-            <td class="d-flex flex-row align-center">
-              <VAvatar
-                v-if="item.product.images && getFirstImage(item.product.images)"
-                class="mr-2 cursor-pointer"
-                width="50"
-              >
-                <VImg                
-                  :src="getFirstImage(item.product.images)"                  
-                  cover            
-                  @click="openImage(getFirstImage(item.product.images))"
-                />
-              </VAvatar>
-              <div
-                class="d-flex flex-column justify-center"
-                style="min-width: 120px !important"
-              >
-                <RouterLink
-                  :to="'/dashboard/advertisements?product_id='+item.id"
-                  class="text-primary w-100 text-body-2 text-no-wrap font-weight-medium d-block"
+            <td>
+              <div class="d-flex flex-row align-center">
+                <VAvatar
+                  v-if="item.product.images && getFirstImage(item.product.images)"
+                  class="mr-2 cursor-pointer"
+                  width="50"
                 >
-                  {{ truncateName(item.name, 25) }}
-                </RouterLink>
-                {{ item.product.wb_id }}
+                  <VImg                
+                    :src="getFirstImage(item.product.images)"                  
+                    cover            
+                    @click="openImage(getFirstImage(item.product.images))"
+                  />
+                </VAvatar>
+                <div
+                  class="d-flex flex-column justify-center"
+                  style="min-width: 120px !important"
+                >
+                  <RouterLink
+                    :to="'/dashboard/advertisements?product_id='+item.id"
+                    class="text-primary w-100 text-body-2 text-no-wrap font-weight-medium d-block"
+                  >
+                    {{ truncateName(item.name, 25) }}
+                  </RouterLink>
+                  {{ item.product.wb_id }}
+                </div>
               </div>
             </td>
             <td>
