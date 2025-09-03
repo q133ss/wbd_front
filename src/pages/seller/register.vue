@@ -57,9 +57,9 @@ const role_id = 3
 const openBot = () => {
   const referrerId = useCookie('referrerId').value
 
-  let url = 'https://t.me/wbdappc_bot?start=register'
+  let url = 'https://t.me/wbdapp_bot?start=register'
   if (referrerId) {
-    url = `https://t.me/wbdappc_bot?start=ref${referrerId}`
+    url = `https://t.me/wbdapp_bot?start=ref${referrerId}`
   }
 
   window.open(url, '_blank', 'noopener,noreferrer')
