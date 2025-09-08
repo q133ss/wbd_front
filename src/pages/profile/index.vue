@@ -832,7 +832,7 @@ const openBotText = userData.value.telegram_id == undefined ? 'Подключи�
                   >
                     {{ statistics.user_rating }}
                   </VCardTitle>
-                  <VCardText>Ваш рейтинг</VCardText>
+                  <VCardText>Ваш рейтинг <br class="fix-br"><br class="fix-br"></VCardText>
                 </VCard>
               </VCol>
               <VCol cols="6">
@@ -865,5 +865,22 @@ const openBotText = userData.value.telegram_id == undefined ? 'Подключи�
 
 .details-btn {
   margin-left: 8px;
+}
+@media screen and (min-width: 1280px){
+  .fix-br{
+    display: none;
+  }
+}
+
+@media screen and (max-width: 960px){
+  .fix-br{
+    display: none;
+  }
+}
+
+@media screen and (max-width: 575px){
+  .fix-br{
+    display: block;
+  }
 }
 </style>

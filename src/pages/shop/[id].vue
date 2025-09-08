@@ -213,7 +213,11 @@
       <!-- Товары -->
       <div class="products row mt-5">
         <VRow>
-          <ProductCard v-for="product in seller.shop.products" :key="product.id" :item="normalizeProduct(product)" />
+          <ProductCard
+            v-for="ad in seller.products"
+            :key="ad.id"
+            :item="normalizeProduct(ad)"
+          />
         </VRow>
       </div>
 
@@ -296,7 +300,19 @@ const formatDate = (date) => {
 }
 
 // Нормализация данных продукта для ProductCard
-const normalizeProduct = (product) => {
+const normalizeProduct = (ad) => {
+  if (!ad || !ad.product) {
+    return {
+      product: { images: [] },
+      price_with_cashback: 0,
+      price_without_cashback: 0,
+      cashback_percentage: 0,
+      id: ad?.id || null,
+    }
+  }
+
+  const product = ad.product
+
   let images = []
   if (product.images) {
     if (typeof product.images === 'string') {
@@ -310,21 +326,26 @@ const normalizeProduct = (product) => {
     }
   }
 
-  // Пример логики кешбека и цены
-  const discount = parseFloat(product.discount || 0)
-  const price = parseFloat(product.price || 0)
-  const priceWithCashback = (price * (1 - discount / 100)).toFixed(2)
+  const price = parseFloat(ad.price_without_cashback || product.price || 0)
 
   return {
     product: {
       ...product,
       images,
     },
-    price_with_cashback: priceWithCashback,
-    cashback_percentage: discount,
-    id: product.id,
+    price_with_cashback: ad.price_with_cashback
+      ? parseFloat(ad.price_with_cashback)
+      : price,
+    price_without_cashback: price,
+    cashback_percentage: ad.cashback_percentage
+      ? parseFloat(ad.cashback_percentage)
+      : parseFloat(product.discount || 0),
+    id: product.id || ad.id,
   }
 }
+
+
+
 </script>
 
 <style scoped lang="scss">
