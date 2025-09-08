@@ -60,10 +60,10 @@ export default {
     })
   },
 
-  async sendResetCode(phone) {
-    return await $api('/password/reset/send-code', {
+  async sendResetCode(phone, for_seller) {
+    return await $api('/password/reset/send-link', {
       method: 'POST',
-      body: { phone }, // важно: используем `body`, не `data`
+      body: { phone, for_seller }, // важно: используем `body`, не `data`
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -71,10 +71,10 @@ export default {
     })
   },
 
-  async checkResetCode(phone, code) {
-    return await $api('/password/reset/check-code', {
+  async checkResetCode(reset_token, password, password_confirmation) {
+    return await $api('/password/reset', {
       method: 'POST',
-      body: { phone, code }, // заменили data → body
+      body: { reset_token, password, password_confirmation }, // заменили data → body
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -82,12 +82,12 @@ export default {
     })
   },
 
-  async resetPassword({ phone, code, password, password_confirmation }) {
+  async resetPassword(reset_token, for_seller, password, password_confirmation) {
     return await $api('/password/reset', {
       method: 'POST',
       body: {
-        phone,
-        code,
+        reset_token,
+        for_seller,
         password,
         password_confirmation
       },

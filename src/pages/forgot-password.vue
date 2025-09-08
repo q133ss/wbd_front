@@ -24,14 +24,17 @@ const authThemeImg = useGenerateImageVariant(
 const authThemeMask = useGenerateImageVariant(authV2ForgotPasswordMaskLight, authV2ForgotPasswordMaskDark)
 
 const router = useRouter()
+const route = useRoute()
 const snackbar = useSnackbarStore()
 
 const step = ref(1) // 1: Phone input, 2: Code verification, 3: Password reset
 const phone = ref('')
+const forSeller = ref(false)
 const code = ref('')
 const password = ref('')
 const passwordConfirmation = ref('')
 const isLoading = ref(false)
+const token = ref('')
 
 definePage({
   meta: {
@@ -48,33 +51,12 @@ const handleSendResetCode = async () => {
   }
   isLoading.value = true
   try {
-    await api.auth.sendResetCode(phone.value)
-    snackbar.notify({ text: 'Код отправлен на ваш телефон', color: 'success' })
+    await api.auth.sendResetCode(phone.value, forSeller.value)
+    snackbar.notify({ text: 'Ссылка отправлена вам в Telegram', color: 'success' })
     step.value = 2
   } catch (error) {
     snackbar.notify({
-      text: error.response?._data?.message || 'Ошибка при отправке кода',
-      color: 'error',
-    })
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Handle code verification
-const handleCheckResetCode = async () => {
-  if (!code.value) {
-    snackbar.notify({ text: 'Введите код', color: 'error' })
-    return
-  }
-  isLoading.value = true
-  try {
-    await api.auth.checkResetCode(phone.value, code.value)
-    snackbar.notify({ text: 'Код подтвержден', color: 'success' })
-    step.value = 3
-  } catch (error) {
-    snackbar.notify({
-      text: error.response?._data?.message || 'Неверный код',
+      text: error.response?._data?.message || 'Ошибка при отправке ссылки',
       color: 'error',
     })
   } finally {
@@ -94,15 +76,22 @@ const handleResetPassword = async () => {
   }
   isLoading.value = true
   try {
-    await api.auth.resetPassword({
-      phone: phone.value,
-      code: code.value,
-      password: password.value,
-      password_confirmation: passwordConfirmation.value,
+    const res = await api.auth.resetPassword(token.value,
+      forSeller.value,
+      password.value,
+      passwordConfirmation.value)
+
+    useCookie('accessToken').value = res.token
+    useCookie('userData').value = res.user
+
+    await nextTick(() => {
+      window.location.href = route.query.to ? String(route.query.to) : '/'
     })
+
     snackbar.notify({ text: 'Пароль успешно сброшен', color: 'success' })
     router.push({ name: 'login' })
   } catch (error) {
+    console.error(error)
     snackbar.notify({
       text: error.response?._data?.message || 'Ошибка при сбросе пароля',
       color: 'error',
@@ -116,12 +105,24 @@ const handleResetPassword = async () => {
 const handleSubmit = async () => {
   if (step.value === 1) {
     await handleSendResetCode()
-  } else if (step.value === 2) {
-    await handleCheckResetCode()
   } else if (step.value === 3) {
     await handleResetPassword()
   }
 }
+
+onMounted(() => {
+  if (route.query.token) {
+    token.value = route.query.token
+    step.value = 3
+
+    // Проверяем роль из URL
+    if (route.query.role === 'seller') {
+      forSeller.value = true
+    } else if (route.query.role === 'buyer') {
+      forSeller.value = false
+    }
+  }
+})
 </script>
 
 <template>
@@ -149,13 +150,19 @@ const handleSubmit = async () => {
             Восстановление пароля 🔒
           </h4>
           <p class="mb-0">
-            {{ step === 1 ? 'Введите номер телефона, чтобы получить код' : step === 2 ? 'Введите код, отправленный на ваш телефон' : 'Введите новый пароль' }}
+            {{ step === 1 ? 'Введите номер телефона, чтобы сменить пароль' : (step === 3 ? 'Введите новый пароль' : '') }}
           </p>
         </VCardText>
 
         <VCardText>
           <VForm @submit.prevent="handleSubmit">
             <VRow>
+              <VCol cols="12" v-if="step === 1">
+                <VRadioGroup v-model="forSeller" inline>
+                  <VRadio label="Покупатель" :value="false" />
+                  <VRadio label="Продавец" :value="true" />
+                </VRadioGroup>
+              </VCol>
               <!-- Step 1: Phone input -->
               <VCol v-if="step === 1" cols="12">
                 <VTextField
@@ -169,16 +176,8 @@ const handleSubmit = async () => {
                 />
               </VCol>
 
-              <!-- Step 2: Code input -->
-              <VCol v-if="step === 2" cols="12">
-                <VTextField
-                  v-model="code"
-                  autofocus
-                  label="Код"
-                  placeholder="123456"
-                  type="text"
-                  :disabled="isLoading"
-                />
+              <VCol cols="12" v-if="step === 2">
+                Ссылка для восстановления пароля отправлена вам в Telegram!
               </VCol>
 
               <!-- Step 3: Password inputs -->
@@ -210,8 +209,8 @@ const handleSubmit = async () => {
 
               <!-- Submit button -->
               <VCol cols="12">
-                <VBtn block type="submit" :loading="isLoading">
-                  {{ step === 1 ? 'Отправить код' : step === 2 ? 'Подтвердить код' : 'Сбросить пароль' }}
+                <VBtn block type="submit" :loading="isLoading" v-if="step != 2">
+                  {{ step === 1 ? 'Отправить код' : 'Сбросить пароль' }}
                 </VBtn>
               </VCol>
 
