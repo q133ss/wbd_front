@@ -218,7 +218,7 @@ const back = () => {
         <!-- Блок товаров -->
         <VCol :cols="hideSubCategories ? 12 : [12, 9]" :md="hideSubCategories ? 12 : 9" class="filters-block">
           <!-- Фильтры -->
-          <VCard class="mb-4" v-if="productsData?.data?.length != 0">
+          <VCard class="mb-4">
             <VCardText>
               <VRow>
                 <VCol cols="12" md="4">
@@ -320,7 +320,7 @@ const back = () => {
           </VRow>
 
           <VRow v-if="productsData?.data?.length == 0">
-            <span class="w-100 text-center">Товары не найдены</span>
+            <span class="w-100 text-center mt-5">Товары не найдены</span>
           </VRow>
         </VCol>
       </VRow>
