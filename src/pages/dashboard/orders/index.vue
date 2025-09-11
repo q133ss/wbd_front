@@ -1653,22 +1653,22 @@ onUnmounted(() => {
             </IconBtn>
           </div>
           <VCardTitle class="pa-0 text-body-1 font-weight-bold">
-            Заказ #739923
+            Заказ #{{ chatStore?.activeChat.id }}      
           </VCardTitle>
           <VCardText class="pa-0 mt-1">
             <RouterLink
-              to="#"
+              :to="`/products/${chatStore?.activeChat.ads_id}`"
               class="text-decoration-underline text-wrap text-info"
             >
-              {{ chatStore?.activeChat?.ad?.product?.name }}
+              {{ chatStore?.activeChat.ad.product.name }}
             </RouterLink>
             <p class="pt-3 pb-6 text-body-2 font-weight-medium">
               Продавец:             
               <RouterLink
-                to="#"
+                :to="`/shop/${chatStore?.activeChat.laravel_through_key}`"
                 class="text-decoration-underline text-wrap text-info"
               >
-                {{ chatStore?.activeChat?.ad?.shop?.wb_name }}
+                {{ chatStore?.activeChat.ad.shop.wb_name }}
               </RouterLink>
             </p>
             <div class="d-flex text-body-2 justify-between gap-2 ">
@@ -1767,6 +1767,10 @@ onUnmounted(() => {
 }
 
 .footer {
+  display: none !important;
+}
+
+.b24-widget-button-wrapper {
   display: none !important;
 }
 </style>
