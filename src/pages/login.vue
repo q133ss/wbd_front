@@ -156,7 +156,7 @@ const reloadPage = (role) => {
                 <VTextField
                   v-model="credentials.phone"
                   label="Телефон"
-                  v-mask="'+7(###)###-##-##'"
+                  v-mask="'+#(###)###-##-##'"
                   placeholder="+7(999)999-99-99"
                   type="text"
                   autofocus
