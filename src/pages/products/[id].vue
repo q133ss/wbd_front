@@ -795,6 +795,12 @@ h2.mb-4 {
   justify-content: space-between !important;
 }
 
+@media screen and (max-width: 1365px){
+  .product-card{
+    width: 100%;
+  }
+}
+
 @media screen and (max-width: 960px) {
   .layout-page-content{
     padding-top: 0 !important;
