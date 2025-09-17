@@ -139,7 +139,7 @@ const isDialogVisible = ref(false)
   color: #ffffff;
   width: 90%;
   position: relative;
-  bottom: 40px;
+  bottom: 30px;
   left: 10px;
   text-align: center;
   //background: rgb(38,43,67)!important;
