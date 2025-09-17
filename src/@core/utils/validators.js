@@ -20,10 +20,11 @@ export const emailValidator = value => {
 }
 
 export const phoneValidator = phone => {
-  const regExp = /^\+7\(\d{3}\)\d{3}-\d{2}-\d{2}$/
+  //const regExp = /^\+7\(\d{3}\)\d{3}-\d{2}-\d{2}$/
+  const regExp = /^\+\d\(\d{3}\)\d{3}-\d{2}-\d{2}$/
   const validPhone = regExp.test(phone)
 
-  return validPhone || 'Введите номер в формате +7(999)999-99-99'
+  return validPhone || 'Введите номер в формате +9(999)999-99-99'
 }
 
 

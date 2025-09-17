@@ -113,11 +113,14 @@ const role_id = roleMap[role] || 2
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Регистрация 🚀
+            Регистрация покупателя через Telegram бот🚀
           </h4>
           <p class="mb-0">
-            Создайте аккаунт, что бы начать использовать все возможности сервиса
+            🔒 Бот <a href="https://t.me/wbdappc_bot?start=register" target="_blank">@wbdappc_bot</a> отправит вам логин и пароль. Мы не получаем доступ к вашему аккаунту.
           </p>
+          <div class="w-100 text-center mt-4 cursor-pointer" @click="openBot()">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://t.me/wbdappc_bot?start=register&size=200x200" alt="qr code">
+          </div>
         </VCardText>
 
         <VCardText>
@@ -131,7 +134,7 @@ const role_id = roleMap[role] || 2
                   type="button"
                   prepend-icon="ri-telegram-fill"
                   @click="openBot()"
-                >Регистрация через Telegram</VBtn>
+                >Открыть бот</VBtn>
               </VCol>
 
               <VCol cols="12" class="text-caption text-center">

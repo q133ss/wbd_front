@@ -12,6 +12,7 @@ import authV2RegisterMaskDark from '@images/pages/auth-v2-register-mask-dark.png
 import authV2RegisterMaskLight from '@images/pages/auth-v2-register-mask-light.png'
 import api from '@/api'
 import { useSnackbarStore } from '@/stores/snackbar'
+import {ref} from "vue";
 
 const snackbar = useSnackbarStore()
 
@@ -54,6 +55,7 @@ const roleMap = {
 const role = 'seller'
 const role_id = 3
 
+const qrCodeSrc = ref('')
 const openBot = () => {
   const referrerId = useCookie('referrerId').value
 
@@ -112,11 +114,14 @@ const openBot = () => {
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Регистрация продавца 🚀
+            Регистрация продавца через Telegram бот 🚀
           </h4>
           <p class="mb-0">
-            Создайте аккаунт, что бы начать использовать все возможности сервиса
+            🔒 Бот <a href="https://t.me/wbdapp_bot?start=register" target="_blank">@wbdapp_bot</a> отправит вам логин и пароль. Мы не получаем доступ к вашему аккаунту.
           </p>
+          <div class="w-100 text-center mt-4 cursor-pointer" @click="openBot()">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://t.me/wbdapp_bot?start=register&size=200x200" alt="qr code">
+          </div>
         </VCardText>
 
         <VCardText>
@@ -131,7 +136,7 @@ const openBot = () => {
                   type="button"
                   prepend-icon="ri-telegram-fill"
                   @click="openBot()"
-                >Регистрация через Telegram</VBtn>
+                >Открыть бот</VBtn>
               </VCol>
 
               <VCol cols="12" class="text-caption text-center">
