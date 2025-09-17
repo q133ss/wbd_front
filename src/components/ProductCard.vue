@@ -144,6 +144,12 @@ const isDialogVisible = ref(false)
   text-align: center;
   //background: rgb(38,43,67)!important;
 }
+
+@media screen and (max-width: 1440px) {
+  .product-percentage {
+    font-size: 11px!important;
+  }
+}
 </style>
 <style>
 .product-percentage .v-chip__content{
