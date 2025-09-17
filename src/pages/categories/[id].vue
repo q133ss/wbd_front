@@ -316,6 +316,13 @@ const back = () => {
               v-for="item in productsData?.data"
               :key="item.id"
               :item="item"
+              :grid-config="{
+                cols: '12',
+                sm: '6',
+                md: '3',
+                lg: '3',
+                xl: '3'
+              }"
             />
           </VRow>
 
