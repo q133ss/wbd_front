@@ -133,5 +133,17 @@ export default {
               'Accept': 'application/json'
           }
       })
-  }
+  },
+
+    async impersonate({ token }) {
+        const response = await $api('/impersonation/exchange', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: { token },
+        })
+        return response
+    }
 }
