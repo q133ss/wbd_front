@@ -169,7 +169,7 @@ onMounted(() => {
                   v-model="phone"
                   autofocus
                   label="Телефон"
-                  v-mask="'+7(###)###-##-##'"
+                  v-mask="'+#(###)###-##-##'"
                   placeholder="+7(999)999-99-99"
                   type="tel"
                   :disabled="isLoading"
