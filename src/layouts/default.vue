@@ -30,6 +30,8 @@ watch([
     refLoadingIndicator.value.resolveHandle()
 }, { immediate: true })
 // !SECTION
+
+const user = useCookie('userData')
 </script>
 
 <template>
@@ -38,8 +40,14 @@ watch([
     :is="configStore.appContentLayoutNav === AppContentLayoutNav.Vertical ? DefaultLayoutWithVerticalNav : DefaultLayoutWithHorizontalNav"
   >
     <AppLoadingIndicator ref="refLoadingIndicator" />
-
     <RouterView v-slot="{ Component }">
+      <VAlert
+        type="error"
+        variant="tonal"
+        v-if="user.is_frozen"
+      >
+        Ваш аккаунт был заморожен. Некоторые функции могут быть недоступны.
+      </VAlert>
       <Suspense
         :timeout="0"
         @fallback="isFallbackStateActive = true"
