@@ -44,7 +44,7 @@ const user = useCookie('userData')
       <VAlert
         type="error"
         variant="tonal"
-        v-if="user.is_frozen"
+        v-if="user && user.is_frozen"
       >
         Ваш аккаунт был заморожен. Некоторые функции могут быть недоступны.
       </VAlert>
