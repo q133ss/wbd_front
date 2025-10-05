@@ -23,7 +23,7 @@
           </div>
 
           <div class="user-profile-info w-100 mt-16 pt-6 pt-sm-0 mt-sm-0">
-            <h4 class="text-h4 text-center text-sm-start mb-2">
+            <h4 class="text-h4 text-center text-sm-start mb-2 shop-wb-name">
               {{ seller.shop.wb_name }}
 
               <VDialog
@@ -432,5 +432,11 @@ const normalizeProduct = (ad) => {
 
 .review-star{
   color: gold;
+}
+
+@media screen and (max-width: 600px){
+  .shop-wb-name{
+    margin-top: 50px;
+  }
 }
 </style>
