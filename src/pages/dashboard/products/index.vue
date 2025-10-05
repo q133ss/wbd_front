@@ -392,7 +392,7 @@ function selectStatus(value) {
         Товары <span
           v-if="products?.length"
           class="pl-1"
-        > ({{ products?.length }})</span>
+        > ({{ totalItems }})</span>
       </VTab>
       <VTab
         to="/dashboard/advertisements"
